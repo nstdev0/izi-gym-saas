@@ -9,3 +9,5 @@ export class CreateMemberUseCase {
     return member;
   }
 }
+
+export type ICreateMemberUseCase = InstanceType<typeof CreateMemberUseCase>;

@@ -1,13 +1,7 @@
 import { IMembersRepository } from "@repositories/members.repository.interface";
 import { Member } from "@entities/Member";
-import { prisma } from "../prisma";
+import { BaseRepository } from "./base.repository";
 
-export class MembersRepository implements IMembersRepository {
-  async findAll(): Promise<Member[]> {
-    return await prisma.member.findMany();
-  }
-
-  async create(input: Record<string, unknown>): Promise<Member> {
-    return await prisma.member.create({ data: input });
-  }
-}
+export class MembersRepository
+  extends BaseRepository<Member>
+  implements IMembersRepository {}

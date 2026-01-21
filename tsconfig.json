@@ -25,6 +25,8 @@
       "@use-cases/*": ["./server/application/use-cases/*"],
       "@persistence/*": ["./server/infrastructure/persistence/*"],
       "@interface-adapters/*": ["./server/interface-adapters/*"],
+      "@controllers/*": ["./server/interface-adapters/controllers/*"],
+      "@domain/*": ["./server/domain/*"]
     }
   },
   "include": [

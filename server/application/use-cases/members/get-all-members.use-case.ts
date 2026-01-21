@@ -8,3 +8,5 @@ export class GetAllMembersUseCase {
     return await this.membersRepo.findAll();
   }
 }
+
+export type IGetAllMembersUseCase = InstanceType<typeof GetAllMembersUseCase>;

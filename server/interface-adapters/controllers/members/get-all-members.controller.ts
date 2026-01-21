@@ -1,9 +1,14 @@
-import { GetAllMembersUseCase } from "@/server/application/use-cases/members/get-all-members.use-case";
+import { IGetAllMembersUseCase } from "@use-cases/members/get-all-members.use-case";
 
 export class GetAllMembersController {
-  constructor(private readonly getAllMembersUseCase: GetAllMembersUseCase) {}
+  constructor(private readonly getAllMembersUseCase: IGetAllMembersUseCase) {}
 
   async execute() {
-    return await this.getAllMembersUseCase.execute();
+    try {
+      return await this.getAllMembersUseCase.execute();
+    } catch (error) {
+      console.error("[GetAllMembersController]:", error);
+      throw error;
+    }
   }
 }
