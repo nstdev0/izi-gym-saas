@@ -2,15 +2,28 @@
 import { NextRequest, NextResponse } from "next/server";
 import { AppError } from "@/server/domain/errors/AppError";
 import { ZodError } from "zod";
+import { getContainer } from "../di/container";
+import { Params } from "next/dist/server/request/params";
 
-type RouteHandler = (req: NextRequest, params?: any) => Promise<NextResponse>;
+type Container = ReturnType<typeof getContainer>;
 
-export const apiHandler = (handler: RouteHandler): RouteHandler => {
-  return async (req: NextRequest, params?: any) => {
+type ControllerSelector = (container: Container) => {
+  execute: (req?: NextRequest, params?: Params) => Promise<unknown>;
+};
+
+export const createApiHandler = (selector: ControllerSelector) => {
+  return async (req: NextRequest, params: { params: Params }) => {
     try {
-      return await handler(req, params);
-    } catch (error: any) {
-      // LOGGING INTELIGENTE 🧠
+      const container = getContainer();
+      const controller = selector(container);
+      const result = await controller.execute(await req.json(), params?.params);
+
+      if (result instanceof NextResponse) {
+        return result;
+      }
+
+      return NextResponse.json(result, { status: 200 });
+    } catch (error: unknown) {
       if (error instanceof AppError && error.isOperational) {
         // Para errores conocidos (400, 404, 409), solo un aviso simple.
         console.warn(`[API WARN] ${error.code}: ${error.message}`);
@@ -19,7 +32,6 @@ export const apiHandler = (handler: RouteHandler): RouteHandler => {
         console.error(`[API CRITICAL] ${req.method} ${req.url}`, error);
       }
 
-      // ... resto de tu lógica de respuesta (instanceof AppError, ZodError, etc) ...
       if (error instanceof AppError) {
         return NextResponse.json(error.toJSON(), { status: error.statusCode });
       }

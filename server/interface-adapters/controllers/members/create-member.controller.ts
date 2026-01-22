@@ -5,7 +5,7 @@ import { ICreateMemberUseCase } from "@use-cases/members/create-member.use-case"
 export class CreateMemberController {
   constructor(private readonly createMemberUseCase: ICreateMemberUseCase) {}
 
-  async execute(input: Record<string, unknown>) {
+  async execute(input: unknown) {
     try {
       const validatedInput = CreateMemberSchema.safeParse(input);
 
