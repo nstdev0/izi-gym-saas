@@ -4,4 +4,9 @@ import { BaseRepository } from "./base.repository";
 
 export class MembersRepository
   extends BaseRepository<Member>
-  implements IMembersRepository {}
+  implements IMembersRepository
+{
+  async findByEmail() {
+    return null;
+  }
+}

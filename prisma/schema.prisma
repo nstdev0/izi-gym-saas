@@ -8,11 +8,16 @@ datasource db {
 }
 
 model Member {
-  id        String   @id @default(cuid())
+  id String @id @default(cuid())
+
   firstName String
   lastName  String
-  email     String
-  phone     String
+
+  email String @unique
+  phone String
+
+  docNumber String @unique
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

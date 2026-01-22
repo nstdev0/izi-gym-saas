@@ -7,6 +7,7 @@ export const CreateMemberSchema = z.object({
   phone: z
     .string()
     .regex(/^9\d{8}$/, "El teléfono debe tener 9 dígitos y comenzar con 9"),
+  docNumber: z.string().min(8, "El número de documento es muy corto"),
 });
 
 export type CreateMemberInput = z.infer<typeof CreateMemberSchema>;
