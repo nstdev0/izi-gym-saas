@@ -1,3 +1,5 @@
+// Probando refactorizacion para dejar de usar controllers y pasar a usar server actions directamente.
+
 import { cache } from "react";
 import { MembersRepository } from "@persistence/repositories/members.repository";
 import { GetAllMembersUseCase } from "@use-cases/members/get-all-members.use-case";

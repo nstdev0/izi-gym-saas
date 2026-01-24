@@ -7,16 +7,40 @@ import { Params } from "next/dist/server/request/params";
 
 type Container = ReturnType<typeof getContainer>;
 
-type ControllerSelector = (container: Container) => {
-  execute: (req?: NextRequest, params?: Params) => Promise<unknown>;
+type ControllerExecutor<TInput> = {
+  execute: (input: TInput) => Promise<unknown>;
 };
 
-export const createContext = (selector: ControllerSelector) => {
-  return async (req?: NextRequest, params?: { params: Params }) => {
+type ControllerSelector<TInput> = (
+  container: Container,
+) => ControllerExecutor<TInput>;
+
+type RequestMapper<TInput> = (
+  req: NextRequest,
+  params?: Params,
+) => TInput | Promise<TInput>;
+
+export const createContext = <TInput = NextRequest>(
+  selector: ControllerSelector<TInput>,
+  requestMapper?: RequestMapper<TInput>,
+) => {
+  return async (req: NextRequest, context?: { params: Promise<Params> }) => {
     try {
+      const params = context?.params ? await context.params : undefined;
       const container = getContainer();
       const controller = selector(container);
-      const result = await controller.execute(req, params?.params);
+
+      let input: TInput;
+
+      if (requestMapper) {
+        input = await requestMapper(req, params);
+      } else {
+        // Fallback for controllers still expecting (req, params) or just req
+        // We assume TInput is structurally compatible if no mapper is provided
+        input = req as unknown as TInput;
+      }
+
+      const result = await controller.execute(input);
 
       if (result instanceof NextResponse) {
         return result;

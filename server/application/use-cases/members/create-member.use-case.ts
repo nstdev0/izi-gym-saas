@@ -1,48 +1,29 @@
-import { ConflictError } from "@/server/domain/errors/common";
-import { Member } from "@entities/Member";
-import { IMembersRepository } from "@repositories/members.repository.interface";
+import { Member } from "@/server/domain/entities/Member";
+import { IMembersRepository } from "../../repositories/members.repository.interface";
 import { CreateMemberInput } from "../../dtos/create-member.dto";
+import { ConflictError } from "@/server/domain/errors/common";
 
 export class CreateMemberUseCase {
   constructor(private readonly membersRepo: IMembersRepository) {}
 
   async execute(input: CreateMemberInput): Promise<Member> {
-    try {
-      const errors: string[] = [];
+    // Validaciones de negocio (Email y DNI únicos)
+    const errors: string[] = [];
 
-      const verifyEmail = await this.membersRepo.findUnique({
-        email: input.email,
-      });
+    const [existingEmail, existingDoc] = await Promise.all([
+      this.membersRepo.findUnique({ email: input.email }),
+      this.membersRepo.findUnique({ docNumber: input.docNumber }),
+    ]);
 
-      const verifyDocNumber = await this.membersRepo.findUnique({
-        docNumber: input.docNumber,
-      });
+    if (existingEmail) errors.push("Email");
+    if (existingDoc) errors.push("Document number");
 
-      if (verifyEmail) {
-        errors.push("Email");
-      }
-
-      if (verifyDocNumber) {
-        errors.push("Document number");
-      }
-
-      if (errors.length > 2) {
-        throw new ConflictError(`${errors.join(", ")} already exists`);
-      }
-
-      if (errors.length > 1 && errors.length <= 2) {
-        throw new ConflictError(`${errors.join(" and ")} already exists`);
-      }
-
-      if (errors.length === 1) {
-        throw new ConflictError(`${errors.join(", ")} already exists`);
-      }
-
-      const member = await this.membersRepo.create(input);
-      return member;
-    } catch (error) {
-      throw error;
+    if (errors.length > 0) {
+      const msg = errors.join(" and ");
+      throw new ConflictError(`${msg} already exists`);
     }
+
+    return await this.membersRepo.create(input);
   }
 }
 

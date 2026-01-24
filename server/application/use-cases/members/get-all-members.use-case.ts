@@ -1,11 +1,20 @@
+import {
+  PageableRequest,
+  PageableResponse,
+} from "@/server/shared/common/pagination";
 import { Member } from "@entities/Member";
-import { IMembersRepository } from "@repositories/members.repository.interface";
+import {
+  IMembersRepository,
+  MembersFilters,
+} from "@repositories/members.repository.interface";
 
 export class GetAllMembersUseCase {
   constructor(private readonly membersRepo: IMembersRepository) {}
 
-  async execute(): Promise<Member[]> {
-    return await this.membersRepo.findAll();
+  async execute(
+    params: PageableRequest<MembersFilters>,
+  ): Promise<PageableResponse<Member>> {
+    return await this.membersRepo.findAll(params);
   }
 }
 

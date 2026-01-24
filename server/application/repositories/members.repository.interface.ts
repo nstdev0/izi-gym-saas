@@ -1,20 +1,18 @@
 import { Member } from "@entities/Member";
 import { IBaseRepository } from "./base.repository.interface";
+import {
+  CreateMemberInput,
+  UpdateMemberInput,
+} from "../dtos/create-member.dto";
 
-export interface CreateMemberInput {
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
+export interface MembersFilters {
+  search?: string;
 }
 
-export interface UpdateMemberInput {
-  firstName?: string;
-  lastName?: string;
-  email?: string;
-  phone?: string;
-}
-
-export interface IMembersRepository extends IBaseRepository<Member> {
-  findByEmail(): Promise<null>;
-}
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface IMembersRepository extends IBaseRepository<
+  Member,
+  CreateMemberInput,
+  UpdateMemberInput,
+  MembersFilters
+> {}

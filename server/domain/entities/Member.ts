@@ -5,6 +5,7 @@ export class Member {
     public readonly lastName: string,
     public readonly email: string,
     public readonly phone: string,
+    public readonly docNumber: string,
     public readonly createdAt: Date,
     public readonly updatedAt: Date,
   ) {}
