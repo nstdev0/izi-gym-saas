@@ -1,12 +1,23 @@
-export class Member {
+import { BaseEntity } from "./_base";
+
+export class Member extends BaseEntity {
   constructor(
-    public readonly id: string,
-    public readonly firstName: string,
-    public readonly lastName: string,
-    public readonly email: string,
-    public readonly phone: string,
+    id: string,
+    organizationId: string,
+    createdAt: Date,
+    updatedAt: Date,
+    public firstName: string,
+    public lastName: string,
+    public birthDate: Date,
+    public email: string,
+    public readonly docType: string,
     public readonly docNumber: string,
-    public readonly createdAt: Date,
-    public readonly updatedAt: Date,
-  ) {}
+    public readonly phone: string,
+  ) {
+    super(id, organizationId, createdAt, updatedAt);
+  }
+
+  get fullName(): string {
+    return `${this.firstName} ${this.lastName}`;
+  }
 }
