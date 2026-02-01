@@ -33,7 +33,7 @@ export async function POST(req: Request) {
       "svix-timestamp": svix_timestamp,
       "svix-signature": svix_signature,
     }) as WebhookEvent;
-  } catch (err) {
+  } catch {
     return new Response("Error occured", { status: 400 });
   }
 
@@ -49,8 +49,11 @@ export async function POST(req: Request) {
         data: {
           id: id, // IMPORTANTE: Usamos el ID de Clerk como Primary Key
           name: name,
-          slug: slug || name.toLowerCase().replace(/\s/g, "-"), // Fallback si no hay slug
+          slug: name.toLowerCase().replace(/\s/g, "-"),
           isActive: true,
+          plan: {
+            connect: { slug: "free-trial" },
+          },
         },
       });
       console.log(`✅ Organización creada en DB: ${name} (${id})`);
@@ -89,21 +92,26 @@ export async function POST(req: Request) {
     // Asumamos que al invitar, pasaste organizationId en public_metadata
     const organizationId = public_metadata.organizationId as string;
 
-    await prisma.user.upsert({
-      where: {
-        id: id,
-      },
-      create: {
-        id: id, // Usamos el MISMO ID de Clerk (Best Practice)
-        email: email_addresses[0].email_address,
-        role: "ORG_OWNER", // O lo que venga en metadata
-        passwordHash: "OAUTH_MANAGED", // Ya no manejamos password
-        organizationId: organizationId, // Vinculamos al tenant
-      },
-      update: {
-        email: email_addresses[0].email_address,
-      },
-    });
+    try {
+      await prisma.user.upsert({
+        where: {
+          id: id,
+        },
+        create: {
+          id: id,
+          email: email_addresses[0].email_address,
+          role: "OWNER",
+          passwordHash: "OAUTH_MANAGED",
+          organizationId: organizationId,
+        },
+        update: {
+          email: email_addresses[0].email_address,
+        },
+      });
+    } catch (error) {
+      console.error("❌ Error upserting user:", error);
+      // Prevent 500 loop
+    }
   }
 
   // Manejar user.updated y user.deleted también...

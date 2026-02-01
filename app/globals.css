@@ -1,5 +1,25 @@
 @import "tailwindcss";
 
+@keyframes mobile-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-mobile-slide-in {
+  animation: mobile-slide-in 0.5s ease-out forwards;
+}
+
+.animate-mobile-slide-in-footer {
+  animation: mobile-slide-in 0.5s ease-out forwards;
+  opacity: 0; /* Ensure hidden initially */
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -130,7 +150,8 @@
 
   /* Theme Overrides (Must come after .dark or have higher specificity) */
   /* Blue */
-  [data-theme='blue'], .dark[data-theme='blue'] {
+  [data-theme="blue"],
+  .dark[data-theme="blue"] {
     --primary: oklch(0.488 0.243 264.376);
     --primary-foreground: oklch(0.985 0 0);
     --ring: oklch(0.488 0.243 264.376);
@@ -138,7 +159,8 @@
   }
 
   /* Red */
-  [data-theme='red'], .dark[data-theme='red'] {
+  [data-theme="red"],
+  .dark[data-theme="red"] {
     --primary: oklch(0.577 0.245 27.325);
     --primary-foreground: oklch(0.985 0 0);
     --ring: oklch(0.577 0.245 27.325);
@@ -146,7 +168,8 @@
   }
 
   /* Green */
-  [data-theme='green'], .dark[data-theme='green'] {
+  [data-theme="green"],
+  .dark[data-theme="green"] {
     --primary: oklch(0.55 0.2 140);
     --primary-foreground: oklch(0.985 0 0);
     --ring: oklch(0.55 0.2 140);

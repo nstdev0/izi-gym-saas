@@ -10,7 +10,7 @@ import {
   Dumbbell,
   Package,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 
 import {
   CommandDialog,
@@ -26,6 +26,8 @@ import {
 export function CommandMenu() {
   const [open, setOpen] = React.useState(false);
   const router = useRouter();
+  const params = useParams();
+  const slug = params.slug as string;
 
   React.useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -51,17 +53,23 @@ export function CommandMenu() {
         <CommandEmpty>No se encontraron resultados.</CommandEmpty>
         <CommandGroup heading="Sugerencias">
           <CommandItem
-            onSelect={() => runCommand(() => router.push("/admin/members"))}
+            onSelect={() =>
+              runCommand(() => router.push(`/${slug}/admin/members`))
+            }
           >
             <Users className="mr-2 h-4 w-4" />
             <span>Miembros</span>
           </CommandItem>
-          <CommandItem onSelect={() => runCommand(() => router.push("/admin"))}>
+          <CommandItem
+            onSelect={() => runCommand(() => router.push(`/${slug}/admin`))}
+          >
             <LayoutDashboard className="mr-2 h-4 w-4" />
             <span>Dashboard</span>
           </CommandItem>
           <CommandItem
-            onSelect={() => runCommand(() => router.push("/admin/members/new"))}
+            onSelect={() =>
+              runCommand(() => router.push(`/${slug}/admin/members/new`))
+            }
           >
             <Smile className="mr-2 h-4 w-4" />
             <span>Nuevo Miembro</span>
@@ -70,25 +78,33 @@ export function CommandMenu() {
         <CommandSeparator />
         <CommandGroup heading="Navegación">
           <CommandItem
-            onSelect={() => runCommand(() => router.push("/admin/plans"))}
+            onSelect={() =>
+              runCommand(() => router.push(`/${slug}/admin/plans`))
+            }
           >
             <Dumbbell className="mr-2 h-4 w-4" />
             <span>Planes</span>
           </CommandItem>
           <CommandItem
-            onSelect={() => runCommand(() => router.push("/admin/memberships"))}
+            onSelect={() =>
+              runCommand(() => router.push(`/${slug}/admin/memberships`))
+            }
           >
             <CreditCard className="mr-2 h-4 w-4" />
             <span>Membresías</span>
           </CommandItem>
           <CommandItem
-            onSelect={() => runCommand(() => router.push("/admin/products"))}
+            onSelect={() =>
+              runCommand(() => router.push(`/${slug}/admin/products`))
+            }
           >
             <Package className="mr-2 h-4 w-4" />
             <span>Productos</span>
           </CommandItem>
           <CommandItem
-            onSelect={() => runCommand(() => router.push("/admin/settings"))}
+            onSelect={() =>
+              runCommand(() => router.push(`/${slug}/admin/settings`))
+            }
           >
             <Settings className="mr-2 h-4 w-4" />
             <span>Configuración</span>

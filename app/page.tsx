@@ -37,8 +37,8 @@ export default async function RootPage() {
 
   // --- 4. ENRUTAMIENTO INTELIGENTE ---
 
-  // CASO A: Es el Dueño del Sistema (Super Admin)
-  if (user.role === "SUPER_ADMIN") {
+  // CASO A: Es el Dueño del Sistema (God Mode)
+  if (user.role === "GOD") {
     redirect("/system/dashboard");
   }
 
@@ -48,22 +48,6 @@ export default async function RootPage() {
   }
 
   // CASO C: Usuario huérfano (Registrado, pero sin organización)
-  // Aquí decides: ¿Lo mandas a crear una? ¿Le muestras un mensaje?
-  return (
-    <div className="flex h-screen flex-col items-center justify-center gap-6 bg-white">
-      <div className="text-center space-y-2">
-        <h1 className="text-2xl font-bold tracking-tight text-gray-900">
-          Hola, {user.email}
-        </h1>
-        <p className="text-gray-500">
-          Tu cuenta está activa, pero no perteneces a ninguna organización.
-        </p>
-      </div>
-
-      {/* Opcional: Botón para contactar soporte o crear org si permites self-service */}
-      <div className="p-4 bg-yellow-50 text-yellow-800 rounded-md text-sm border border-yellow-200">
-        Contacta a un administrador para que te invite a un gimnasio.
-      </div>
-    </div>
-  );
+  // Lo mandamos al Onboarding para que cree su gimnasio.
+  redirect("/onboarding");
 }

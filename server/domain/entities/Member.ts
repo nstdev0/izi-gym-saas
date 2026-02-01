@@ -3,12 +3,14 @@ import { BaseEntity } from "./_base";
 export enum Gender {
   MALE = "MALE",
   FEMALE = "FEMALE",
+  OTHER = "OTHER",
 }
 
 export enum DocType {
   DNI = "DNI",
   CE = "CE",
   PASSPORT = "PASSPORT",
+  RUC = "RUC",
 }
 
 export class Member extends BaseEntity {
@@ -19,13 +21,17 @@ export class Member extends BaseEntity {
     updatedAt: Date,
     public firstName: string,
     public lastName: string,
-    public email: string,
-    public phone: string,
     public docType: DocType,
     public docNumber: string,
     public isActive: boolean,
-    public birthDate?: Date,
-    public gender?: Gender,
+    public email?: string | null,
+    public phone?: string | null,
+    public birthDate?: Date | null,
+    public gender?: Gender | null,
+    public height?: number | null,
+    public weight?: number | null,
+    public imc?: number | null,
+    public image?: string | null,
   ) {
     super(id, organizationId, createdAt, updatedAt);
   }

@@ -2,17 +2,24 @@ import { Organization } from "@/server/domain/entities/Organization";
 import {
   CreateOrganizationInput,
   UpdateOrganizationInput,
+  OrganizationsFilters,
 } from "@/server/domain/types/organizations";
 import { IBaseRepository } from "./base.repository.interface";
 
-export interface OrganizationsFilters {
-  search?: string;
-}
+export type {
+  CreateOrganizationInput,
+  UpdateOrganizationInput,
+  OrganizationsFilters,
+};
 
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface IOrganizationRepository extends IBaseRepository<
   Organization,
   CreateOrganizationInput,
   UpdateOrganizationInput,
   OrganizationsFilters
-> {}
+> {
+  createWithTransaction(
+    input: CreateOrganizationInput,
+    userId: string,
+  ): Promise<Organization>;
+}

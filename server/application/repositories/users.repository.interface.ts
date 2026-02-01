@@ -1,0 +1,17 @@
+import { User } from "@/server/domain/entities/User";
+import { IBaseRepository } from "./base.repository.interface";
+import {
+  CreateUserInput,
+  UpdateUserInput,
+  UsersFilters,
+} from "@/server/domain/types/users";
+
+export type { CreateUserInput, UpdateUserInput, UsersFilters };
+
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface IUsersRepository extends IBaseRepository<
+  User,
+  CreateUserInput,
+  UpdateUserInput,
+  UsersFilters
+> {}

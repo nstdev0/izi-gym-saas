@@ -10,6 +10,8 @@ import { Analytics } from "@vercel/analytics/react";
 import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
+import { Toaster } from "@/components/ui/sonner";
+import { ReactQueryProvider } from "@/components/react-query-provider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -76,8 +78,11 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <ClerkProvider>
-            {children}
-            <Analytics />
+            <ReactQueryProvider>
+              {children}
+              <Analytics />
+              <Toaster />
+            </ReactQueryProvider>
           </ClerkProvider>
         </ThemeProvider>
       </body>

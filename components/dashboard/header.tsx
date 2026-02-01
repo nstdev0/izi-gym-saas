@@ -17,9 +17,7 @@ import { Sidebar } from "./sidebar";
 import { CommandMenu } from "./command-menu";
 import React from "react";
 
-export function Header() {
-  const [isCommandOpen, setIsCommandOpen] = React.useState(false);
-
+export function Header({ slug }: { slug: string }) {
   // Trigger command menu programmatically if needed, or just let the Global listener handle it
   // But we want clicking the input to open it.
 
@@ -40,9 +38,13 @@ export function Header() {
             <span className="sr-only">Toggle navigation menu</span>
           </Button>
         </SheetTrigger>
-        <SheetContent side="left" className="flex flex-col p-0 w-64">
+        <SheetContent side="left" className="flex flex-col p-0 w-64 gap-0">
           {/* Sidebar inside mobile sheet */}
-          <Sidebar className="border-r-0" />
+          <Sidebar
+            slug={slug}
+            className="border-r-0 w-full h-full"
+            forceExpanded={true}
+          />
         </SheetContent>
       </Sheet>
 

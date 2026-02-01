@@ -1,11 +1,7 @@
-// app/(frontend)/system/layout.tsx
-
 import { SystemSidebar } from "@/components/system/sidebar";
-import { prisma } from "@/server/infrastructure/persistence/prisma";
+import { getContainer } from "@/server/di/container";
 import { auth } from "@clerk/nextjs/server";
 import { notFound, redirect } from "next/navigation";
-
-// ... imports
 
 export default async function SystemLayout({
   children,
@@ -19,20 +15,31 @@ export default async function SystemLayout({
     redirect("/sign-in");
   }
 
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-  });
+  const container = await getContainer();
+  let user;
+
+  console.log("USERID", userId);
+
+  try {
+    user = await container.getUserByIdController.execute(userId);
+  } catch (e) {
+    console.error("SystemLayout: User not found or error", e);
+    // User not in DB -> Access Denied (or redirect to onboarding)
+    // currently we return notFound() which behaves like "Access Denied" for this route
+    return notFound();
+  }
 
   // --- DEBUG LOGS (Remove later) ---
+  console.log("USER:", user);
   console.log("🔍 SYSTEM ACCESS CHECK:");
   console.log("👉 Clerk User ID:", userId);
-  console.log("👉 DB User Found:", user);
-  console.log("👉 Role in DB:", user?.role);
-  console.log("👉 Match Condition:", user?.role === "SUPER_ADMIN");
+  console.log("👉 DB User Found (via Controller):", user);
+  console.log("👉 Role in DB:", user.role);
+  console.log("👉 Match Condition:", user.role === "GOD");
   // --------------------------------
 
-  if (user?.role !== "SUPER_ADMIN") {
-    console.log("⛔ Access Denied: User is not SUPER_ADMIN");
+  if (user.role !== "GOD") {
+    console.log("⛔ Access Denied: User is not GOD");
     return notFound();
   }
 

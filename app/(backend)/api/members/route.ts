@@ -2,7 +2,6 @@ import { MembersFilters } from "@/server/application/repositories/members.reposi
 import { createContext } from "@/server/lib/api-handler";
 import { PageableRequest } from "@/server/shared/common/pagination";
 
-// Get All Members Paginated
 export const GET = createContext(
   (container) => container.getAllMembersController,
   async (req): Promise<PageableRequest<MembersFilters>> => {
@@ -17,7 +16,6 @@ export const GET = createContext(
   },
 );
 
-// Create Member
 export const POST = createContext(
   (container) => container.createMemberController,
   async (req) => await req.json(),

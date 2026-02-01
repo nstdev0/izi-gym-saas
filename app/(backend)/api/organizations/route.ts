@@ -18,5 +18,5 @@ export const GET = createContext(
 
 export const POST = createContext(
   (container) => container.createOrganizationController,
-  async (req) => await req.json(),
+  async (req) => req, // Pasamos el req completo porque el controller lo espera (handle(req: NextRequest))
 );

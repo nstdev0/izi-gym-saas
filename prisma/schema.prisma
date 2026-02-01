@@ -7,17 +7,31 @@ datasource db {
   provider = "postgresql"
 }
 
-model Organization {
-  id String @id @default(cuid())
+// ---------------------------------------------------------
+// SAAS Models
+// ---------------------------------------------------------
 
-  name String
-  slug String @unique
+model Organization {
+  id    String  @id @default(cuid())
+  name  String
+  slug  String  @unique
+  image String?
 
   isActive Boolean @default(true)
 
-  members     Member[]
+  // RELACIÓN 1: El Plan Actual (Fuente de Verdad para Límites)
+  // Toda organización DEBE tener un plan (aunque sea el "FREE")
+  organizationPlanId String
+  plan               OrganizationPlan @relation(fields: [organizationPlanId], references: [id])
+
+  // RELACIÓN 2: La Suscripción (Fuente de Verdad para Pagos/Stripe)
+  // Puede ser nula si está en el plan gratuito de por vida o manual
+  subscription Subscription?
+
+  // RELACIONES DEL TENANT (DATOS DEL GIMNASIO)
   users       User[]
-  plans       Plan[]
+  members     Member[]
+  plans       Plan[]       @relation("GymPlans") // Nombre para no confundir con OrganizationPlan
   products    Product[]
   memberships Membership[]
 
@@ -25,14 +39,72 @@ model Organization {
   updatedAt DateTime @updatedAt
 }
 
+// Catálogo de Planes del SaaS (Basic, Pro, Enterprise)
+model OrganizationPlan {
+  id          String  @id @default(cuid())
+  name        String  @unique // Ej: "Pro Monthly"
+  slug        String  @unique // Ej: "pro_mo"
+  description String?
+  image       String?
+
+  price    Decimal @default(0) @db.Decimal(10, 2)
+  currency String  @default("USD")
+
+  // JSON con límites: { "maxMembers": 100, "canExport": true }
+  limits Json
+
+  // ID de Stripe para sincronización (Product ID / Price ID)
+  stripePriceId String?
+
+  organizations Organization[]
+  subscriptions Subscription[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Estado de facturación del SaaS
+model Subscription {
+  id String @id @default(cuid())
+
+  // Relación con la Organización (1 a 1)
+  organizationId String       @unique
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  // Relación con el Plan que están pagando
+  organizationPlanId String
+  plan               OrganizationPlan @relation(fields: [organizationPlanId], references: [id])
+
+  // Datos de Stripe
+  stripeCustomerId     String?
+  stripeSubscriptionId String? @unique
+
+  status           SubscriptionStatus
+  currentPeriodEnd DateTime
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  TRIALING
+  INCOMPLETE // Esperando primer pago
+}
+
 model User {
   id String @id @default(cuid())
 
-  email        String @unique
-  passwordHash String
+  image String?
+
+  email        String  @unique
+  passwordHash String? // Opcional si usas solo Clerk/OAuth
 
   role Role @default(STAFF)
 
+  // Organización Opcional (Para cuando se registran y aún no crean el gym)
   organizationId String?
   organization   Organization? @relation(fields: [organizationId], references: [id])
 
@@ -42,14 +114,24 @@ model User {
   @@index([organizationId])
 }
 
+// ---------------------------------------------------------
+// MODELOS DEL TENANT (GIMNASIO)
+// ---------------------------------------------------------
+
 model Member {
   id String @id @default(cuid())
+
+  image String?
 
   firstName String
   lastName  String
 
   gender    Gender?
   birthDate DateTime? @db.Date
+
+  height Float?
+  weight Float?
+  imc    Float?
 
   email String?
   phone String?
@@ -67,17 +149,20 @@ model Member {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([docType, docNumber, organizationId])
+  // Índices optimizados para búsquedas
+  @@unique([docType, docNumber, organizationId]) // Un DNI único por gimnasio (no global)
   @@unique([email, organizationId])
   @@index([organizationId])
   @@index([lastName, firstName])
 }
 
+// Planes que el Gimnasio vende a sus clientes (Ej: "Membresía Mensual Gym")
 model Plan {
   id String @id @default(cuid())
 
   name        String
   description String?
+  image       String?
 
   price        Decimal @db.Decimal(10, 2)
   durationDays Int
@@ -85,7 +170,7 @@ model Plan {
   isActive Boolean @default(true)
 
   organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id])
+  organization   Organization @relation("GymPlans", fields: [organizationId], references: [id])
 
   memberships Membership[]
 
@@ -119,7 +204,7 @@ model Membership {
   @@index([organizationId])
   @@index([memberId])
   @@index([status])
-  @@index([endDate])
+  @@index([endDate]) // Vital para cronjobs de vencimiento
 }
 
 model Product {
@@ -129,6 +214,7 @@ model Product {
 
   name        String
   description String?
+  images      String[]
 
   price Decimal @db.Decimal(10, 2)
   cost  Decimal @db.Decimal(10, 2)
@@ -150,10 +236,14 @@ model Product {
   @@index([organizationId])
 }
 
+// ---------------------------------------------------------
+// ENUMS
+// ---------------------------------------------------------
+
 enum Role {
-  SUPER_ADMIN
-  ORG_OWNER
-  ORG_ADMIN
+  GOD
+  OWNER
+  ADMIN
   STAFF
   TRAINER
 }
@@ -162,11 +252,13 @@ enum DocType {
   DNI
   CE
   PASSPORT
+  RUC
 }
 
 enum Gender {
   MALE
   FEMALE
+  OTHER
 }
 
 enum ProductType {

@@ -3,4 +3,8 @@ export interface CreateOrganizationInput {
   slug: string;
 }
 
-export interface UpdateOrganizationInput extends Partial<CreateOrganizationInput> {}
+export type UpdateOrganizationInput = Partial<CreateOrganizationInput>;
+
+export interface OrganizationsFilters {
+  search?: string;
+}

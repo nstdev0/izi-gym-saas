@@ -1,8 +1,8 @@
 import { BaseRepository } from "./base.repository";
 import { IMembersRepository } from "@repositories/members.repository.interface";
-import { DocType, Member } from "@entities/Member";
+import { Member } from "@entities/Member";
 import { MembersFilters } from "@repositories/members.repository.interface";
-import { Prisma, PrismaClient } from "@/generated/prisma/client";
+import { Prisma } from "@/generated/prisma/client";
 import {
   CreateMemberInput,
   UpdateMemberInput,
@@ -44,9 +44,9 @@ export class MembersRepository
       docType_docNumber_organizationId: {
         docType: args.docType,
         docNumber: args.docNumber,
-        organizationId: args.organizationId,
+        organizationId: this.organizationId as string,
       },
-    });
+    } as unknown as Partial<Member>);
     return record ? record : null;
   }
 }

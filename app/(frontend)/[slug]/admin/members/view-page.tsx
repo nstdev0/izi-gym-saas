@@ -17,7 +17,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ArrowUpDown } from "lucide-react";
-import { useRouter, useSearchParams, usePathname } from "next/navigation";
+import {
+  useRouter,
+  useSearchParams,
+  usePathname,
+  useParams,
+} from "next/navigation";
 import Loading from "./loading";
 import Link from "next/link";
 import { PageableResponse } from "@/server/shared/common/pagination";
@@ -39,6 +44,8 @@ export default function MembersViewPage({
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
+  const params = useParams();
+  const slug = params.slug as string;
 
   const handleSortChange = (value: string) => {
     const [sort, order] = value.split(":");
@@ -66,7 +73,7 @@ export default function MembersViewPage({
                 Administra todos los miembros de tu gimnasio
               </p>
             </div>
-            <Link href="/admin/members/new">
+            <Link href={`/${slug}/admin/members/new`}>
               <Button
                 size="sm"
                 className="gap-2 bg-primary hover:bg-primary/90"
@@ -124,7 +131,7 @@ export default function MembersViewPage({
             </div>
           </div>
 
-          {/* Members Table Container - Fill remaining space */}
+          {/* Members Table Container */}
           <Card className="flex-1 overflow-hidden flex flex-col min-h-0">
             <MembersTable members={members} />
             <div className="p-2 border-t bg-background">

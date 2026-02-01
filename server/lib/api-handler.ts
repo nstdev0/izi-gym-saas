@@ -1,8 +1,7 @@
-// server/lib/middleware.ts
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server"; // <--- 1. Importar Clerk
+import { auth } from "@clerk/nextjs/server";
 import { AppError } from "@/server/domain/errors/AppError";
-import z, { ZodError } from "zod";
+import { ZodError } from "zod";
 import { getContainer } from "../di/container";
 import { Params } from "next/dist/server/request/params";
 
@@ -35,7 +34,7 @@ export const createContext = <TInput = NextRequest>(
   return async (req: NextRequest, context?: { params: Promise<Params> }) => {
     try {
       // --- 2. INTEGRACIÓN CLERK (Security Gatekeeper) ---
-      const session = auth();
+      const session = await auth();
 
       // Si la ruta NO es pública y falta usuario u organización...
       if (!options.isPublic) {
@@ -93,19 +92,19 @@ export const createContext = <TInput = NextRequest>(
           {
             message: "Validation failed",
             code: "VALIDATION_ERROR",
-            details: z.treeifyError(error),
+            errors: error.flatten().fieldErrors,
           },
           { status: 400 },
         );
       }
 
-      // Errores específicos de Clerk (opcional, si usas sus SDKs de gestión)
-      if ((error as any).clerkError) {
-        return NextResponse.json(
-          { message: "Authentication Error", code: "AUTH_ERROR" },
-          { status: 401 },
-        );
-      }
+      // // Errores específicos de Clerk (opcional, si usas sus SDKs de gestión)
+      // if ((error as any).clerkError) {
+      //   return NextResponse.json(
+      //     { message: "Authentication Error", code: "AUTH_ERROR" },
+      //     { status: 401 },
+      //   );
+      // }
 
       console.error(`[API CRITICAL] ${req?.method} ${req?.url}`, error);
 

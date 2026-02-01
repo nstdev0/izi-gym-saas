@@ -38,7 +38,7 @@ export default async function AdminLayout({
 
     // Opción A: Error 403
     return (
-      <div className="h-screen flex items-center justify-center">
+      <div className="h-screen flex flex-col items-center justify-center">
         <h1 className="text-2xl font-bold">No tienes acceso a {slug}</h1>
         <p>Tu organización actual no coincide con la URL solicitada.</p>
         {/* Botón para cambiar de organización en Clerk */}
@@ -49,9 +49,9 @@ export default async function AdminLayout({
   return (
     <DashboardProvider>
       <div className="grid min-h-screen w-full md:grid-cols-[auto_1fr] h-screen overflow-hidden">
-        <Sidebar className="hidden border-r bg-muted/40 md:block" />
+        <Sidebar slug={slug} className="hidden border-r bg-muted/40 md:flex" />
         <div className="flex flex-col h-full overflow-hidden">
-          <Header />
+          <Header slug={slug} />
           <main className="flex-1 overflow-auto p-4 lg:p-6 bg-muted/10">
             {children}
           </main>

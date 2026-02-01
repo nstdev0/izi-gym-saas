@@ -1,29 +1,16 @@
-import { CreateOrganizationInput } from "../../dtos/organizations.dto";
-import { IOrganizationRepository } from "../../repositories/organizations.repository.interface";
+import { IOrganizationRepository } from "@/server/application/repositories/organizations.repository.interface";
 import { Organization } from "@/server/domain/entities/Organization";
+import { CreateOrganizationInput } from "@/server/domain/types/organizations";
 
 export class CreateOrganizationUseCase {
-  constructor(
-    private readonly organizationRepository: IOrganizationRepository,
-  ) {}
+  constructor(private readonly repository: IOrganizationRepository) {}
 
-  async execute(input: CreateOrganizationInput): Promise<Organization> {
-    const errors: string[] = [];
-
-    const existingOrganization = await this.organizationRepository.findUnique({
-      name: input.name,
-    });
-
-    if (existingOrganization) {
-      errors.push("La organización ya existe");
-    }
-
-    const slug = input.name.toLowerCase().replace(/\s+/g, "-");
-
-    return await this.organizationRepository.create({ ...input, slug });
+  async execute(
+    input: CreateOrganizationInput,
+    userId: string,
+  ): Promise<Organization> {
+    // Aquí podríamos agregar validaciones de dominio adicionales si fuera necesario
+    // Por ahora, delegamos la transacción compleja al repositorio
+    return await this.repository.createWithTransaction(input, userId);
   }
 }
-
-export type ICreateOrganizationUseCase = InstanceType<
-  typeof CreateOrganizationUseCase
->;

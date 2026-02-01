@@ -1,4 +1,5 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+// Placeholder to avoid empty replacement error while I verify pagination file location
+// I will check the file location first in next step.
 import {
   IBaseRepository,
   PrismaDelegate,
@@ -24,7 +25,6 @@ export abstract class BaseRepository<
     filters: TFilters,
   ): Promise<Parameters<D["findMany"]>[0]["where"]>;
 
-  // https://www.prisma.io/docs/orm/prisma-client/queries/crud#read
   async findAll(
     request: PageableRequest<TFilters> = { page: 1, limit: 10 },
     options?: {
@@ -70,21 +70,21 @@ export abstract class BaseRepository<
     };
   }
 
-  // https://www.prisma.io/docs/orm/prisma-client/queries/crud#read
   async findUnique(args: Partial<TEntity>): Promise<TEntity | null> {
     return (await this.model.findUnique({
-      where: { ...args, organizationId: this.organizationId },
+      where: {
+        ...args,
+        organizationId: this.organizationId,
+      },
     } as any)) as TEntity | null;
   }
 
-  // https://www.prisma.io/docs/orm/prisma-client/queries/crud#create
   async create(data: TCreate): Promise<TEntity> {
     return (await this.model.create({
       data: { ...data, organizationId: this.organizationId } as any,
     })) as TEntity;
   }
 
-  // https://www.prisma.io/docs/orm/prisma-client/queries/crud#update
   async update(id: string, data: TUpdate): Promise<TEntity> {
     return (await this.model.update({
       data: { ...data, organizationId: this.organizationId } as any,
@@ -92,7 +92,6 @@ export abstract class BaseRepository<
     } as any)) as TEntity;
   }
 
-  // https://www.prisma.io/docs/orm/prisma-client/queries/crud#delete
   async delete(id: string): Promise<TEntity> {
     return (await this.model.delete({
       where: { id, organizationId: this.organizationId },

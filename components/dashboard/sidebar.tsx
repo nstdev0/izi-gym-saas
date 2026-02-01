@@ -22,10 +22,36 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useClerk, useOrganization, useUser } from "@clerk/nextjs";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ChevronsUpDown, LogOut, User } from "lucide-react";
 
-export function Sidebar({ className }: { className?: string }) {
+export function Sidebar({
+  className,
+  slug,
+  forceExpanded = false,
+}: {
+  className?: string;
+  slug: string;
+  forceExpanded?: boolean;
+}) {
   const pathname = usePathname();
-  const { isSidebarCollapsed, toggleSidebar } = useDashboard();
+  const { isSidebarCollapsed: contextCollapsed, toggleSidebar } =
+    useDashboard();
+  const { organization } = useOrganization();
+  const { user } = useUser();
+  const { signOut, openUserProfile } = useClerk();
+
+  // If forceExpanded is true, we treat sidebar as NOT collapsed.
+  const isSidebarCollapsed = forceExpanded ? false : contextCollapsed;
 
   const routes = [
     {
@@ -37,39 +63,39 @@ export function Sidebar({ className }: { className?: string }) {
     {
       label: "Miembros",
       icon: Users,
-      href: "/admin/members",
-      active: pathname.startsWith("/admin/members"),
+      href: `/${slug}/admin/members`,
+      active: pathname.startsWith(`/${slug}/admin/members`),
     },
     {
       label: "Planes",
       icon: Dumbbell,
-      href: "/admin/plans",
-      active: pathname.startsWith("/admin/plans"),
+      href: `/${slug}/admin/plans`,
+      active: pathname.startsWith(`/${slug}/admin/plans`),
     },
     {
       label: "Membresías",
       icon: CreditCard,
-      href: "/admin/memberships",
-      active: pathname.startsWith("/admin/memberships"),
+      href: `/${slug}/admin/memberships`,
+      active: pathname.startsWith(`/${slug}/admin/memberships`),
     },
     {
       label: "Productos",
       icon: Package,
-      href: "/admin/products",
-      active: pathname.startsWith("/admin/products"),
+      href: `/${slug}/admin/products`,
+      active: pathname.startsWith(`/${slug}/admin/products`),
     },
     {
       label: "Configuración",
       icon: Settings,
-      href: "/admin/settings",
-      active: pathname.startsWith("/admin/settings"),
+      href: `/${slug}/admin/settings`,
+      active: pathname.startsWith(`/${slug}/admin/settings`),
     },
   ];
 
   return (
     <div
       className={cn(
-        "relative flex flex-col h-full bg-muted/40 border-r transition-all duration-300 ease-in-out",
+        "relative flex flex-col h-screen bg-muted/40 border-r transition-all duration-300 ease-in-out",
         isSidebarCollapsed ? "w-[70px]" : "w-64",
         className,
       )}
@@ -82,28 +108,30 @@ export function Sidebar({ className }: { className?: string }) {
       >
         {!isSidebarCollapsed && (
           <span className="font-semibold tracking-tight whitespace-nowrap overflow-hidden transition-all duration-300">
-            Gym Admin
+            {organization?.name}
           </span>
         )}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8"
-          onClick={toggleSidebar}
-        >
-          {isSidebarCollapsed ? (
-            <PanelLeftOpen className="h-4 w-4" />
-          ) : (
-            <PanelLeftClose className="h-4 w-4" />
-          )}
-          <span className="sr-only">Toggle Sidebar</span>
-        </Button>
+        {!forceExpanded && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            onClick={toggleSidebar}
+          >
+            {isSidebarCollapsed ? (
+              <PanelLeftOpen className="h-4 w-4" />
+            ) : (
+              <PanelLeftClose className="h-4 w-4" />
+            )}
+            <span className="sr-only">Toggle Sidebar</span>
+          </Button>
+        )}
       </div>
 
       <div className="flex-1 overflow-x-hidden overflow-y-auto py-2">
         <nav className="grid items-start px-2 text-sm font-medium lg:px-4 gap-1">
           <TooltipProvider delayDuration={0}>
-            {routes.map((route) =>
+            {routes.map((route, index) =>
               isSidebarCollapsed ? (
                 <Tooltip key={route.href}>
                   <TooltipTrigger asChild>
@@ -131,9 +159,10 @@ export function Sidebar({ className }: { className?: string }) {
                   key={route.href}
                   variant={route.active ? "secondary" : "ghost"}
                   className={cn(
-                    "w-full justify-start gap-3 mb-1",
+                    "w-full justify-start gap-3 mb-1 animate-mobile-slide-in md:animate-none md:opacity-100",
                     route.active && "bg-muted",
                   )}
+                  style={{ animationDelay: `${index * 50}ms` }}
                   asChild
                 >
                   <Link href={route.href}>
@@ -145,6 +174,82 @@ export function Sidebar({ className }: { className?: string }) {
             )}
           </TooltipProvider>
         </nav>
+      </div>
+      <div
+        className="mt-auto border-t p-4 animate-mobile-slide-in-footer md:animate-none md:opacity-100"
+        style={{ animationDelay: "300ms" }}
+      >
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              className={cn(
+                "w-full p-2 h-auto hover:bg-muted justify-start",
+                isSidebarCollapsed && "justify-center px-2",
+              )}
+            >
+              <div
+                className={cn(
+                  "flex items-center gap-3 w-full",
+                  isSidebarCollapsed && "justify-center",
+                )}
+              >
+                <Avatar className="h-8 w-8">
+                  <AvatarImage
+                    src={user?.imageUrl}
+                    alt={user?.fullName || ""}
+                  />
+                  <AvatarFallback className="bg-primary text-primary-foreground">
+                    {user?.firstName?.charAt(0)}
+                    {user?.lastName?.charAt(0)}
+                  </AvatarFallback>
+                </Avatar>
+                {!isSidebarCollapsed && (
+                  <>
+                    <div className="flex flex-col items-start min-w-0">
+                      <span className="text-sm font-medium truncate w-[130px] text-left">
+                        {user?.fullName || "Usuario"}
+                      </span>
+                      <span className="text-xs text-muted-foreground truncate w-[130px] text-left">
+                        {user?.primaryEmailAddress?.emailAddress || ""}
+                      </span>
+                    </div>
+                    <ChevronsUpDown className="ml-auto h-4 w-4 text-muted-foreground" />
+                  </>
+                )}
+              </div>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            align={isSidebarCollapsed ? "center" : "end"}
+            className="w-56"
+            side="right"
+            sideOffset={10}
+          >
+            <DropdownMenuLabel className="font-normal">
+              <div className="flex flex-col space-y-1">
+                <p className="text-sm font-medium leading-none">
+                  {user?.fullName}
+                </p>
+                <p className="text-xs leading-none text-muted-foreground">
+                  {user?.primaryEmailAddress?.emailAddress}
+                </p>
+              </div>
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => openUserProfile()}>
+              <User className="mr-2 h-4 w-4" />
+              <span>Perfil</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              className="text-red-600 focus:text-red-600 focus:bg-red-100"
+              onClick={() => signOut({ redirectUrl: "/sign-in" })}
+            >
+              <LogOut className="mr-2 h-4 w-4" />
+              <span>Cerrar Sesión</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </div>
   );
