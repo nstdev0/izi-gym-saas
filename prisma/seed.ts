@@ -1,4 +1,4 @@
-import { prisma } from "../server/infrastructure/persistence/prisma";
+import { prisma } from "@/server/infrastructure/persistence/prisma";
 
 async function main() {
   console.log("🌱 Seeding database...");

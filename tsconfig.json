@@ -1,7 +1,11 @@
 {
   "compilerOptions": {
     "target": "ES2023",
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -19,14 +23,30 @@
       }
     ],
     "paths": {
-      "@/*": ["./*"],
-      "@entities/*": ["./server/domain/entities/*"],
-      "@repositories/*": ["./server/application/repositories/*"],
-      "@use-cases/*": ["./server/application/use-cases/*"],
-      "@persistence/*": ["./server/infrastructure/persistence/*"],
-      "@interface-adapters/*": ["./server/interface-adapters/*"],
-      "@controllers/*": ["./server/interface-adapters/controllers/*"],
-      "@domain/*": ["./server/domain/*"]
+      "@/*": [
+        "./*"
+      ],
+      "@entities/*": [
+        "./server/domain/entities/*"
+      ],
+      "@repositories/*": [
+        "./server/application/repositories/*"
+      ],
+      "@use-cases/*": [
+        "./server/application/use-cases/*"
+      ],
+      "@persistence/*": [
+        "./server/infrastructure/persistence/*"
+      ],
+      "@interface-adapters/*": [
+        "./server/interface-adapters/*"
+      ],
+      "@controllers/*": [
+        "./server/interface-adapters/controllers/*"
+      ],
+      "@domain/*": [
+        "./server/domain/*"
+      ]
     }
   },
   "include": [
@@ -37,5 +57,7 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules"
+  ]
 }
