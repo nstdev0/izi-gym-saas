@@ -2,7 +2,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { AppError } from "@/server/domain/errors/AppError";
-import { ZodError } from "zod";
+import z, { ZodError } from "zod";
 import { getContainer } from "../di/container";
 import { Params } from "next/dist/server/request/params";
 
@@ -102,19 +102,41 @@ export const createContext = <TInput = NextRequest>(
       // B. Errores de Validación (Zod)
       // Robustez: Comprobamos instanceof O si parece un error de Zod por nombre/propiedades
       // Esto previene fallos si hay versiones mezcladas de npm
-      const isZodError =
-        error instanceof ZodError ||
-        (error instanceof Error && error.name === "ZodError") ||
-        (typeof error === "object" && error !== null && "issues" in error);
+      // const isZodError =
+      //   error instanceof ZodError ||
+      //   (error instanceof Error && error.name === "ZodError") ||
+      //   (typeof error === "object" && error !== null && "issues" in error);
 
-      if (isZodError) {
-        // Si no es instancia pero parece Zod, lo casteamos a any para acceder a flatten
-        const zodErr = error as ZodError;
-        // Nota: si no es instancia real puede que flatten no exista, usamos issues directo si falla
-        const fieldErrors = typeof zodErr.flatten === 'function'
-          ? zodErr.flatten().fieldErrors
-          : {}; // Fallback simple
+      // if (isZodError) {
+      //   // Si no es instancia pero parece Zod, lo casteamos a any para acceder a flatten
+      //   const zodErr = error as ZodError;
+      //   // Nota: si no es instancia real puede que flatten no exista, usamos issues directo si falla
+      //   const fieldErrors = typeof zodErr.flatten === 'function'
+      //     ? z.treeifyError(zodErr).errors
+      //     : zodErr.issues; // Fallback simple
 
+      //   console.log("[API HANDLER] Caught ZodError:", fieldErrors);
+
+      //   return NextResponse.json(
+      //     {
+      //       message: "Datos inválidos",
+      //       code: "VALIDATION_ERROR",
+      //       errors: fieldErrors,
+      //     },
+      //     { status: 400 },
+      //   );
+      // }
+
+      if (error instanceof ZodError) {
+        // Zod v3: Transformamos el array de issues a un objeto { campo: [mensajes] }
+        const fieldErrors: Record<string, string[]> = {};
+        for (const issue of error.issues) {
+          const path = issue.path.join(".") || "_root";
+          if (!fieldErrors[path]) {
+            fieldErrors[path] = [];
+          }
+          fieldErrors[path].push(issue.message);
+        }
         console.log("[API HANDLER] Caught ZodError:", fieldErrors);
 
         return NextResponse.json(

@@ -15,7 +15,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Member } from "@/server/domain/entities/Member";
-import { columns } from "./columns";
+import { columns } from "./members-columns";
 
 interface MembersTableProps {
   members: Member[];
@@ -46,9 +46,9 @@ export function MembersTable({ members }: MembersTableProps) {
                     {header.isPlaceholder
                       ? null
                       : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext(),
-                        )}
+                        header.column.columnDef.header,
+                        header.getContext(),
+                      )}
                   </TableHead>
                 );
               })}

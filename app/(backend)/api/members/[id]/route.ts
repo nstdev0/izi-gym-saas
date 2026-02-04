@@ -1,6 +1,6 @@
 import { getContainer } from "@/server/di/container";
 import { NextResponse } from "next/server";
-import { CreateMemberSchema } from "@/server/application/dtos/members.dto";
+import { UpdateMemberSchema } from "@/server/application/dtos/members.dto";
 import { z } from "zod";
 import { createContext } from "@/server/lib/api-handler";
 
@@ -19,7 +19,7 @@ export async function PATCH(
   try {
     const { id } = await params;
     const body = await request.json();
-    const validatedData = CreateMemberSchema.partial().parse(body); // Validate partial update
+    const validatedData = UpdateMemberSchema.parse(body);
 
     const container = await getContainer();
     const member = await container.updateMemberController.execute(
@@ -30,10 +30,13 @@ export async function PATCH(
     return NextResponse.json(member);
   } catch (error) {
     if (error instanceof z.ZodError) {
+      // Zod v3: Usamos flatten() para obtener errores por campo
+      const fieldErrors = error.flatten().fieldErrors;
       return NextResponse.json(
         {
           message: "Error de validación",
-          errors: z.treeifyError(error).errors,
+          code: "VALIDATION_ERROR",
+          errors: fieldErrors,
         },
         { status: 400 },
       );

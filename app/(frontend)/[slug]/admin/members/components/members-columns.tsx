@@ -64,12 +64,16 @@ export const columns: ColumnDef<Member>[] = [
       return (
         <div className="space-y-0.5">
           <div className="flex items-center gap-2 text-muted-foreground">
-            <Mail className="w-3 h-3" />
-            {member.email}
+            <Mail className={`w-3 h-3 ${member.email ? "text-primary" : "text-muted-foreground"}`} />
+            <span className={`${member.email ? "text-foreground" : "text-muted-foreground"}`}>
+              {member.email ? member.email : "No registrado"}
+            </span>
           </div>
           <div className="flex items-center gap-2 text-muted-foreground">
-            <Phone className="w-3 h-3" />
-            {member.phone}
+            <Phone className={`w-3 h-3 ${member.phone ? "text-primary" : "text-muted-foreground"}`} />
+            <span className={`${member.phone ? "text-foreground" : "text-muted-foreground"}`}>
+              {member.phone ? member.phone : "No registrado"}
+            </span>
           </div>
         </div>
       );
