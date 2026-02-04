@@ -24,7 +24,7 @@ export default async function SystemLayout({
     user = await container.getUserByIdController.execute(userId);
   } catch (e) {
     console.error("SystemLayout: User not found or error", e);
-    // User not in DB -> Access Denied (or redirect to onboarding)
+    // User not in DB -> Access Denied
     // currently we return notFound() which behaves like "Access Denied" for this route
     return notFound();
   }
@@ -45,10 +45,10 @@ export default async function SystemLayout({
 
   return (
     // ... your JSX
-    <div className="flex h-screen bg-slate-950 text-white">
+    <div className="flex h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white">
       <SystemSidebar />{" "}
       {/* Menú: "Gimnasios", "Planes Globales", "Facturación SaaS" */}
-      <main className="flex-1 p-8 overflow-y-auto bg-slate-900">
+      <main className="flex-1 p-8 overflow-y-auto bg-white dark:bg-slate-900">
         {children}
       </main>
     </div>

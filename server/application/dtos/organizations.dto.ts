@@ -6,6 +6,7 @@ export const createOrganizationSchema = z.object({
     .string()
     .min(3)
     .regex(/^[a-z0-9-]+$/),
+  planSlug: z.string().optional(),
 });
 
 export type CreateOrganizationSchema = z.infer<typeof createOrganizationSchema>;

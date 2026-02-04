@@ -16,8 +16,7 @@ export class MembersRepository
     UpdateMemberInput,
     MembersFilters
   >
-  implements IMembersRepository
-{
+  implements IMembersRepository {
   async buildQueryFilters(
     filters: MembersFilters,
   ): Promise<Prisma.MemberWhereInput> {
@@ -40,13 +39,27 @@ export class MembersRepository
   }
 
   async validateUnique(args: Partial<Member>): Promise<Member | null> {
-    const record = await this.findUnique({
+    // 1. Check Document Uniqueness
+    const docRecord = await this.findUnique({
       docType_docNumber_organizationId: {
         docType: args.docType,
         docNumber: args.docNumber,
         organizationId: this.organizationId as string,
       },
     } as unknown as Partial<Member>);
-    return record ? record : null;
+    if (docRecord) return docRecord;
+
+    // 2. Check Email Uniqueness (if provided and not empty)
+    if (args.email && args.email.trim() !== "") {
+      const emailRecord = await this.findUnique({
+        email_organizationId: {
+          email: args.email,
+          organizationId: this.organizationId as string,
+        },
+      } as unknown as Partial<Member>);
+      if (emailRecord) return emailRecord;
+    }
+
+    return null;
   }
 }

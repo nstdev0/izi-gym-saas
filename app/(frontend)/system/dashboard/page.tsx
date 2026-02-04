@@ -37,10 +37,10 @@ export default function SystemDashboardPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="text-3xl font-bold tracking-tight text-slate-900">
+        <h2 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
           System Overview
         </h2>
-        <p className="text-slate-500">
+        <p className="text-slate-500 dark:text-slate-400">
           Bienvenido al panel de control maestro.
         </p>
       </div>

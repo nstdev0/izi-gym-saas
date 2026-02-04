@@ -42,21 +42,68 @@ export async function POST(req: Request) {
 
   // CASO 1: Se crea una Organización en Clerk
   if (eventType === "organization.created") {
-    const { id, name, slug } = evt.data;
+    const { id, name, slug, created_by } = evt.data;
+
+    console.log(`🏢 Nueva Organización detectada en Clerk: ${name} (${slug})`);
 
     try {
-      await prisma.organization.create({
-        data: {
-          id: id, // IMPORTANTE: Usamos el ID de Clerk como Primary Key
-          name: name,
-          slug: name.toLowerCase().replace(/\s/g, "-"),
-          isActive: true,
-          plan: {
-            connect: { slug: "free-trial" },
-          },
-        },
+      // 1. Buscamos el plan Gratuito por defecto
+      const freePlan = await prisma.organizationPlan.findUnique({
+        where: { slug: "free-trial" },
       });
-      console.log(`✅ Organización creada en DB: ${name} (${id})`);
+
+      if (!freePlan) {
+        console.error("❌ ERROR CRÍTICO: No existe el plan 'free-trial' en la DB.");
+        return new Response("Plan not found", { status: 500 });
+      }
+
+      // 2. Transacción: Crear Org + Suscripción + Vincular Creador
+      await prisma.$transaction(async (tx) => {
+        // A. Crear la Organización en Postgres
+        const newOrg = await tx.organization.create({
+          data: {
+            id: id, // IMPORTANTE: Usar el mismo ID de Clerk
+            name: name,
+            slug: slug, // Clerk te dará algo como "olimpo-gym-42a1"
+            organizationPlanId: freePlan.id,
+            isActive: true,
+          },
+        });
+
+        // B. Crear Suscripción Trial
+        await tx.subscription.create({
+          data: {
+            organizationId: newOrg.id,
+            organizationPlanId: freePlan.id,
+            status: "TRIALING",
+            currentPeriodEnd: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14 días
+          },
+        });
+
+        // C. Vincular al usuario creador (Owner)
+        if (created_by) {
+          // Primero intentamos actualizar si ya existe
+          // Pero si el webhook de usuario no ha llegado, podríamos necesitar crearlo (JIT)
+          // Para simplificar y seguir la petición del usuario, usaremos update, 
+          // pero si falla, es responsabilidad del webhook de usuario llegar.
+          // Sin embargo, el usuario sugirió JIT antes. 
+          // En este snippet solicitado por el usuario, usan tx.user.update directo.
+          // Lo haré como pidió, pero agregaré el catch para no romper toda la transacción si el user no está.
+
+          try {
+            await tx.user.update({
+              where: { id: created_by },
+              data: {
+                organizationId: newOrg.id,
+                role: "OWNER",
+              },
+            });
+          } catch (e) {
+            console.warn(`User ${created_by} not found in DB yet. Waiting for user.created webhook.`);
+          }
+        }
+      });
+      console.log(`✅ Organización creada y sincronizada: ${name}`);
     } catch (error) {
       console.error("❌ Error creando organización en DB:", error);
       return new Response("Error creating organization in DB", { status: 500 });
@@ -86,11 +133,10 @@ export async function POST(req: Request) {
   }
 
   if (eventType === "user.created") {
-    const { id, email_addresses, public_metadata } = evt.data;
+    const { id, email_addresses, public_metadata, image_url } = evt.data;
 
-    // Clerk maneja organizaciones nativamente, o puedes pasarlo en metadata al invitar
-    // Asumamos que al invitar, pasaste organizationId en public_metadata
-    const organizationId = public_metadata.organizationId as string;
+    // OrganizationId can be optional (orphan users)
+    const organizationId = (public_metadata.organizationId as string) || null;
 
     try {
       await prisma.user.upsert({
@@ -100,17 +146,57 @@ export async function POST(req: Request) {
         create: {
           id: id,
           email: email_addresses[0].email_address,
-          role: "OWNER",
+          image: image_url,
+          role: "OWNER", // Default role, logic can be refined
           passwordHash: "OAUTH_MANAGED",
           organizationId: organizationId,
         },
         update: {
           email: email_addresses[0].email_address,
+          image: image_url,
+          // Only update organization if provided in metadata during a re-creation/invite flow
+          ...(organizationId ? { organizationId } : {}),
         },
       });
+      console.log(`✅ User created/upserted: ${id}`);
     } catch (error) {
       console.error("❌ Error upserting user:", error);
-      // Prevent 500 loop
+      return new Response("Error upserting user", { status: 500 });
+    }
+  }
+
+  if (eventType === "user.updated") {
+    const { id, email_addresses, image_url } = evt.data;
+
+    try {
+      await prisma.user.update({
+        where: { id: id },
+        data: {
+          email: email_addresses[0].email_address,
+          image: image_url,
+        },
+      });
+      console.log(`🔄 User updated: ${id}`);
+    } catch (error) {
+      console.error("❌ Error updating user:", error);
+      // Don't error out if user doesn't exist to avoid retry loops
+    }
+  }
+
+  if (eventType === "user.deleted") {
+    const { id } = evt.data;
+
+    if (!id) {
+      return new Response("No user ID found", { status: 400 });
+    }
+
+    try {
+      await prisma.user.delete({
+        where: { id: id },
+      });
+      console.log(`🗑️ User deleted: ${id}`);
+    } catch (error) {
+      console.error("❌ Error deleting user:", error);
     }
   }
 

@@ -22,6 +22,27 @@ async function main() {
   });
 
   console.log(`✅ Plan "${freePlan.name}" ensured (ID: ${freePlan.id})`);
+
+  // 2. Create Pro Plan
+  const proPlan = await prisma.organizationPlan.upsert({
+    where: { slug: "pro-monthly" },
+    update: {},
+    create: {
+      name: "Pro Plan",
+      slug: "pro-monthly",
+      description: "Unlimited access for growing gyms",
+      price: 29,
+      currency: "USD",
+      stripePriceId: "price_fake_pro_monthly", // Dummy ID for dev/test
+      limits: {
+        maxMembers: 1000,
+        canExport: true,
+        maxStaff: 10,
+      },
+    },
+  });
+
+  console.log(`✅ Plan "${proPlan.name}" ensured (ID: ${proPlan.id})`);
 }
 
 main()

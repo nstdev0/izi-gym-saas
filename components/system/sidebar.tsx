@@ -56,15 +56,15 @@ export function SystemSidebar() {
   ];
 
   return (
-    <div className="space-y-4 py-4 flex flex-col h-full bg-slate-950 text-white w-64 border-r border-slate-800">
+    <div className="space-y-4 py-4 flex flex-col h-full bg-white dark:bg-slate-950 text-slate-900 dark:text-white w-64 border-r border-slate-200 dark:border-slate-800">
       <div className="px-3 py-2 flex-1">
         <Link href="/system/dashboard" className="flex items-center pl-3 mb-14">
           <div className="relative w-8 h-8 mr-4">
             <ShieldAlert className="w-8 h-8 text-indigo-500" />
           </div>
-          <h1 className="text-xl font-bold">
-            Izi<span className="text-indigo-500">Gym</span>
-            <span className="text-xs ml-1 text-slate-500 block font-normal">
+          <h1 className="text-xl font-bold text-slate-900 dark:text-white">
+            Izi<span className="text-indigo-600 dark:text-indigo-500">Gym</span>
+            <span className="text-xs ml-1 text-slate-500 dark:text-slate-500 block font-normal">
               GOD MODE
             </span>
           </h1>
@@ -75,10 +75,10 @@ export function SystemSidebar() {
               key={route.href}
               href={route.href}
               className={cn(
-                "text-sm group flex p-3 w-full justify-start font-medium cursor-pointer hover:text-white hover:bg-white/10 rounded-lg transition",
+                "text-sm group flex p-3 w-full justify-start font-medium cursor-pointer rounded-lg transition hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10",
                 pathname === route.href
-                  ? "text-white bg-white/10"
-                  : "text-zinc-400",
+                  ? "text-slate-900 dark:text-white bg-slate-100 dark:bg-white/10"
+                  : "text-slate-500 dark:text-zinc-400",
               )}
             >
               <div className="flex items-center flex-1">
@@ -89,11 +89,11 @@ export function SystemSidebar() {
           ))}
         </div>
       </div>
-      <div className="px-3 py-2 border-t border-slate-800 mt-auto">
+      <div className="px-3 py-2 border-t border-slate-200 dark:border-slate-800 mt-auto">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="flex items-center gap-3 w-full p-2 rounded-lg hover:bg-white/5 transition text-left outline-none group data-[state=open]:bg-white/5">
-              <Avatar className="h-9 w-9 border border-slate-700">
+            <button className="flex items-center gap-3 w-full p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5 transition text-left outline-none group data-[state=open]:bg-slate-100 dark:data-[state=open]:bg-white/5">
+              <Avatar className="h-9 w-9 border border-slate-200 dark:border-slate-700">
                 <AvatarImage src={user?.imageUrl} alt={user?.fullName || ""} />
                 <AvatarFallback className="bg-indigo-600 text-white font-medium">
                   {user?.firstName?.charAt(0)}
@@ -101,27 +101,27 @@ export function SystemSidebar() {
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-white truncate">
+                <p className="text-sm font-medium text-slate-900 dark:text-white truncate">
                   {user?.fullName}
                 </p>
-                <p className="text-xs text-slate-400 truncate">
+                <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
                   {user?.primaryEmailAddress?.emailAddress}
                 </p>
               </div>
-              <ChevronsUpDown className="h-4 w-4 text-slate-500 group-hover:text-slate-400" />
+              <ChevronsUpDown className="h-4 w-4 text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-400" />
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent
             align="end"
-            className="w-56 bg-slate-950 border-slate-800 text-slate-200"
+            className="w-56 bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-200"
             side="top"
           >
-            <DropdownMenuLabel className="text-slate-400 font-normal text-xs">
+            <DropdownMenuLabel className="text-slate-500 dark:text-slate-400 font-normal text-xs">
               Mi Cuenta
             </DropdownMenuLabel>
-            <DropdownMenuSeparator className="bg-slate-800" />
+            <DropdownMenuSeparator className="bg-slate-200 dark:bg-slate-800" />
             <DropdownMenuItem
-              className="focus:bg-slate-900 focus:text-white cursor-pointer"
+              className="focus:bg-slate-100 dark:focus:bg-slate-900 focus:text-slate-900 dark:focus:text-white cursor-pointer"
               onClick={() => openUserProfile()}
             >
               <User className="mr-2 h-4 w-4" />

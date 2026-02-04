@@ -3,7 +3,7 @@ import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/server/infrastructure/persistence/prisma";
 
 export const currentUser = async () => {
-  const { userId, orgId } = auth(); // Clerk nos da esto gratis
+  const { userId, orgId } = await auth(); // Clerk nos da esto gratis
 
   if (!userId || !orgId) return null;
 

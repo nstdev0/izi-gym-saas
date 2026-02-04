@@ -16,8 +16,7 @@ export class OrganizationsRepository
     UpdateOrganizationInput,
     OrganizationsFilters
   >
-  implements IOrganizationRepository
-{
+  implements IOrganizationRepository {
   async buildQueryFilters(
     filters: OrganizationsFilters,
   ): Promise<Prisma.OrganizationWhereInput> {
@@ -45,13 +44,14 @@ export class OrganizationsRepository
     const { prisma } =
       await import("@/server/infrastructure/persistence/prisma");
 
-    // 1. Buscar Plan Base (Free Trial)
-    const freePlan = await prisma.organizationPlan.findUnique({
-      where: { slug: "free-trial" },
+    // 1. Buscar Plan (Ahora dinámico)
+    const planSlug = input.planSlug || "free-trial"; // Default fallback
+    const selectedPlan = await prisma.organizationPlan.findUnique({
+      where: { slug: planSlug },
     });
 
-    if (!freePlan) {
-      throw new Error("El plan gratuito no está configurado (run seed)");
+    if (!selectedPlan) {
+      throw new Error(`El plan '${planSlug}' no es válido o no existe.`);
     }
 
     // 2. Verificar Slug Duplicado
@@ -69,7 +69,7 @@ export class OrganizationsRepository
         data: {
           name: input.name,
           slug: input.slug,
-          organizationPlanId: freePlan.id,
+          organizationPlanId: selectedPlan.id,
         },
       });
 
@@ -77,20 +77,46 @@ export class OrganizationsRepository
       await tx.subscription.create({
         data: {
           organizationId: org.id,
-          organizationPlanId: freePlan.id,
+          organizationPlanId: selectedPlan.id,
           status: "TRIALING",
           currentPeriodEnd: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14 días
         },
       });
 
-      // C. Vincular Usuario como Dueño
-      await tx.user.update({
-        where: { id: userId },
-        data: {
-          organizationId: org.id,
-          role: "OWNER",
-        },
-      });
+      // C. Verificar si el usuario existe en DB (JIT Sync)
+      // Esto previene condiciones de carrera si el Webhook de Clerk es lento
+      const existingUser = await tx.user.findUnique({ where: { id: userId } });
+
+      if (!existingUser) {
+        // Fetch from Clerk API (Server Side)
+        const { clerkClient } = await import("@clerk/nextjs/server");
+        const client = await clerkClient();
+        const clerkUser = await client.users.getUser(userId);
+
+        const email = clerkUser.emailAddresses[0]?.emailAddress;
+        if (!email) throw new Error("User has no email in Clerk");
+
+        // Create User in DB
+        await tx.user.create({
+          data: {
+            id: userId,
+            email: email,
+            image: clerkUser.imageUrl,
+            role: "OWNER",
+            passwordHash: "OAUTH_MANAGED",
+            organizationId: org.id,
+          }
+        });
+      } else {
+        // Vincular Usuario como Dueño (Update)
+        await tx.user.update({
+          where: { id: userId },
+          data: {
+            organizationId: org.id,
+            role: "OWNER",
+          },
+        });
+      }
 
       return org;
     });

@@ -3,7 +3,7 @@ import { Role } from "@/generated/prisma/client";
 export interface CreateUserInput {
   name: string;
   email: string;
-  passwordHash: string;
+  passwordHash?: string;
   role: Role; // Used string in previous interface, but Role enum is better if available
   isActive?: boolean;
 }
