@@ -44,32 +44,39 @@ export class UsersRepository
     })) as unknown as User;
   }
 
-  protected async buildQueryFilters(
+  protected async buildPrismaClauses(
     filters: UsersFilters,
-  ): Promise<Prisma.UserWhereInput> {
-    const query: Prisma.UserWhereInput = {};
+  ): Promise<[Prisma.UserWhereInput, Prisma.UserOrderByWithRelationInput]> {
+    const ALLOWED_SORT_FIELDS = ["createdAt", "updatedAt", "firstName", "lastName", "email"];
+
+    const WhereClause: Prisma.UserWhereInput = {}
 
     if (filters.search) {
       const searchTerms = filters.search.trim().split(/\s+/).filter(Boolean);
+
       if (searchTerms.length > 0) {
-        query.AND = searchTerms.map((term) => ({
+        WhereClause.AND = searchTerms.map((term) => ({
           OR: [
             { firstName: { contains: term, mode: "insensitive" } },
             { lastName: { contains: term, mode: "insensitive" } },
             { email: { contains: term, mode: "insensitive" } },
+            { role: { contains: term, mode: "insensitive" } }
           ],
         }));
       }
     }
 
-    if (filters.role) {
-      query.role = filters.role;
-    }
+    let OrderByClause: Prisma.UserOrderByWithRelationInput = { createdAt: "desc" };
 
-    if (filters.isActive !== undefined) {
-      query.isActive = filters.isActive;
-    }
+    if (filters.sort) {
+      const [field, direction] = filters.sort.split("-")
+      const isValidField = (ALLOWED_SORT_FIELDS as readonly string[]).includes(field)
+      const isValidDirection = direction === "asc" || direction === "desc"
 
-    return query;
+      if (isValidField && isValidDirection) {
+        OrderByClause = { [field]: direction as Prisma.SortOrder }
+      }
+    }
+    return [WhereClause, OrderByClause];
   }
 }

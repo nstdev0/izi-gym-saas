@@ -23,13 +23,13 @@ export class MembersRepository
     const ALLOWED_SORT_FIELDS = ["createdAt", "firstName", "lastName", "gender"] as const
 
     // Where
-    const whereClause: Prisma.MemberWhereInput = {}
+    const WhereClause: Prisma.MemberWhereInput = {}
 
     if (filters.search) {
       const searchTerms = filters.search.trim().split(/\s+/).filter(Boolean);
 
       if (searchTerms.length > 0) {
-        whereClause.AND = searchTerms.map((term) => ({
+        WhereClause.AND = searchTerms.map((term) => ({
           OR: [
             { firstName: { contains: term, mode: "insensitive" } },
             { lastName: { contains: term, mode: "insensitive" } },
@@ -52,7 +52,7 @@ export class MembersRepository
         OrderByClause = { [field]: direction as Prisma.SortOrder }
       }
     }
-    return [whereClause, OrderByClause];
+    return [WhereClause, OrderByClause];
   }
 
   async validateUnique(args: Partial<Member>): Promise<Member | null> {

@@ -58,8 +58,8 @@ export function Sidebar({
     {
       label: "Dashboard",
       icon: LayoutDashboard,
-      href: "/admin",
-      active: pathname === "/admin",
+      href: `/${slug}/admin/dashboard`,
+      active: pathname === `/${slug}/admin/dashboard`,
     },
     {
       label: "Miembros",
@@ -166,8 +166,8 @@ export function Sidebar({
                   key={route.href}
                   variant={route.active ? "secondary" : "ghost"}
                   className={cn(
-                    "w-full justify-start gap-3 mb-1 animate-mobile-slide-in md:animate-none md:opacity-100",
-                    route.active && "bg-muted",
+                    `w-full justify-start gap-3 mb-1 animate-mobile-slide-in md:animate-none md:opacity-100`,
+                    `${route.active ? "bg-muted pointer-events-none" : ""}`,
                   )}
                   style={{ animationDelay: `${index * 50}ms` }}
                   asChild

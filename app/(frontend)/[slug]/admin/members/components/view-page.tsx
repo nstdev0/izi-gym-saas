@@ -3,30 +3,17 @@
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Filter, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { Suspense } from "react";
 import { Member } from "@/server/domain/entities/Member";
 import { SearchInput } from "@/components/ui/search-input";
 import { Pagination } from "@/components/ui/pagination";
 import { MembersTable } from "./members-table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { ArrowUpDown } from "lucide-react";
-import {
-  useRouter,
-  useSearchParams,
-  usePathname,
-  useParams,
-} from "next/navigation";
 import Loading from "../loading";
 import Link from "next/link";
 import { PageableResponse } from "@/server/shared/common/pagination";
 import FiltersInput, { UiSortOption } from "@/components/ui/filters-input";
+import { useParams } from "next/navigation";
 
 interface MembersViewPageProps {
   paginatedMembers: PageableResponse<Member>;
@@ -75,7 +62,7 @@ export default function MembersViewPage({
   return (
     <Suspense fallback={<Loading />}>
       <DashboardLayout
-        breadcrumbs={[{ label: "Admin", href: "/" }, { label: "Miembros" }]}
+        breadcrumbs={[{ label: "Admin", href: `/${slug}/admin/dashboard` }, { label: "Miembros" }]}
       >
         <div className="flex flex-col h-full space-y-4 overflow-hidden">
           {/* Header */}
