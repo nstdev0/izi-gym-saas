@@ -11,6 +11,7 @@ import {
   Package,
   PanelLeftClose,
   PanelLeftOpen,
+  UserCog,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -83,6 +84,12 @@ export function Sidebar({
       icon: Package,
       href: `/${slug}/admin/products`,
       active: pathname.startsWith(`/${slug}/admin/products`),
+    },
+    {
+      label: "Usuarios",
+      icon: UserCog,
+      href: `/${slug}/admin/users`,
+      active: pathname.startsWith(`/${slug}/admin/users`),
     },
     {
       label: "Configuración",

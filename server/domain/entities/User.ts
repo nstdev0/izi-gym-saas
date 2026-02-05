@@ -6,10 +6,12 @@ export class User extends BaseEntity {
     organizationId: string,
     createdAt: Date,
     updatedAt: Date,
-    public name: string,
+    public firstName: string | null,
+    public lastName: string | null,
     public email: string,
-    public passwordHash: string,
     public role: string,
+    public isActive: boolean,
+    public image: string | null,
   ) {
     super(id, organizationId, createdAt, updatedAt);
   }

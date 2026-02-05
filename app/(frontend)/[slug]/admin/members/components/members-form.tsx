@@ -113,7 +113,7 @@ export default function MemberForm({
                 console.log("Avatar URL recibida:", url);
                 field.onChange(url);
               }}
-              fileNamePrefix={`${form.getValues("firstName") || "member"}-${form.getValues("lastName") || ""}`}
+              fileNamePrefix={`${form.getValues("firstName") || "member"}-${form.getValues("lastName") || ""}-${form.getValues("docNumber") || ""}`}
             />
           )}
         />

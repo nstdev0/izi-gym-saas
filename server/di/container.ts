@@ -79,6 +79,7 @@ import { DeleteUserUseCase } from "../application/use-cases/users/delete-user.us
 import { GetUserByIdController } from "../interface-adapters/controllers/users/get-user-by-id.controller";
 import { UpdateUserController } from "../interface-adapters/controllers/users/update-user.controller";
 import { DeleteUserController } from "../interface-adapters/controllers/users/delete-user.controller";
+import { ClerkAuthService } from "../infrastructure/services/clerk-auth.service";
 
 // Factory function "memoizada" por request
 export const getContainer = cache(async () => {
@@ -228,9 +229,12 @@ export const getContainer = cache(async () => {
   // ===========================================================================
   // Repo
   const usersRepository = new UsersRepository(prisma.user, tenantId);
+  // Services
+  const clerkAuthService = new ClerkAuthService();
+
   // Use Cases
   const getAllUsersUseCase = new GetAllUsersUseCase(usersRepository);
-  const createUserUseCase = new CreateUserUseCase(usersRepository);
+  const createUserUseCase = new CreateUserUseCase(usersRepository, clerkAuthService);
   const getUserByIdUseCase = new GetUserByIdUseCase(usersRepository);
   const updateUserUseCase = new UpdateUserUseCase(usersRepository);
   const deleteUserUseCase = new DeleteUserUseCase(usersRepository);

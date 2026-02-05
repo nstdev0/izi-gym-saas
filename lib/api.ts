@@ -53,8 +53,9 @@ function buildUrl(path: string, params?: Record<string, any>, query?: Record<str
 async function request<T>(endpoint: string, options: ApiFetchOptions = {}): Promise<T> {
   const { params, query, body, headers, ...rest } = options;
 
-  // Asumimos que la URL base es relativa o viene de una env var
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "";
+  // Asumimos que la URL base es relativa para llamadas internas al mismo dominio (evita CORS)
+  // NEXT_PUBLIC_APP_URL se debe usar solo para generar links absolutos (invitaciones, emails), no para fetch interno
+  const baseUrl = "";
   const finalUrl = `${baseUrl}${buildUrl(endpoint, params, query)}`;
 
   const config: RequestInit = {

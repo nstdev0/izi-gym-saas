@@ -1,11 +1,14 @@
 import { Role } from "@/generated/prisma/client";
 
 export interface CreateUserInput {
-  name: string;
+  id?: string;
+  firstName?: string;
+  lastName?: string;
   email: string;
-  passwordHash?: string;
-  role: Role; // Used string in previous interface, but Role enum is better if available
-  isActive?: boolean;
+  password?: string; // Optional because validation handles it, but logic needs it
+  role: Role;
+  isActive: boolean;
+  image?: string | null;
 }
 
 export type UpdateUserInput = Partial<CreateUserInput>;

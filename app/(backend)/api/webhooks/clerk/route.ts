@@ -112,31 +112,48 @@ export async function POST(req: Request) {
 
   // CASO 2: Un usuario se une a una Organización (o la crea y se une automáticamente)
   if (eventType === "organizationMembership.created") {
-    const { organization, public_user_data } = evt.data;
+    const { organization, public_user_data, public_metadata } = evt.data;
 
     try {
-      // Actualizamos el usuario en nuestra DB para vincularlo a la Org
-      await prisma.user.update({
-        where: { id: public_user_data.user_id }, // Buscamos por ID de usuario
-        data: {
+      // Upsert: Crear si no existe, actualizar si ya existía (ej: re-invitación)
+      // Esto maneja el caso de "Invitación a Organización" que crea al usuario directamente en este evento si no existe
+      await prisma.user.upsert({
+        where: { id: public_user_data.user_id },
+        create: {
+          id: public_user_data.user_id,
+          email: public_user_data.identifier,
+          firstName: public_user_data.first_name || "Miembro",
+          lastName: public_user_data.last_name || "",
           organizationId: organization.id,
-          // Aquí podrías mapear el rol de Clerk a tu rol de Prisma si quisieras
+          // Leemos el rol específico desde metadata de la invitación (si existe), o fallback a STAFF
+          role: (public_metadata?.appRole as any) || "STAFF",
+          isActive: true,
+          image: public_user_data.image_url,
+          passwordHash: "OAUTH_MANAGED"
         },
+        update: {
+          organizationId: organization.id,
+          isActive: true, // Reactivar si estaba inactivo
+          // Actualizar rol si viene en metadata (re-invitación con nuevo rol)
+          ...(public_metadata?.appRole ? { role: public_metadata.appRole as any } : {})
+        }
       });
+
       console.log(
-        `🔗 Usuario ${public_user_data.user_id} vinculado a ${organization.id}`,
+        `🔗 Nuevo miembro upserted en Org ${organization.id}: ${public_user_data.identifier}`,
       );
     } catch (error) {
-      console.error("❌ Error vinculando usuario:", error);
-      // No devolvemos 500 aquí para no reintentar infinitamente si el usuario no existe aún
+      console.error("❌ Error vinculando/creando usuario:", error);
+      // No devolvemos 500 aquí para no reintentar infinitamente si falla algo puntual
     }
   }
 
   if (eventType === "user.created") {
-    const { id, email_addresses, public_metadata, image_url } = evt.data;
+    const { id, email_addresses, public_metadata, image_url, first_name, last_name } = evt.data;
 
     // OrganizationId can be optional (orphan users)
     const organizationId = (public_metadata.organizationId as string) || null;
+    const role = (public_metadata.role as string) || "OWNER"; // Default fallback (maybe Member is safer, but keeping owner-ish behavior for self-signups if any)
 
     try {
       await prisma.user.upsert({
@@ -147,18 +164,24 @@ export async function POST(req: Request) {
           id: id,
           email: email_addresses[0].email_address,
           image: image_url,
-          role: "OWNER", // Default role, logic can be refined
+          role: role as any,
           passwordHash: "OAUTH_MANAGED",
           organizationId: organizationId,
+          firstName: first_name ?? null,
+          lastName: last_name ?? null,
+          isActive: true,
         },
         update: {
           email: email_addresses[0].email_address,
           image: image_url,
           // Only update organization if provided in metadata during a re-creation/invite flow
           ...(organizationId ? { organizationId } : {}),
+          // Update names if changed
+          ...(first_name ? { firstName: first_name } : {}),
+          ...(last_name ? { lastName: last_name } : {}),
         },
       });
-      console.log(`✅ User created/upserted: ${id}`);
+      console.log(`✅ User created/upserted: ${id} with role ${role}`);
     } catch (error) {
       console.error("❌ Error upserting user:", error);
       return new Response("Error upserting user", { status: 500 });

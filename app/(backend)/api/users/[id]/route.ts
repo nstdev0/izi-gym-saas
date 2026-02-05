@@ -29,7 +29,7 @@ export async function PATCH(
       return NextResponse.json(
         {
           message: "Error de validación",
-          errors: z.treeifyError(error).errors,
+          errors: error.flatten().fieldErrors,
         },
         { status: 400 },
       );

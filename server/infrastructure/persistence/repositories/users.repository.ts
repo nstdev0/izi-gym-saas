@@ -16,8 +16,34 @@ export class UsersRepository
     UpdateUserInput,
     UsersFilters
   >
-  implements IUsersRepository
-{
+  implements IUsersRepository {
+  async create(data: CreateUserInput): Promise<User> {
+    const { password, id, ...rest } = data;
+    // Si viene ID (de Clerk), lo usamos.
+    const prismaData = {
+      ...rest,
+      id: id,
+      passwordHash: password,
+    };
+
+    return (await this.model.create({
+      data: { ...prismaData, organizationId: this.organizationId } as any,
+    })) as unknown as User;
+  }
+
+  async update(id: string, data: UpdateUserInput): Promise<User> {
+    const { password, ...rest } = data;
+    const prismaData: any = { ...rest };
+    if (password) {
+      prismaData.passwordHash = password;
+    }
+
+    return (await this.model.update({
+      data: { ...prismaData, organizationId: this.organizationId } as any,
+      where: { id },
+    })) as unknown as User;
+  }
+
   protected async buildQueryFilters(
     filters: UsersFilters,
   ): Promise<Prisma.UserWhereInput> {
@@ -28,7 +54,8 @@ export class UsersRepository
       if (searchTerms.length > 0) {
         query.AND = searchTerms.map((term) => ({
           OR: [
-            { name: { contains: term, mode: "insensitive" } },
+            { firstName: { contains: term, mode: "insensitive" } },
+            { lastName: { contains: term, mode: "insensitive" } },
             { email: { contains: term, mode: "insensitive" } },
           ],
         }));
@@ -37,6 +64,10 @@ export class UsersRepository
 
     if (filters.role) {
       query.role = filters.role;
+    }
+
+    if (filters.isActive !== undefined) {
+      query.isActive = filters.isActive;
     }
 
     return query;

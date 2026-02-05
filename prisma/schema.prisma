@@ -58,12 +58,15 @@ model Subscription {
 model User {
   id             String        @id @default(cuid())
   email          String        @unique
+  firstName      String?
+  lastName       String?
   passwordHash   String?
   role           Role          @default(STAFF)
   organizationId String?
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
   image          String?
+  isActive       Boolean       @default(true)
   organization   Organization? @relation(fields: [organizationId], references: [id])
 
   @@index([organizationId])
