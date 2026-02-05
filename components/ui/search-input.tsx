@@ -6,26 +6,26 @@ import { Search } from "lucide-react";
 import { Input } from "./input";
 
 export function SearchInput({ placeholder }: { placeholder: string }) {
-  const searchParams = useSearchParams();
+  const router = useRouter();
   const pathname = usePathname();
-  const { replace } = useRouter();
+  const searchParams = useSearchParams();
 
-  // Espera 300ms después de que el usuario deje de escribir
+  // Espera 350ms después de que el usuario deje de escribir
   const handleSearch = useDebouncedCallback((term: string) => {
     const params = new URLSearchParams(searchParams);
 
-    // Si escribe algo, reseteamos a la página 1
-    params.set("page", "1");
+    // Si escribe algo, reseteamos el page
+    params.delete("page");
 
     if (term) {
-      params.set("query", term);
+      params.set("search", term);
     } else {
-      params.delete("query");
+      params.delete("search");
     }
 
     // replace actualiza la URL sin agregar una entrada al historial (UX suave)
-    replace(`${pathname}?${params.toString()}`);
-  }, 300);
+    router.replace(`${pathname}?${params.toString()}`);
+  }, 350);
 
   return (
     <div className="flex-1 relative">
@@ -34,7 +34,7 @@ export function SearchInput({ placeholder }: { placeholder: string }) {
         placeholder={placeholder}
         className="pl-9"
         onChange={(e) => handleSearch(e.target.value)}
-        defaultValue={searchParams.get("query")?.toString()}
+        defaultValue={searchParams.get("search")?.toString()}
       />
     </div>
   );

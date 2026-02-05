@@ -73,6 +73,7 @@ async function request<T>(endpoint: string, options: ApiFetchOptions = {}): Prom
 
   try {
     const response = await fetch(finalUrl, config);
+    console.log("LLAMADA API ---->", finalUrl, config);
 
     // Manejo de 204 No Content
     if (response.status === 204) return {} as T;

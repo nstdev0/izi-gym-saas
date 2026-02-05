@@ -7,7 +7,8 @@ interface PageProps {
 
 export default async function MembersPage({ searchParams }: PageProps) {
   const params = await searchParams;
-  const query = (params.query as string) || "";
+  const search = (params.search as string) || undefined;
+  const sort = (params.sort as string) || undefined
   const page = Number(params.page) || 1;
   const limit = 10;
 
@@ -16,7 +17,7 @@ export default async function MembersPage({ searchParams }: PageProps) {
   const paginatedMembers = await container.getAllMembersController.execute({
     page,
     limit,
-    filters: { search: query },
+    filters: { search: search, sort: sort },
   });
 
   return <MembersViewPage paginatedMembers={paginatedMembers} />;

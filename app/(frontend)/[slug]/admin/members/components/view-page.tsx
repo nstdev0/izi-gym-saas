@@ -3,7 +3,7 @@
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Filter, Plus } from "lucide-react";
 import { Suspense } from "react";
 import { Member } from "@/server/domain/entities/Member";
 import { SearchInput } from "@/components/ui/search-input";
@@ -26,6 +26,7 @@ import {
 import Loading from "../loading";
 import Link from "next/link";
 import { PageableResponse } from "@/server/shared/common/pagination";
+import FiltersInput, { UiSortOption } from "@/components/ui/filters-input";
 
 interface MembersViewPageProps {
   paginatedMembers: PageableResponse<Member>;
@@ -41,26 +42,40 @@ export default function MembersViewPage({
     totalRecords,
   } = paginatedMembers;
 
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const pathname = usePathname();
   const params = useParams();
   const slug = params.slug as string;
 
-  const handleSortChange = (value: string) => {
-    const [sort, order] = value.split(":");
-    const params = new URLSearchParams(searchParams);
-    params.set("sort", sort);
-    params.set("order", order);
-    router.replace(`${pathname}?${params.toString()}`);
-  };
-
-  const currentSort = `${searchParams.get("sort") || "createdAt"}:${searchParams.get("order") || "desc"}`;
+  const membersSortOptions: UiSortOption<Member>[] = [
+    {
+      label: "Nombres (A-Z)",
+      field: "firstName",
+      direction: "asc",
+      value: "firstName-asc",
+    },
+    {
+      label: "Nombres (Z-A)",
+      field: "firstName",
+      direction: "desc",
+      value: "firstName-desc",
+    },
+    {
+      label: "Apellido (A-Z)",
+      field: "lastName",
+      direction: "asc",
+      value: "lastName-asc",
+    },
+    {
+      label: "Apellido (Z-A)",
+      field: "lastName",
+      direction: "desc",
+      value: "lastName-desc",
+    }
+  ]
 
   return (
     <Suspense fallback={<Loading />}>
       <DashboardLayout
-        breadcrumbs={[{ label: "Dashboard", href: "/" }, { label: "Miembros" }]}
+        breadcrumbs={[{ label: "Admin", href: "/" }, { label: "Miembros" }]}
       >
         <div className="flex flex-col h-full space-y-4 overflow-hidden">
           {/* Header */}
@@ -105,30 +120,8 @@ export default function MembersViewPage({
           {/* Filters */}
 
           <div className="flex flex-col sm:flex-row gap-2">
-            <SearchInput placeholder="Buscar por nombre, email..." />
-            <div className="flex items-center gap-2">
-              <Select value={currentSort} onValueChange={handleSortChange}>
-                <SelectTrigger className="w-[180px] h-9">
-                  <div className="flex items-center gap-2">
-                    <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
-                    <SelectValue placeholder="Ordenar por" />
-                  </div>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="createdAt:desc">Más recientes</SelectItem>
-                  <SelectItem value="createdAt:asc">Más antiguos</SelectItem>
-                  <SelectItem value="firstName:asc">Nombre (A-Z)</SelectItem>
-                  <SelectItem value="firstName:desc">Nombre (Z-A)</SelectItem>
-                </SelectContent>
-              </Select>
-              <Button
-                variant="outline"
-                size="sm"
-                className="bg-transparent h-9"
-              >
-                Filtrar
-              </Button>
-            </div>
+            <SearchInput placeholder="Buscar por nombres, email, telefono..." />
+            <FiltersInput sortOptions={membersSortOptions} />
           </div>
 
           {/* Members Table Container */}
