@@ -1,134 +1,118 @@
-// server/lib/api-handler.ts
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { AppError } from "@/server/domain/errors/AppError";
-import z, { ZodError } from "zod";
+import { ZodError } from "zod";
 import { getContainer } from "../di/container";
-import { Params } from "next/dist/server/request/params";
 
-// Tipado del Contenedor (Dependency Injection)
+// ----------------------------------------------------------------------
+// 1. Definición de Tipos Flexibles
+// ----------------------------------------------------------------------
+
 type Container = Awaited<ReturnType<typeof getContainer>>;
 
-// Definición de un Ejecutor de Controlador (Command Pattern)
-type ControllerExecutor<TInput> = {
-  execute: (input: TInput) => Promise<unknown>;
+// El input ahora puede ser cualquier cosa o 'void' (vacío)
+export type ControllerExecutor<TInput = void, TResult = unknown> = {
+  // El ID es opcional siempre, el Input depende del genérico
+  execute: (input: TInput, id?: string) => Promise<TResult>;
 };
 
-// Función selectora para sacar el controlador del contenedor
-type ControllerSelector<TInput> = (
-  container: Container,
-) => ControllerExecutor<TInput>;
+// Selector: Recibe contenedor, devuelve el controlador tipado
+type ControllerSelector<TInput, TResult> = (
+  container: Container
+) => ControllerExecutor<TInput, TResult>;
 
-// Mapper para transformar Request -> DTO
+// Mapper: Ahora recibe los params resueltos explícitamente
 type RequestMapper<TInput> = (
   req: NextRequest,
-  params?: any // Flexibilizamos esto ya que 'params' en Next 15 es Promise<any> resuelto
+  params?: Record<string, string | string[]> // Params ya resueltos
 ) => TInput | Promise<TInput>;
 
+// Opciones extendidas
 type ContextOptions = {
   isPublic?: boolean;
+  paramKey?: string; // Opcional: por si la ruta es [slug] en vez de [id]
 };
 
-export const createContext = <TInput = NextRequest>(
-  selector: ControllerSelector<TInput>,
+// ----------------------------------------------------------------------
+// 2. Implementación del Handler (Factory)
+// ----------------------------------------------------------------------
+
+export const createContext = <TInput = void, TResult = unknown>(
+  selector: ControllerSelector<TInput, TResult>,
   requestMapper?: RequestMapper<TInput>,
-  options: ContextOptions = { isPublic: false },
+  options: ContextOptions = { isPublic: false, paramKey: "id" }
 ) => {
   // Retornamos la firma estándar de Next.js Route Handler
   return async (
     req: NextRequest,
     // Next.js 15: props.params es una Promesa
-    props: { params: Promise<Params> }
+    props: { params: Promise<Record<string, string | string[]>> }
   ) => {
     try {
-      // 1. Auth & Context Gatekeeper
+      // A. Auth Guard
       const session = await auth();
 
       if (!options.isPublic) {
         if (!session.userId) {
           return NextResponse.json(
             { message: "No autenticado", code: "UNAUTHORIZED" },
-            { status: 401 },
+            { status: 401 }
           );
         }
-        if (!session.orgId) {
-          return NextResponse.json(
-            { message: "Contexto de organización requerido", code: "NO_ORG_SELECTED" },
-            { status: 403 },
-          );
-        }
+        // Opcional: Validar orgId si es estricto para tu app
+        // if (!session.orgId) { ... }
       }
 
-      // 2. Dependency Injection
+      // B. Resolución de Params (Next 15)
+      // Esperamos la promesa de params una sola vez
+      const resolvedParams = props?.params ? await props.params : {};
+
+      // Extraemos el ID basado en la configuración (default: "id")
+      const idParam = resolvedParams[options.paramKey || "id"];
+      const id = typeof idParam === "string" ? idParam : undefined;
+
+      // C. Construcción del Input (DTO)
+      let input: TInput;
+
+      if (requestMapper) {
+        // Caso 1: Hay Mapper -> Lo ejecutamos (POST, PUT complex)
+        input = await requestMapper(req, resolvedParams);
+      } else {
+        // Caso 2: No hay Mapper -> Asumimos undefined (GET, DELETE simples)
+        // El 'as TInput' aquí permite que sea void/undefined sin que TS se queje
+        input = undefined as unknown as TInput;
+      }
+
+      // D. Inyección de Dependencias
       const container = await getContainer();
       const controller = selector(container);
 
-      // 3. Request Mapping (DTO)
-      let input: TInput;
+      // E. Ejecución del Controlador
+      // Aquí ocurre la magia: pasamos input (que puede ser undefined) y el id (que puede ser undefined)
+      const result = await controller.execute(input, id);
 
-      // Resolvemos params si existen (Next 15 safe)
-      const resolvedParams = props?.params ? await props.params : undefined;
-
-      if (requestMapper) {
-        input = await requestMapper(req, resolvedParams);
-      } else {
-        // Si no hay mapper, pasamos la Request cruda (útil para casos simples)
-        input = req as unknown as TInput;
-      }
-
-      // 4. Execution
-      const result = await controller.execute(input);
-
-      // Si el controlador devuelve ya una NextResponse (ej: redirect o file download), la dejamos pasar
+      // F. Respuesta
       if (result instanceof NextResponse) {
         return result;
       }
 
-      // Si devuelve datos planos, los envolvemos en JSON 200 OK
       return NextResponse.json(result, { status: 200 });
 
     } catch (error: unknown) {
-      // --- Error Handling Centralizado ---
+      // ------------------------------------------------------
+      // Manejo de Errores Centralizado
+      // ------------------------------------------------------
 
-      // A. Errores de Negocio Controlados (AppError)
+      // 1. AppError (Lógica de Negocio)
       if (error instanceof AppError) {
-        // Solo logueamos warnings si no son operativos (bugs)
         if (!error.isOperational) {
           console.error(`[APP ERROR]`, error);
         }
         return NextResponse.json(error.toJSON(), { status: error.statusCode });
       }
 
-      // B. Errores de Validación (Zod)
-      // Robustez: Comprobamos instanceof O si parece un error de Zod por nombre/propiedades
-      // Esto previene fallos si hay versiones mezcladas de npm
-      // const isZodError =
-      //   error instanceof ZodError ||
-      //   (error instanceof Error && error.name === "ZodError") ||
-      //   (typeof error === "object" && error !== null && "issues" in error);
-
-      // if (isZodError) {
-      //   // Si no es instancia pero parece Zod, lo casteamos a any para acceder a flatten
-      //   const zodErr = error as ZodError;
-      //   // Nota: si no es instancia real puede que flatten no exista, usamos issues directo si falla
-      //   const fieldErrors = typeof zodErr.flatten === 'function'
-      //     ? z.treeifyError(zodErr).errors
-      //     : zodErr.issues; // Fallback simple
-
-      //   console.log("[API HANDLER] Caught ZodError:", fieldErrors);
-
-      //   return NextResponse.json(
-      //     {
-      //       message: "Datos inválidos",
-      //       code: "VALIDATION_ERROR",
-      //       errors: fieldErrors,
-      //     },
-      //     { status: 400 },
-      //   );
-      // }
-
+      // 2. ZodError (Validación de Input)
       if (error instanceof ZodError) {
-        // Zod v3: Transformamos el array de issues a un objeto { campo: [mensajes] }
         const fieldErrors: Record<string, string[]> = {};
         for (const issue of error.issues) {
           const path = issue.path.join(".") || "_root";
@@ -137,7 +121,6 @@ export const createContext = <TInput = NextRequest>(
           }
           fieldErrors[path].push(issue.message);
         }
-        console.log("[API HANDLER] Caught ZodError:", fieldErrors);
 
         return NextResponse.json(
           {
@@ -145,11 +128,11 @@ export const createContext = <TInput = NextRequest>(
             code: "VALIDATION_ERROR",
             errors: fieldErrors,
           },
-          { status: 400 },
+          { status: 400 }
         );
       }
 
-      // C. Errores Desconocidos (Crash)
+      // 3. Error No Controlado (Crash)
       console.error(`[API CRITICAL] ${req.method} ${req.url}`, error);
 
       return NextResponse.json(
@@ -157,7 +140,7 @@ export const createContext = <TInput = NextRequest>(
           message: "Error interno del servidor",
           code: "INTERNAL_SERVER_ERROR",
         },
-        { status: 500 },
+        { status: 500 }
       );
     }
   };

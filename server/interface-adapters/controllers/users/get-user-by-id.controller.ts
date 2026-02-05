@@ -1,16 +1,11 @@
 import { IGetUserByIdUseCase } from "@/server/application/use-cases/users/get-user-by-id.use-case";
-import { NotFoundError } from "@/server/domain/errors/common";
+import { User } from "@/server/domain/entities/User";
+import { ControllerExecutor } from "@/server/lib/api-handler";
 
-export class GetUserByIdController {
-  constructor(private readonly useCase: IGetUserByIdUseCase) {}
+export class GetUserByIdController implements ControllerExecutor<void, User | null> {
+  constructor(private useCase: IGetUserByIdUseCase) { }
 
-  async execute(id: string) {
-    const user = await this.useCase.execute(id);
-
-    if (!user) {
-      throw new NotFoundError("Usuario no encontrado");
-    }
-
-    return user;
+  async execute(_input: void, id?: string): Promise<User | null> {
+    return this.useCase.execute(id!);
   }
 }

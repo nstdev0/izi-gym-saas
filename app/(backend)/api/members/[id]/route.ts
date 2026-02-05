@@ -1,67 +1,14 @@
-import { getContainer } from "@/server/di/container";
-import { NextResponse } from "next/server";
 import { UpdateMemberSchema } from "@/server/application/dtos/members.dto";
-import { z } from "zod";
 import { createContext } from "@/server/lib/api-handler";
 
-export const GET = createContext(
-  (container) => container.getMemberByIdController,
-  async (req: Request, params?: any) => {
-    const id = params?.id;
-    return id;
-  },
+export const PATCH = createContext(
+  (c) => c.updateMemberController,
+  async (req) => {
+    const body = await req.json();
+    return UpdateMemberSchema.parse(body);
+  }
 );
 
-export async function PATCH(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> },
-) {
-  try {
-    const { id } = await params;
-    const body = await request.json();
-    const validatedData = UpdateMemberSchema.parse(body);
-
-    const container = await getContainer();
-    const member = await container.updateMemberController.execute(
-      id,
-      validatedData,
-    );
-
-    return NextResponse.json(member);
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      // Zod v3: Usamos flatten() para obtener errores por campo
-      const fieldErrors = error.flatten().fieldErrors;
-      return NextResponse.json(
-        {
-          message: "Error de validación",
-          code: "VALIDATION_ERROR",
-          errors: fieldErrors,
-        },
-        { status: 400 },
-      );
-    }
-    if (error instanceof Error) {
-      return NextResponse.json({ message: error.message }, { status: 400 });
-    }
-    return NextResponse.json({ message: "Error interno" }, { status: 500 });
-  }
-}
-
-export async function DELETE(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> },
-) {
-  try {
-    const { id } = await params;
-    const container = await getContainer();
-    await container.deleteMemberController.execute(id);
-
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    if (error instanceof Error) {
-      return NextResponse.json({ message: error.message }, { status: 400 });
-    }
-    return NextResponse.json({ message: "Error interno" }, { status: 500 });
-  }
-}
+export const DELETE = createContext(
+  (c) => c.deleteMemberController
+);
