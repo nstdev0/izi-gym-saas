@@ -18,136 +18,13 @@ import {
     ArrowRight,
     Dumbbell,
     Activity,
+    Loader2,
 } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { PageHeader } from "@/components/ui/page-header";
-
-// ==============================================
-// MOCK DATA - Replace with real data fetching
-// ==============================================
-
-const mockStats = {
-    totalMembers: 1247,
-    membersChange: 12.5,
-    activeMembers: 892,
-    activeChange: 8.3,
-    monthlyRevenue: 45680,
-    revenueChange: 15.2,
-    expiringMemberships: 24,
-    expiringChange: -5.0,
-};
-
-const mockRecentMembers = [
-    {
-        id: "1",
-        name: "Carlos Mendoza",
-        email: "carlos@email.com",
-        avatar: "",
-        plan: "Premium",
-        joinedAt: "Hace 2 horas",
-    },
-    {
-        id: "2",
-        name: "María García",
-        email: "maria@email.com",
-        avatar: "",
-        plan: "Básico",
-        joinedAt: "Hace 5 horas",
-    },
-    {
-        id: "3",
-        name: "Juan Pérez",
-        email: "juan@email.com",
-        avatar: "",
-        plan: "Premium",
-        joinedAt: "Ayer",
-    },
-    {
-        id: "4",
-        name: "Ana Rodríguez",
-        email: "ana@email.com",
-        avatar: "",
-        plan: "Elite",
-        joinedAt: "Hace 2 días",
-    },
-];
-
-const mockExpiringMemberships = [
-    {
-        id: "1",
-        memberName: "Roberto Silva",
-        plan: "Premium",
-        expiresIn: "2 días",
-        avatar: "",
-    },
-    {
-        id: "2",
-        memberName: "Laura Martínez",
-        plan: "Básico",
-        expiresIn: "3 días",
-        avatar: "",
-    },
-    {
-        id: "3",
-        memberName: "Diego López",
-        plan: "Elite",
-        expiresIn: "5 días",
-        avatar: "",
-    },
-    {
-        id: "4",
-        memberName: "Carmen Ruiz",
-        plan: "Premium",
-        expiresIn: "7 días",
-        avatar: "",
-    },
-];
-
-const mockRecentActivity = [
-    {
-        id: "1",
-        type: "new_member",
-        message: "Nuevo miembro registrado: Carlos Mendoza",
-        time: "Hace 2 horas",
-        icon: UserPlus,
-    },
-    {
-        id: "2",
-        type: "renewal",
-        message: "Membresía renovada: Laura Martínez",
-        time: "Hace 3 horas",
-        icon: RefreshCw,
-    },
-    {
-        id: "3",
-        type: "payment",
-        message: "Pago recibido: $150.00 - Plan Premium",
-        time: "Hace 4 horas",
-        icon: CreditCard,
-    },
-    {
-        id: "4",
-        type: "expiring",
-        message: "Membresía por vencer: Diego López",
-        time: "Hace 5 horas",
-        icon: AlertTriangle,
-    },
-    {
-        id: "5",
-        type: "new_member",
-        message: "Nuevo miembro registrado: María García",
-        time: "Hace 6 horas",
-        icon: UserPlus,
-    },
-];
-
-const mockTopPlans = [
-    { name: "Premium", members: 456, percentage: 45, color: "bg-primary" },
-    { name: "Básico", members: 312, percentage: 30, color: "bg-blue-500" },
-    { name: "Elite", members: 189, percentage: 18, color: "bg-purple-500" },
-    { name: "Estudiante", members: 72, percentage: 7, color: "bg-green-500" },
-];
+import { useEffect, useState } from "react";
+import { DashboardMetrics } from "@/server/domain/entities/dashboard-metrics";
 
 // ==============================================
 // COMPONENTS
@@ -159,9 +36,10 @@ interface StatCardProps {
     change: number;
     icon: React.ElementType;
     prefix?: string;
+    isLoading?: boolean;
 }
 
-function StatCard({ title, value, change, icon: Icon, prefix = "" }: StatCardProps) {
+function StatCard({ title, value, change, icon: Icon, prefix = "", isLoading }: StatCardProps) {
     const isPositive = change >= 0;
 
     return (
@@ -172,22 +50,32 @@ function StatCard({ title, value, change, icon: Icon, prefix = "" }: StatCardPro
                         <p className="text-xs sm:text-sm font-medium text-muted-foreground">
                             {title}
                         </p>
-                        <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground">
-                            {prefix}{typeof value === 'number' ? value.toLocaleString() : value}
-                        </p>
+                        {isLoading ? (
+                            <div className="h-8 w-24 bg-muted animate-pulse rounded" />
+                        ) : (
+                            <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground">
+                                {prefix}{typeof value === 'number' ? value.toLocaleString() : value}
+                            </p>
+                        )}
                         <div className="flex items-center gap-1">
-                            {isPositive ? (
-                                <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-green-500" />
+                            {isLoading ? (
+                                <div className="h-4 w-16 bg-muted animate-pulse rounded" />
                             ) : (
-                                <TrendingDown className="h-3 w-3 sm:h-4 sm:w-4 text-red-500" />
+                                <>
+                                    {isPositive ? (
+                                        <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-green-500" />
+                                    ) : (
+                                        <TrendingDown className="h-3 w-3 sm:h-4 sm:w-4 text-red-500" />
+                                    )}
+                                    <span
+                                        className={`text-xs sm:text-sm font-medium ${isPositive ? "text-green-500" : "text-red-500"
+                                            }`}
+                                    >
+                                        {isPositive ? "+" : ""}{change.toFixed(1)}%
+                                    </span>
+                                    <span className="text-xs text-muted-foreground">vs periodo anterior</span>
+                                </>
                             )}
-                            <span
-                                className={`text-xs sm:text-sm font-medium ${isPositive ? "text-green-500" : "text-red-500"
-                                    }`}
-                            >
-                                {isPositive ? "+" : ""}{change}%
-                            </span>
-                            <span className="text-xs text-muted-foreground">vs mes anterior</span>
                         </div>
                     </div>
                     <div className="rounded-full bg-primary/10 p-2 sm:p-3">
@@ -217,6 +105,32 @@ function getPlanBadgeVariant(plan: string): "default" | "secondary" | "destructi
 export default function DashboardPage() {
     const params = useParams();
     const slug = params.slug as string;
+    const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        async function fetchMetrics() {
+            try {
+                const response = await fetch("/api/dashboard");
+                if (response.ok) {
+                    const data = await response.json();
+                    setMetrics(data);
+                }
+            } catch (error) {
+                console.error("Failed to fetch dashboard metrics", error);
+            } finally {
+                setLoading(false);
+            }
+        }
+        fetchMetrics();
+    }, []);
+
+    // Helper to calc total members (active + expired roughly or just total stats?) 
+    // The metric says "totalActiveMembers" in the interface. 
+    // Use Case implementation of Domain Entity: 
+    // activeMembers: MetricWithTrend (Current Active Count)
+    // newMemberships: MetricWithTrend (New Sales)
+    // We can map these to the cards.
 
     return (
         <DashboardLayout
@@ -229,8 +143,8 @@ export default function DashboardPage() {
                     actions={
                         <Button variant="outline" size="sm" className="gap-2">
                             <Calendar className="h-4 w-4" />
-                            <span className="hidden sm:inline">Últimos 30 días</span>
-                            <span className="sm:hidden">30 días</span>
+                            <span className="hidden sm:inline">Este Mes</span>
+                            <span className="sm:hidden">Mes</span>
                         </Button>
                     }
                 />
@@ -238,29 +152,33 @@ export default function DashboardPage() {
                 {/* KPI Stats Grid */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                     <StatCard
-                        title="Total Miembros"
-                        value={mockStats.totalMembers}
-                        change={mockStats.membersChange}
-                        icon={Users}
-                    />
-                    <StatCard
                         title="Miembros Activos"
-                        value={mockStats.activeMembers}
-                        change={mockStats.activeChange}
-                        icon={Activity}
+                        value={metrics?.activeMembers.value ?? 0}
+                        change={metrics?.activeMembers.percentageChange ?? 0}
+                        icon={Users}
+                        isLoading={loading}
                     />
                     <StatCard
-                        title="Ingresos del Mes"
-                        value={mockStats.monthlyRevenue}
-                        change={mockStats.revenueChange}
+                        title="Nuevas Membresías"
+                        value={metrics?.newMemberships.value ?? 0}
+                        change={metrics?.newMemberships.percentageChange ?? 0}
+                        icon={Activity}
+                        isLoading={loading}
+                    />
+                    <StatCard
+                        title="Ingresos"
+                        value={metrics?.revenue.value ?? 0}
+                        change={metrics?.revenue.percentageChange ?? 0}
                         icon={DollarSign}
                         prefix="$"
+                        isLoading={loading}
                     />
                     <StatCard
-                        title="Por Vencer"
-                        value={mockStats.expiringMemberships}
-                        change={mockStats.expiringChange}
+                        title="Por Vencer (7d)"
+                        value={metrics?.expiringMemberships.length ?? 0}
+                        change={0} // No trend for this yet
                         icon={AlertTriangle}
+                        isLoading={loading}
                     />
                 </div>
 
@@ -280,39 +198,50 @@ export default function DashboardPage() {
                             </Link>
                         </CardHeader>
                         <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
-                            <div className="space-y-3 sm:space-y-4">
-                                {mockRecentMembers.map((member) => (
-                                    <div
-                                        key={member.id}
-                                        className="flex items-center justify-between gap-3 p-2 sm:p-3 rounded-lg hover:bg-muted/50 transition-colors"
-                                    >
-                                        <div className="flex items-center gap-3 min-w-0">
-                                            <Avatar className="h-9 w-9 sm:h-10 sm:w-10 shrink-0">
-                                                <AvatarImage src={member.avatar} alt={member.name} />
-                                                <AvatarFallback className="bg-primary/10 text-primary text-xs sm:text-sm">
-                                                    {member.name.split(" ").map((n) => n[0]).join("")}
-                                                </AvatarFallback>
-                                            </Avatar>
-                                            <div className="min-w-0">
-                                                <p className="text-sm font-medium text-foreground truncate">
-                                                    {member.name}
-                                                </p>
-                                                <p className="text-xs text-muted-foreground truncate">
-                                                    {member.email}
-                                                </p>
+                            {loading ? (
+                                <div className="flex items-center justify-center py-8">
+                                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                                </div>
+                            ) : (
+                                <div className="space-y-3 sm:space-y-4">
+                                    {metrics?.recentActivity.map((member) => (
+                                        <div
+                                            key={member.id}
+                                            className="flex items-center justify-between gap-3 p-2 sm:p-3 rounded-lg hover:bg-muted/50 transition-colors"
+                                        >
+                                            <div className="flex items-center gap-3 min-w-0">
+                                                <Avatar className="h-9 w-9 sm:h-10 sm:w-10 shrink-0">
+                                                    <AvatarImage src={member.avatar || undefined} alt={member.name} />
+                                                    <AvatarFallback className="bg-primary/10 text-primary text-xs sm:text-sm">
+                                                        {member.name.split(" ").map((n) => n[0]).join("")}
+                                                    </AvatarFallback>
+                                                </Avatar>
+                                                <div className="min-w-0">
+                                                    <p className="text-sm font-medium text-foreground truncate">
+                                                        {member.name}
+                                                    </p>
+                                                    <p className="text-xs text-muted-foreground truncate">
+                                                        {member.email}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-2 shrink-0">
+                                                <Badge variant={getPlanBadgeVariant(member.planName || "")} className="hidden sm:flex">
+                                                    {member.planName}
+                                                </Badge>
+                                                <span className="text-xs text-muted-foreground whitespace-nowrap">
+                                                    {new Date(member.joinedAt).toLocaleDateString()}
+                                                </span>
                                             </div>
                                         </div>
-                                        <div className="flex items-center gap-2 shrink-0">
-                                            <Badge variant={getPlanBadgeVariant(member.plan)} className="hidden sm:flex">
-                                                {member.plan}
-                                            </Badge>
-                                            <span className="text-xs text-muted-foreground whitespace-nowrap">
-                                                {member.joinedAt}
-                                            </span>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
+                                    ))}
+                                    {metrics?.recentActivity.length === 0 && (
+                                        <p className="text-sm text-muted-foreground text-center py-8">
+                                            No hay actividad reciente.
+                                        </p>
+                                    )}
+                                </div>
+                            )}
                         </CardContent>
                     </Card>
 
@@ -325,85 +254,53 @@ export default function DashboardPage() {
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
-                            <div className="space-y-3">
-                                {mockExpiringMemberships.map((item) => (
-                                    <div
-                                        key={item.id}
-                                        className="flex items-center justify-between gap-2 p-2 rounded-lg hover:bg-muted/50 transition-colors"
-                                    >
-                                        <div className="flex items-center gap-2 min-w-0">
-                                            <Avatar className="h-8 w-8 shrink-0">
-                                                <AvatarImage src={item.avatar} alt={item.memberName} />
-                                                <AvatarFallback className="bg-amber-500/10 text-amber-600 text-xs">
-                                                    {item.memberName.split(" ").map((n) => n[0]).join("")}
-                                                </AvatarFallback>
-                                            </Avatar>
-                                            <div className="min-w-0">
-                                                <p className="text-sm font-medium text-foreground truncate">
-                                                    {item.memberName}
-                                                </p>
-                                                <p className="text-xs text-muted-foreground">
-                                                    {item.plan}
-                                                </p>
+                            {loading ? (
+                                <div className="flex items-center justify-center py-8">
+                                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                                </div>
+                            ) : (
+                                <div className="space-y-3">
+                                    {metrics?.expiringMemberships.map((item) => (
+                                        <div
+                                            key={item.id}
+                                            className="flex items-center justify-between gap-2 p-2 rounded-lg hover:bg-muted/50 transition-colors"
+                                        >
+                                            <div className="flex items-center gap-2 min-w-0">
+                                                <Avatar className="h-8 w-8 shrink-0">
+                                                    <AvatarImage src={item.avatar || undefined} alt={item.memberName} />
+                                                    <AvatarFallback className="bg-amber-500/10 text-amber-600 text-xs">
+                                                        {item.memberName.split(" ").map((n) => n[0]).join("")}
+                                                    </AvatarFallback>
+                                                </Avatar>
+                                                <div className="min-w-0">
+                                                    <p className="text-sm font-medium text-foreground truncate">
+                                                        {item.memberName}
+                                                    </p>
+                                                    <p className="text-xs text-muted-foreground">
+                                                        {item.planName}
+                                                    </p>
+                                                </div>
                                             </div>
+                                            <Badge variant="outline" className="shrink-0 text-amber-600 border-amber-300 bg-amber-50 dark:bg-amber-950/30">
+                                                {item.daysUntilExpiration} días
+                                            </Badge>
                                         </div>
-                                        <Badge variant="outline" className="shrink-0 text-amber-600 border-amber-300 bg-amber-50 dark:bg-amber-950/30">
-                                            {item.expiresIn}
-                                        </Badge>
-                                    </div>
-                                ))}
-                            </div>
+                                    ))}
+                                    {metrics?.expiringMemberships.length === 0 && (
+                                        <p className="text-sm text-muted-foreground text-center py-8">
+                                            Ninguna membresía por vencer pronto.
+                                        </p>
+                                    )}
+                                </div>
+                            )}
                         </CardContent>
                     </Card>
                 </div>
 
                 {/* Second Row */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-                    {/* Activity Feed */}
-                    <Card className="lg:col-span-2">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-                            <CardTitle className="text-base sm:text-lg font-semibold">
-                                Actividad Reciente
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
-                            <div className="space-y-3">
-                                {mockRecentActivity.map((activity) => {
-                                    const Icon = activity.icon;
-                                    return (
-                                        <div
-                                            key={activity.id}
-                                            className="flex items-start gap-3 p-2 sm:p-3 rounded-lg hover:bg-muted/50 transition-colors"
-                                        >
-                                            <div
-                                                className={`rounded-full p-2 shrink-0 ${activity.type === "new_member"
-                                                    ? "bg-green-500/10 text-green-600"
-                                                    : activity.type === "renewal"
-                                                        ? "bg-blue-500/10 text-blue-600"
-                                                        : activity.type === "payment"
-                                                            ? "bg-primary/10 text-primary"
-                                                            : "bg-amber-500/10 text-amber-600"
-                                                    }`}
-                                            >
-                                                <Icon className="h-4 w-4" />
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                                <p className="text-sm text-foreground">
-                                                    {activity.message}
-                                                </p>
-                                                <p className="text-xs text-muted-foreground mt-1">
-                                                    {activity.time}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        </CardContent>
-                    </Card>
-
                     {/* Top Plans */}
-                    <Card>
+                    <Card className="lg:col-span-1">
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
                             <CardTitle className="text-base sm:text-lg font-semibold flex items-center gap-2">
                                 <Dumbbell className="h-4 w-4 text-primary" />
@@ -411,64 +308,82 @@ export default function DashboardPage() {
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
-                            <div className="space-y-4">
-                                {mockTopPlans.map((plan) => (
-                                    <div key={plan.name} className="space-y-2">
-                                        <div className="flex items-center justify-between text-sm">
-                                            <span className="font-medium text-foreground">{plan.name}</span>
-                                            <span className="text-muted-foreground">
-                                                {plan.members} miembros
-                                            </span>
-                                        </div>
-                                        <div className="h-2 rounded-full bg-muted overflow-hidden">
-                                            <div
-                                                className={`h-full rounded-full ${plan.color} transition-all duration-500`}
-                                                style={{ width: `${plan.percentage}%` }}
-                                            />
-                                        </div>
-                                    </div>
-                                ))}
+                            {loading ? (
+                                <div className="flex items-center justify-center py-8">
+                                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                                </div>
+                            ) : (
+                                <div className="space-y-4">
+                                    {metrics?.membersByPlan.map((plan) => {
+                                        // Calculate percentage based on total count of all plans shown? or total in metric?
+                                        // Let's sum counts from the list 
+                                        const totalCount = metrics.membersByPlan.reduce((acc, p) => acc + p.count, 0);
+                                        const percentage = totalCount > 0 ? (plan.count / totalCount) * 100 : 0;
+
+                                        return (
+                                            <div key={plan.planName} className="space-y-2">
+                                                <div className="flex items-center justify-between text-sm">
+                                                    <span className="font-medium text-foreground">{plan.planName}</span>
+                                                    <span className="text-muted-foreground">
+                                                        {plan.count} miembros
+                                                    </span>
+                                                </div>
+                                                <div className="h-2 rounded-full bg-muted overflow-hidden">
+                                                    <div
+                                                        className={`h-full rounded-full bg-primary transition-all duration-500`}
+                                                        style={{ width: `${percentage}%` }}
+                                                    />
+                                                </div>
+                                            </div>
+                                        )
+                                    })}
+                                    {metrics?.membersByPlan.length === 0 && (
+                                        <p className="text-sm text-muted-foreground text-center py-8">
+                                            No hay datos de planes.
+                                        </p>
+                                    )}
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+
+                    {/* Quick Actions - Always useful */}
+                    <Card className="lg:col-span-2">
+                        <CardHeader className="pb-4">
+                            <CardTitle className="text-base sm:text-lg font-semibold">
+                                Acciones Rápidas
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                                <Link href={`/${slug}/admin/members/new`}>
+                                    <Button variant="outline" className="w-full h-auto py-4 flex flex-col gap-2 hover:border-primary hover:text-primary transition-colors">
+                                        <UserPlus className="h-5 w-5" />
+                                        <span className="text-xs sm:text-sm">Nuevo Miembro</span>
+                                    </Button>
+                                </Link>
+                                <Link href={`/${slug}/admin/members`}>
+                                    <Button variant="outline" className="w-full h-auto py-4 flex flex-col gap-2 hover:border-primary hover:text-primary transition-colors">
+                                        <Users className="h-5 w-5" />
+                                        <span className="text-xs sm:text-sm">Ver Miembros</span>
+                                    </Button>
+                                </Link>
+                                <Link href={`/${slug}/admin/memberships`}>
+                                    <Button variant="outline" className="w-full h-auto py-4 flex flex-col gap-2 hover:border-primary hover:text-primary transition-colors">
+                                        <CreditCard className="h-5 w-5" />
+                                        <span className="text-xs sm:text-sm">Membresías</span>
+                                    </Button>
+                                </Link>
+                                <Link href={`/${slug}/admin/users`}>
+                                    <Button variant="outline" className="w-full h-auto py-4 flex flex-col gap-2 hover:border-primary hover:text-primary transition-colors">
+                                        <Dumbbell className="h-5 w-5" />
+                                        <span className="text-xs sm:text-sm">Usuarios</span>
+                                    </Button>
+                                </Link>
                             </div>
                         </CardContent>
                     </Card>
                 </div>
-
-                {/* Quick Actions */}
-                <Card>
-                    <CardHeader className="pb-4">
-                        <CardTitle className="text-base sm:text-lg font-semibold">
-                            Acciones Rápidas
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                            <Link href={`/${slug}/admin/members/new`}>
-                                <Button variant="outline" className="w-full h-auto py-4 flex flex-col gap-2">
-                                    <UserPlus className="h-5 w-5 text-primary" />
-                                    <span className="text-xs sm:text-sm">Nuevo Miembro</span>
-                                </Button>
-                            </Link>
-                            <Link href={`/${slug}/admin/members`}>
-                                <Button variant="outline" className="w-full h-auto py-4 flex flex-col gap-2">
-                                    <Users className="h-5 w-5 text-primary" />
-                                    <span className="text-xs sm:text-sm">Ver Miembros</span>
-                                </Button>
-                            </Link>
-                            <Link href={`/${slug}/admin/memberships`}>
-                                <Button variant="outline" className="w-full h-auto py-4 flex flex-col gap-2">
-                                    <CreditCard className="h-5 w-5 text-primary" />
-                                    <span className="text-xs sm:text-sm">Membresías</span>
-                                </Button>
-                            </Link>
-                            <Link href={`/${slug}/admin/users`}>
-                                <Button variant="outline" className="w-full h-auto py-4 flex flex-col gap-2">
-                                    <Dumbbell className="h-5 w-5 text-primary" />
-                                    <span className="text-xs sm:text-sm">Usuarios</span>
-                                </Button>
-                            </Link>
-                        </div>
-                    </CardContent>
-                </Card>
             </div>
         </DashboardLayout>
     );

@@ -81,6 +81,11 @@ import { UpdateUserController } from "../interface-adapters/controllers/users/up
 import { DeleteUserController } from "../interface-adapters/controllers/users/delete-user.controller";
 import { ClerkAuthService } from "../infrastructure/services/clerk-auth.service";
 
+// --- Imports: Dashboard ---
+import { PrismaDashboardRepository } from "../infrastructure/persistence/repositories/prisma-dashboard.repository";
+import { GetDashboardMetricsUseCase } from "../application/use-cases/dashboard/get-dashboard-metrics.use-case";
+import { GetDashboardMetricsController } from "../interface-adapters/controllers/dashboard/get-dashboard-metrics.controller";
+
 // Factory function "memoizada" por request
 export const getContainer = cache(async () => {
   const { orgId } = await auth(); // Clerk cachea esto, no es doble llamada lenta
@@ -246,6 +251,16 @@ export const getContainer = cache(async () => {
   const deleteUserController = new DeleteUserController(deleteUserUseCase);
 
   // ===========================================================================
+  // 7. DASHBOARD
+  // ===========================================================================
+  // Repo
+  const dashboardRepository = new PrismaDashboardRepository(prisma);
+  // Use Case
+  const getDashboardMetricsUseCase = new GetDashboardMetricsUseCase(dashboardRepository);
+  // Controller
+  const getDashboardMetricsController = new GetDashboardMetricsController(getDashboardMetricsUseCase);
+
+  // ===========================================================================
   // RETURN
   // ===========================================================================
   return {
@@ -285,5 +300,7 @@ export const getContainer = cache(async () => {
     getUserByIdController,
     updateUserController,
     deleteUserController,
+    // Dashboard
+    getDashboardMetricsController,
   };
 });

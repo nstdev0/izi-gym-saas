@@ -1,4 +1,5 @@
 import { BaseEntity } from "./_base";
+import { Membership } from "./Membership";
 
 export enum Gender {
   MALE = "MALE",
@@ -32,6 +33,7 @@ export class Member extends BaseEntity {
     public weight?: number | null,
     public imc?: number | null,
     public image?: string | null,
+    public memberships?: Membership[],
   ) {
     super(id, organizationId, createdAt, updatedAt);
   }

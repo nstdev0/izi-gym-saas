@@ -61,7 +61,7 @@ export function MemberCombobox({
         setIsLoading(true);
         try {
             const response = await api.get<{ records: Member[] }>(
-                `/api/members?search=${encodeURIComponent(query)}&limit=20`
+                `/api/members?search=${encodeURIComponent(query)}&limit=20&sort=createdAt-desc`
             );
             setMembers(response.records);
         } catch (error) {

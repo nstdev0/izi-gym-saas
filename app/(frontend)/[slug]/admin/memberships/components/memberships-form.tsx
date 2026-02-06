@@ -25,6 +25,13 @@ import { createMembershipSchema } from "@/server/application/dtos/memberships.dt
 import { Member } from "@/server/domain/entities/Member";
 import { Plan } from "@/server/domain/entities/Plan";
 
+export interface SelectablePlan {
+    id: string;
+    name: string;
+    price: number;
+    durationDays: number;
+}
+
 interface MembershipFormProps {
     initialData?: {
         id: string;
@@ -38,7 +45,7 @@ interface MembershipFormProps {
     };
     isEdit?: boolean;
     redirectUrl: string;
-    plans: Plan[];
+    plans: SelectablePlan[];
 }
 
 export default function MembershipForm({
@@ -58,10 +65,10 @@ export default function MembershipForm({
             planId: initialData?.planId || "",
             startDate: initialData?.startDate
                 ? new Date(initialData.startDate)
-                : undefined,
+                : new Date(),
             endDate: initialData?.endDate
                 ? new Date(initialData.endDate)
-                : undefined,
+                : new Date(),
             pricePaid: initialData?.pricePaid || 0,
             status: (initialData?.status as MembershipStatus) || MembershipStatus.PENDING,
         },
@@ -81,12 +88,24 @@ export default function MembershipForm({
     const { mutate: mutateMembership, isPending } = useMutation({
         mutationFn: async (values: z.infer<typeof createMembershipSchema>) => {
             const plan = plans?.find((p) => p.id === values.planId);
-            // CORRECCIÓN FECHAS 2: Asegurar que trabajamos con objetos Date al enviar
+
+            // CORRECCIÓN FECHAS: Normalizar a inicio del día (00:00:00 local) para evitar saltos de día por UTC
             const startDate = new Date(values.startDate);
+            startDate.setHours(0, 0, 0, 0);
+
             const endDate = new Date(startDate);
 
+            // Calcular fecha fin basada en la duración del plan
             if (plan) {
-                endDate.setDate(endDate.getDate() + plan.durationDays);
+                // endDate = startDate + durationDays
+                endDate.setDate(startDate.getDate() + plan.durationDays);
+                // Ajustar al final del día si se prefiere (23:59:59), o mantener consistencia de fecha
+                endDate.setHours(23, 59, 59, 999);
+            } else {
+                // Fallback si no hay plan (ej: edición manual sin cambiar plan), usar la fecha del form
+                const formEndDate = new Date(values.endDate);
+                formEndDate.setHours(23, 59, 59, 999);
+                endDate.setTime(formEndDate.getTime());
             }
 
             const payload = {
@@ -174,7 +193,7 @@ export default function MembershipForm({
                                             <SelectItem
                                                 key={plan.id}
                                                 value={plan.id}
-                                                className="whitespace-normal break-words" // Permitir multilínea en el menú
+                                                className="whitespace-normal wrap-break-word" // Permitir multilínea en el menú
                                             >
                                                 {plan.name} - S/ {plan.price} ({plan.durationDays} días)
                                             </SelectItem>

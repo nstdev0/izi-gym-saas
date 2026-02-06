@@ -169,4 +169,15 @@ export class MembersRepository
 
     return null;
   }
+
+  async findByIdWithMemberships(id: string): Promise<Member | null> {
+    return this.model.findUnique({
+      where: { id, organizationId: this.organizationId },
+      include: {
+        memberships: {
+          select: { status: true },
+        },
+      },
+    }) as unknown as Promise<Member | null>;
+  }
 }

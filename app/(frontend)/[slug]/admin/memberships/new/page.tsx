@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import MembershipForm from "../components/memberships-form";
 import { Metadata } from "next";
 import { getContainer } from "@/server/di/container";
+import { Member } from "@/server/domain/entities/Member";
 
 export const metadata: Metadata = {
     title: "Nueva Membresía",
@@ -12,10 +13,12 @@ export const metadata: Metadata = {
 
 interface Props {
     params: Promise<{ slug: string }>;
+    searchParams: Promise<{ memberId?: string }>;
 }
 
-export default async function NewMembershipPage({ params }: Props) {
+export default async function NewMembershipPage({ params, searchParams }: Props) {
     const { slug } = await params;
+    const { memberId } = await searchParams;
     const container = await getContainer();
 
     // Fetch only plans (members are searched on demand)
@@ -32,6 +35,29 @@ export default async function NewMembershipPage({ params }: Props) {
         durationDays: p.durationDays,
     }));
 
+    let initialMember: Member | null = null;
+
+    if (memberId) {
+        try {
+            // Reutilizamos el controlador que ya tiene la lógica de buscar por ID
+            initialMember = await container.getMemberByIdController.execute(undefined, memberId);
+        } catch (error) {
+            console.error("Error fetching initial member:", error);
+            // Si falla, simplemente no pre-seleccionamos nada
+        }
+    }
+
+    const initialData = initialMember ? {
+        id: "",
+        memberId: initialMember.id,
+        planId: "",
+        startDate: new Date(),
+        endDate: new Date(),
+        pricePaid: 0,
+        status: "PENDING",
+        member: initialMember,
+    } : undefined;
+
     return (
         <div className="space-y-6">
             <div className="flex items-center gap-4">
@@ -45,6 +71,7 @@ export default async function NewMembershipPage({ params }: Props) {
             <MembershipForm
                 redirectUrl={`/${slug}/admin/memberships`}
                 plans={plans}
+                initialData={initialData}
             />
         </div>
     );
