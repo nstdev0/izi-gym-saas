@@ -1,4 +1,4 @@
-import UserForm from "../../components/users-form";
+import PlanForm from "../../components/plans-form";
 import { notFound } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -9,12 +9,12 @@ interface PageProps {
     params: Promise<{ slug: string; id: string }>;
 }
 
-export default async function EditUserPage({ params }: PageProps) {
+export default async function EditPlanPage({ params }: PageProps) {
     const { slug, id } = await params;
     const container = await getContainer();
-    const user = await container.getUserByIdController.execute(undefined, id);
+    const plan = await container.getPlanByIdController.execute(undefined, id);
 
-    if (!user) {
+    if (!plan) {
         notFound();
     }
 
@@ -23,18 +23,18 @@ export default async function EditUserPage({ params }: PageProps) {
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                     <Button variant="ghost" size="icon" asChild>
-                        <Link href={`/${slug}/admin/users`}>
+                        <Link href={`/${slug}/admin/plans`}>
                             <ChevronLeft className="h-4 w-4" />
                         </Link>
                     </Button>
-                    <h1 className="text-3xl font-bold tracking-tight">Editar Usuario</h1>
+                    <h1 className="text-3xl font-bold tracking-tight">Editar Plan</h1>
                 </div>
             </div>
             <div className="p-4 border rounded-md">
-                <UserForm
-                    initialData={user}
+                <PlanForm
+                    initialData={plan}
                     isEdit={true}
-                    redirectUrl={`/${slug}/admin/users`}
+                    redirectUrl={`/${slug}/admin/plans`}
                 />
             </div>
         </div>

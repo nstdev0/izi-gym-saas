@@ -1,20 +1,14 @@
+import { CreatePlanInput } from "@/server/application/dtos/plans.dto";
 import { CreatePlanUseCase } from "@/server/application/use-cases/plans/create-plan.use-case";
-import { ValidationError } from "@/server/domain/errors/common";
-import { createPlanSchema } from "@/server/application/dtos/plans.dto";
+import { Plan } from "@/server/domain/entities/Plan";
+import { ControllerExecutor } from "@/server/lib/api-handler";
 
-export class CreatePlanController {
-  constructor(private readonly useCase: CreatePlanUseCase) {}
+export class CreatePlanController implements ControllerExecutor<CreatePlanInput, Plan> {
+  constructor(private readonly useCase: CreatePlanUseCase) { }
 
-  async execute(input: unknown) {
-    const validatedInput = createPlanSchema.safeParse(input);
-
-    if (!validatedInput.success) {
-      throw new ValidationError(
-        "Datos de Plan Inválidos",
-        validatedInput.error.message,
-      );
-    }
-
-    return await this.useCase.execute(validatedInput.data);
+  async execute(input: CreatePlanInput): Promise<Plan> {
+    return await this.useCase.execute(input);
   }
 }
+
+export type ICreatePlanUseCase = InstanceType<typeof CreatePlanUseCase>;

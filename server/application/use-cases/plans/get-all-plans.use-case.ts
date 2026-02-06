@@ -9,11 +9,15 @@ import {
 import { Plan } from "@/server/domain/entities/Plan";
 
 export class GetAllPlansUseCase {
-  constructor(private readonly repository: IPlansRepository) {}
+  constructor(private readonly repository: IPlansRepository) { }
 
   async execute(
     request: PageableRequest<PlansFilters>,
   ): Promise<PageableResponse<Plan>> {
-    return await this.repository.findAll(request);
+    const response = await this.repository.findAll(request);
+    response.records.forEach((plan) => {
+      plan.price = Number(plan.price);
+    });
+    return response;
   }
 }

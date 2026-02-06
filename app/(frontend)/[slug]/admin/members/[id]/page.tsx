@@ -17,7 +17,7 @@ export default async function MemberPage({
 }) {
   const { slug, id } = await params;
   const container = await getContainer();
-  const member = await container.getMemberByIdController.execute(id);
+  const member = await container.getMemberByIdController.execute(undefined, id);
 
   if (!member) {
     notFound();

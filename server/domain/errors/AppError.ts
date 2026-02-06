@@ -2,7 +2,7 @@ export interface SerializedError {
   message: string;
   code: string;
   details?: any;
-  stack?: string; // Solo en desarrollo
+  stack?: string;
 }
 
 export abstract class AppError extends Error {
@@ -16,9 +16,10 @@ export abstract class AppError extends Error {
     this.details = details;
     Object.setPrototypeOf(this, new.target.prototype);
 
-    // FIX: Verificar si la función existe antes de llamarla
     if (Error.captureStackTrace) {
-      Error.captureStackTrace(this);
+      // ✅ MEJORA: Pasamos 'this.constructor' para excluir esta clase del stack
+      // y que el error apunte a la línea exacta donde se lanzó (ej: en el UseCase).
+      Error.captureStackTrace(this, this.constructor);
     }
   }
 

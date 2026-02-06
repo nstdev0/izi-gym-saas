@@ -1,43 +1,71 @@
-// src/domain/errors/common.ts
-import { AppError } from "./AppError";
+import { AppError } from "./AppError"; // Ajusta la ruta
 
-// 400 - Bad Request (Validación general)
+// 400 Bad Request
 export class ValidationError extends AppError {
   readonly statusCode = 400;
   readonly code = "VALIDATION_ERROR";
 
-  constructor(message: string = "Validation failed", details?: any) {
+  constructor(message: string = "Datos inválidos", details?: any) {
     super(message, details);
   }
 }
 
-// 404 - Not Found
-export class NotFoundError extends AppError {
-  readonly statusCode = 404;
-  readonly code = "RESOURCE_NOT_FOUND";
+// 400 Bad Request (Error genérico de negocio)
+export class BadRequestError extends AppError {
+  readonly statusCode = 400;
+  readonly code = "BAD_REQUEST";
+
+  constructor(message: string, details?: any) {
+    super(message, details);
+  }
 }
 
-// 409 - Conflict (Ej: Email duplicado)
-export class ConflictError extends AppError {
-  readonly statusCode = 409;
-  readonly code = "RESOURCE_CONFLICT";
-}
-
-// 401 - Unauthorized (No logueado)
+// 401 Unauthorized
 export class UnauthorizedError extends AppError {
   readonly statusCode = 401;
   readonly code = "UNAUTHORIZED";
+
+  constructor(message: string = "No autenticado") {
+    super(message);
+  }
 }
 
-// 403 - Forbidden (Logueado pero sin permisos)
+// 403 Forbidden
 export class ForbiddenError extends AppError {
   readonly statusCode = 403;
   readonly code = "FORBIDDEN";
+
+  constructor(message: string = "Acceso denegado") {
+    super(message);
+  }
 }
 
-// 500 - Internal (Para wrappear errores raros si es necesario)
+// 404 Not Found
+export class NotFoundError extends AppError {
+  readonly statusCode = 404;
+  readonly code = "NOT_FOUND";
+
+  constructor(message: string = "Recurso no encontrado") {
+    super(message);
+  }
+}
+
+// 409 Conflict (Ej: Email duplicado)
+export class ConflictError extends AppError {
+  readonly statusCode = 409;
+  readonly code = "CONFLICT";
+
+  constructor(message: string, details?: any) {
+    super(message, details);
+  }
+}
+
+// 500 Internal (Opcional, usualmente no se lanza manualmente)
 export class InternalServerError extends AppError {
   readonly statusCode = 500;
   readonly code = "INTERNAL_SERVER_ERROR";
-  readonly isOperational = false; // Esto fue inesperado
+
+  constructor(message: string = "Error interno del servidor") {
+    super(message);
+  }
 }

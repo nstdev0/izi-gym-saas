@@ -12,7 +12,9 @@ export interface CreateMembershipInput {
 export type UpdateMembershipInput = Partial<CreateMembershipInput>;
 
 export interface MembershipsFilters {
-  status?: MembershipStatus;
+  status?: string;
   memberId?: string;
   planId?: string;
+  search?: string;
+  sort?: string;
 }

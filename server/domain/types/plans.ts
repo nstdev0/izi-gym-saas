@@ -10,4 +10,6 @@ export type UpdatePlanInput = Partial<CreatePlanInput>;
 
 export interface PlansFilters {
   search?: string;
+  status?: string;
+  sort?: string;
 }

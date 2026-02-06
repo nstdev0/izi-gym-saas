@@ -16,17 +16,57 @@ export class PlansRepository
     UpdatePlanInput,
     PlansFilters
   >
-  implements IPlansRepository
-{
-  async buildQueryFilters(
-    filters: PlansFilters,
-  ): Promise<Prisma.PlanWhereInput> {
-    const whereClause: Prisma.PlanWhereInput = {};
+  implements IPlansRepository {
 
+  protected async buildPrismaClauses(
+    filters: PlansFilters,
+  ): Promise<[Prisma.PlanWhereInput, Prisma.PlanOrderByWithRelationInput]> {
+    const ALLOWED_SORT_FIELDS = ["createdAt", "name", "price", "durationDays"] as const;
+    const ALLOWED_STATUS = ["active", "inactive"] as const;
+
+    const conditions: Prisma.PlanWhereInput[] = [];
+
+    // Search filter
     if (filters.search) {
-      whereClause.name = { contains: filters.search, mode: "insensitive" };
+      const searchTerms = filters.search.trim().split(/\s+/).filter(Boolean);
+
+      if (searchTerms.length > 0) {
+        searchTerms.forEach((term) => {
+          conditions.push({
+            OR: [
+              { name: { contains: term, mode: "insensitive" } },
+              { description: { contains: term, mode: "insensitive" } },
+            ],
+          });
+        });
+      }
     }
 
-    return whereClause;
+    // Status filter (isActive)
+    if (filters.status) {
+      const statusInput = filters.status.toLowerCase();
+      const isValidStatus = (ALLOWED_STATUS as readonly string[]).includes(statusInput);
+
+      if (isValidStatus) {
+        conditions.push({ isActive: statusInput === "active" });
+      }
+    }
+
+    const WhereClause: Prisma.PlanWhereInput = conditions.length > 0 ? { AND: conditions } : {};
+
+    // Sort
+    let OrderByClause: Prisma.PlanOrderByWithRelationInput = { createdAt: "desc" };
+
+    if (filters.sort) {
+      const [field, direction] = filters.sort.split("-");
+      const isValidField = (ALLOWED_SORT_FIELDS as readonly string[]).includes(field);
+      const isValidDirection = direction === "asc" || direction === "desc";
+
+      if (isValidField && isValidDirection) {
+        OrderByClause = { [field]: direction as Prisma.SortOrder };
+      }
+    }
+
+    return [WhereClause, OrderByClause];
   }
 }

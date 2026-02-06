@@ -14,16 +14,16 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { User } from "@/server/domain/entities/User";
-import { columns } from "./users-columns";
+import { Plan } from "@/server/domain/entities/Plan";
+import { columns } from "./plans-columns";
 
-interface UsersTableProps {
-    users: User[];
+interface PlansTableProps {
+    plans: Plan[];
 }
 
-export function UsersTable({ users }: UsersTableProps) {
+export function PlansTable({ plans }: PlansTableProps) {
     const table = useReactTable({
-        data: users,
+        data: plans,
         columns,
         getCoreRowModel: getCoreRowModel(),
     });
@@ -47,7 +47,7 @@ export function UsersTable({ users }: UsersTableProps) {
                                             ? null
                                             : flexRender(
                                                 header.column.columnDef.header,
-                                                header.getContext(),
+                                                header.getContext()
                                             )}
                                     </TableHead>
                                 );
@@ -73,7 +73,7 @@ export function UsersTable({ users }: UsersTableProps) {
                     ) : (
                         <TableRow>
                             <TableCell colSpan={columns.length} className="h-24 text-center">
-                                No se encontraron resultados
+                                No se encontraron planes
                             </TableCell>
                         </TableRow>
                     )}

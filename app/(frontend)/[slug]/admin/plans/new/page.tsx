@@ -1,0 +1,29 @@
+import PlanForm from "../components/plans-form";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { ChevronLeft } from "lucide-react";
+
+interface PageProps {
+    params: Promise<{ slug: string }>;
+}
+
+export default async function NewPlanPage({ params }: PageProps) {
+    const { slug } = await params;
+
+    return (
+        <div className="flex flex-col gap-6">
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                    <Button variant="ghost" size="icon" asChild>
+                        <Link href={`/${slug}/admin/plans`}>
+                            <ChevronLeft className="h-4 w-4" />
+                        </Link>
+                    </Button>
+                    <h1 className="text-3xl font-bold tracking-tight">Nuevo Plan</h1>
+                </div>
+            </div>
+
+            <PlanForm redirectUrl={`/${slug}/admin/plans`} />
+        </div>
+    );
+}

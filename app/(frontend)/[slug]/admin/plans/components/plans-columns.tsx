@@ -1,8 +1,8 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { User } from "@/server/domain/entities/User";
-import { Edit, Trash2, Shield, CheckCircle, XCircle, Eye } from "lucide-react";
+import { Plan } from "@/server/domain/entities/Plan";
+import { Edit, Trash2, Eye, CheckCircle, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
     AlertDialog,
@@ -19,67 +19,55 @@ import { toast } from "sonner";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { api, ApiError } from "@/lib/api";
-import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 
-export const columns: ColumnDef<User>[] = [
+export const columns: ColumnDef<Plan>[] = [
     {
-        accessorKey: "user",
-        header: "Usuario",
+        accessorKey: "name",
+        header: "Plan",
         cell: ({ row }) => {
-            const user = row.original;
+            const plan = row.original;
+            // eslint-disable-next-line react-hooks/rules-of-hooks
             const params = useParams();
             const slug = params.slug as string;
             return (
-                <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden">
-                        {user.image ? (
-                            <Image
-                                src={user.image}
-                                alt={user.email}
-                                width={32}
-                                height={32}
-                                className="rounded-full object-cover w-full h-full"
-                            />
-                        ) : (
-                            <div className="text-xs font-medium text-primary uppercase">
-                                {user.email.substring(0, 2)}
-                            </div>
-                        )}
-                    </div>
-                    <div className="flex flex-col">
-                        <span className="font-medium text-foreground">
-                            {user.firstName ? `${user.firstName} ${user.lastName || ""}` : "Sin nombre"}
+                <div className="flex flex-col">
+                    <Link
+                        href={`/${slug}/admin/plans/${plan.id}`}
+                        className="font-medium text-foreground hover:underline"
+                    >
+                        {plan.name}
+                    </Link>
+                    {plan.description && (
+                        <span className="text-sm text-muted-foreground line-clamp-1">
+                            {plan.description}
                         </span>
-                        <Link
-                            href={`/${slug}/admin/users/${user.id}`}
-                            className="text-sm text-muted-foreground hover:underline"
-                        >
-                            {user.email}
-                        </Link>
-                    </div>
+                    )}
                 </div>
             );
         },
     },
     {
-        accessorKey: "role",
-        header: "Rol",
+        accessorKey: "price",
+        header: "Precio",
         cell: ({ row }) => {
-            const role = row.getValue("role") as string;
-
-            const roleColors: Record<string, string> = {
-                OWNER: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300",
-                ADMIN: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
-                STAFF: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300",
-                TRAINER: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
-            };
-
+            const price = row.getValue("price") as number;
             return (
-                <Badge variant="outline" className={`border-0 ${roleColors[role] || ""}`}>
-                    <Shield className="w-3 h-3 mr-1" />
-                    {role}
-                </Badge>
+                <div className="font-medium">
+                    ${price.toLocaleString("es-CO")}
+                </div>
+            );
+        },
+    },
+    {
+        accessorKey: "durationDays",
+        header: "Duración",
+        cell: ({ row }) => {
+            const days = row.getValue("durationDays") as number;
+            return (
+                <div className="text-muted-foreground">
+                    {days === 30 ? "1 mes" : days === 365 ? "1 año" : `${days} días`}
+                </div>
             );
         },
     },
@@ -89,34 +77,25 @@ export const columns: ColumnDef<User>[] = [
         cell: ({ row }) => {
             const isActive = row.original.isActive;
             return (
-                <div className={`flex items-center gap-1.5 text-sm ${isActive ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>
+                <Badge
+                    variant={isActive ? "default" : "secondary"}
+                    className={`gap-1 ${isActive
+                            ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300"
+                            : "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300"
+                        }`}
+                >
                     {isActive ? (
                         <>
-                            <CheckCircle className="w-4 h-4" />
-                            <span>Activo</span>
+                            <CheckCircle className="w-3 h-3" />
+                            Activo
                         </>
                     ) : (
                         <>
-                            <XCircle className="w-4 h-4" />
-                            <span>Inactivo</span>
+                            <XCircle className="w-3 h-3" />
+                            Inactivo
                         </>
                     )}
-                </div>
-            );
-        },
-    },
-    {
-        accessorKey: "createdAt",
-        header: "Fecha registro",
-        cell: ({ row }) => {
-            return (
-                <div className="text-muted-foreground text-sm">
-                    {new Date(row.original.createdAt).toLocaleDateString("es-ES", {
-                        day: "2-digit",
-                        month: "short",
-                        year: "numeric"
-                    })}
-                </div>
+                </Badge>
             );
         },
     },
@@ -127,16 +106,16 @@ export const columns: ColumnDef<User>[] = [
             // eslint-disable-next-line react-hooks/rules-of-hooks
             const params = useParams();
             const slug = params.slug as string;
-            const user = row.original;
+            const plan = row.original;
 
             return (
                 <div className="flex justify-center">
-                    <Link href={`/${slug}/admin/users/${user.id}`}>
+                    <Link href={`/${slug}/admin/plans/${plan.id}`}>
                         <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                             <Eye className="w-4 h-4" />
                         </Button>
                     </Link>
-                    <Link href={`/${slug}/admin/users/${user.id}/edit`}>
+                    <Link href={`/${slug}/admin/plans/${plan.id}/edit`}>
                         <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                             <Edit className="w-4 h-4" />
                         </Button>
@@ -156,12 +135,12 @@ export const columns: ColumnDef<User>[] = [
                                 <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
                                 <AlertDialogDescription>
                                     Esta acción no se puede deshacer. Esto eliminará
-                                    permanentemente al usuario
+                                    permanentemente el plan
                                     <span className="font-medium text-foreground">
                                         {" "}
-                                        {user.firstName} {user.lastName}
+                                        {plan.name}
                                     </span>{" "}
-                                    y todos sus datos asociados.
+                                    y puede afectar a las membresías asociadas.
                                 </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
@@ -170,14 +149,14 @@ export const columns: ColumnDef<User>[] = [
                                     className="bg-red-500 hover:bg-red-600 focus:ring-red-500"
                                     onClick={async () => {
                                         try {
-                                            await api.delete<User>(`/api/users/${user.id}`);
-                                            toast.success("Usuario eliminado correctamente");
+                                            await api.delete<Plan>(`/api/plans/${plan.id}`);
+                                            toast.success("Plan eliminado correctamente");
                                             window.location.reload();
                                         } catch (error) {
                                             if (error instanceof ApiError) {
                                                 toast.error(error.message);
                                             } else {
-                                                toast.error("Error al eliminar usuario");
+                                                toast.error("Error al eliminar plan");
                                             }
                                             console.error(error);
                                         }
