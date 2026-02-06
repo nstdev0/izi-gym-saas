@@ -17,10 +17,11 @@ export class OrganizationsRepository
     OrganizationsFilters
   >
   implements IOrganizationRepository {
-  async buildQueryFilters(
+  async buildPrismaClauses(
     filters: OrganizationsFilters,
-  ): Promise<Prisma.OrganizationWhereInput> {
+  ): Promise<[Prisma.OrganizationWhereInput, Prisma.OrganizationOrderByWithRelationInput]> {
     const whereClause: Prisma.OrganizationWhereInput = {};
+    const orderByClause: Prisma.OrganizationOrderByWithRelationInput = { createdAt: "desc" };
 
     if (filters.search) {
       const searchTerms = filters.search.trim().split(/\s+/).filter(Boolean);
@@ -29,12 +30,13 @@ export class OrganizationsRepository
         whereClause.AND = searchTerms.map((term) => ({
           OR: [
             { name: { contains: term, mode: "insensitive" } },
-            { email: { contains: term, mode: "insensitive" } },
+            // Organization doesn't have email in schema directly usually, but if it does:
+            // { email: { contains: term, mode: "insensitive" } }, 
           ],
         }));
       }
     }
-    return whereClause;
+    return [whereClause, orderByClause];
   }
 
   async createWithTransaction(

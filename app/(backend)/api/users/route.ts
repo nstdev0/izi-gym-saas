@@ -20,7 +20,12 @@ export const GET = createContext(
   },
 );
 
+import { CreateUserSchema } from "@/server/application/dtos/users.dto";
+
 export const POST = createContext(
   (container) => container.createUserController,
-  async (req) => await req.json(),
+  async (req) => {
+    const body = await req.json();
+    return CreateUserSchema.parse(body);
+  },
 );

@@ -1,25 +1,17 @@
 import { ICreateUserUseCase } from "@/server/application/use-cases/users/create-user.use-case";
-import { ValidationError, ForbiddenError } from "@/server/domain/errors/common";
-import { CreateUserSchema } from "@/server/application/dtos/users.dto";
+import { ForbiddenError } from "@/server/domain/errors/common";
+import { CreateUserInput } from "@/server/domain/types/users";
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/server/infrastructure/persistence/prisma";
+import { ControllerExecutor } from "@/server/lib/api-handler";
 import { Role } from "@/generated/prisma/client";
 
 const ALLOWED_ROLES: Role[] = [Role.GOD, Role.OWNER];
 
-export class CreateUserController {
+export class CreateUserController implements ControllerExecutor<CreateUserInput> {
   constructor(private useCase: ICreateUserUseCase) { }
 
-  async execute(input: unknown) {
-    const validatedInput = CreateUserSchema.safeParse(input);
-
-    if (!validatedInput.success) {
-      throw new ValidationError(
-        "Invalid User Data",
-        validatedInput.error.message,
-      );
-    }
-
+  async execute(input: CreateUserInput) {
     // Obtener sesión para orgId, inviterId y verificación de rol
     const session = await auth();
 
@@ -36,6 +28,6 @@ export class CreateUserController {
       throw new ForbiddenError("No tienes permisos para crear usuarios");
     }
 
-    return await this.useCase.execute(validatedInput.data, session.orgId, session.userId);
+    return await this.useCase.execute(input, session.orgId, session.userId);
   }
 }

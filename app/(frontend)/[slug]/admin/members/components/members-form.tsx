@@ -90,12 +90,10 @@ export default function MemberForm({
   });
 
   const onSubmit = (values: z.infer<typeof CreateMemberSchema>) => {
-    console.log("RHF aprobo el envio. Enviando datos: ", values);
     mutateMember(values);
   };
 
   const onInvalid = (errors: any) => {
-    console.log("RHF bloqueo el envio. Errores detectados: ", errors);
   };
 
   const selectedDocType = form.watch("docType");

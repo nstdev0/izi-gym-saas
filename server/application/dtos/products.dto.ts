@@ -9,7 +9,7 @@ export const createProductSchema = z.object({
   cost: z.number().min(0),
   stock: z.number().int().min(0).default(0),
   minStock: z.number().int().min(0).default(5),
-  type: z.enum(ProductType),
+  type: z.nativeEnum(ProductType),
   isActive: z.boolean().default(true),
   images: z.array(z.string()).optional(),
 });
