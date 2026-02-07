@@ -16,6 +16,8 @@ import { UpdateOrganizationController } from "@/server/interface-adapters/contro
 import { DeleteOrganizationController } from "@/server/interface-adapters/controllers/organizations/delete-organization.controller";
 import { GetOrganizationController } from "@/server/interface-adapters/controllers/organization/get-organization.controller";
 import { GetOrganizationUseCase } from "@/server/application/use-cases/organization/get-organization.use-case";
+import { UpdateOrganizationSettingsController } from "@/server/interface-adapters/controllers/organization/update-organization-settings.controller";
+import { UpdateOrganizationSettingsUseCase } from "@/server/application/use-cases/organization/update-organization-settings.use-case";
 
 // --- Imports: Members ---
 import { MembersRepository } from "@persistence/repositories/members.repository";
@@ -129,6 +131,9 @@ export const getContainer = cache(async () => {
   );
   const deleteOrganizationController = new DeleteOrganizationController(
     new DeleteOrganizationUseCase(organizationsRepository),
+  );
+  const updateOrganizationSettingsController = new UpdateOrganizationSettingsController(
+    new UpdateOrganizationSettingsUseCase(),
   );
 
   // ===========================================================================
@@ -276,6 +281,7 @@ export const getContainer = cache(async () => {
     getOrganizationController,
     updateOrganizationController,
     deleteOrganizationController,
+    updateOrganizationSettingsController,
     // Members
     getAllMembersController,
     createMemberController,

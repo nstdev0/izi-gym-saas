@@ -32,7 +32,7 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-primary), var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -63,6 +63,8 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+  --color-revenue: var(--revenue);
+  --color-expiry: var(--expiry);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -81,8 +83,8 @@
     --card-foreground: oklch(0.145 0 0);
     --popover: oklch(1 0 0);
     --popover-foreground: oklch(0.145 0 0);
-    --primary: oklch(0.205 0 0);
-    --primary-foreground: oklch(0.985 0 0);
+    --primary: hsl(243 75% 59%);
+    --primary-foreground: hsl(0 0% 100%);
     --secondary: oklch(0.97 0 0);
     --secondary-foreground: oklch(0.205 0 0);
     --muted: oklch(0.97 0 0);
@@ -92,7 +94,7 @@
     --destructive: oklch(0.577 0.245 27.325);
     --border: oklch(0.922 0 0);
     --input: oklch(0.922 0 0);
-    --ring: oklch(0.708 0 0);
+    --ring: hsl(243 75% 59%);
     --chart-1: oklch(0.646 0.222 41.116);
     --chart-2: oklch(0.6 0.118 184.704);
     --chart-3: oklch(0.398 0.07 227.392);
@@ -106,15 +108,33 @@
     --sidebar-accent-foreground: oklch(0.205 0 0);
     --sidebar-border: oklch(0.922 0 0);
     --sidebar-ring: oklch(0.708 0 0);
+    --revenue: hsl(142 71% 45%);
+    --expiry: hsl(38 92% 50%);
   }
 
-  /* Font Families */
-  /* Font Families */
-  /* Font Families */
+  /* Font Families Dynamic Logic */
+  :root {
+    --font-primary: var(--font-inter);
+    /* Default */
+  }
+
+  :root[data-font="inter"] {
+    --font-primary: var(--font-inter);
+  }
+
+  :root[data-font="outfit"] {
+    --font-primary: var(--font-outfit);
+  }
+
+  :root[data-font="lato"] {
+    --font-primary: var(--font-lato);
+  }
+
   :root[data-font="sans"] body {
-    font-family: var(--font-inter) !important;
+    font-family: var(--font-primary) !important;
   }
 
+  /* Specific Overrides (Optional but keeping existing structure) */
   :root[data-font="serif"] body {
     font-family: var(--font-playfair) !important;
   }
@@ -130,8 +150,8 @@
     --card-foreground: oklch(0.985 0 0);
     --popover: oklch(0.205 0 0);
     --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.922 0 0);
-    --primary-foreground: oklch(0.205 0 0);
+    --primary: hsl(243 100% 70%);
+    --primary-foreground: hsl(0 0% 100%);
     --secondary: oklch(0.269 0 0);
     --secondary-foreground: oklch(0.985 0 0);
     --muted: oklch(0.269 0 0);
@@ -141,7 +161,7 @@
     --destructive: oklch(0.704 0.191 22.216);
     --border: oklch(1 0 0 / 10%);
     --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.556 0 0);
+    --ring: hsl(243 100% 70%);
     --chart-1: oklch(0.488 0.243 264.376);
     --chart-2: oklch(0.696 0.17 162.48);
     --chart-3: oklch(0.769 0.188 70.08);
@@ -155,6 +175,8 @@
     --sidebar-accent-foreground: oklch(0.985 0 0);
     --sidebar-border: oklch(1 0 0 / 10%);
     --sidebar-ring: oklch(0.556 0 0);
+    --revenue: hsl(142 71% 45%);
+    --expiry: hsl(38 92% 50%);
   }
 
   /* Theme Overrides (Must come after .dark or have higher specificity) */

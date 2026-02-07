@@ -1,7 +1,7 @@
 
 import { prisma } from "@/server/infrastructure/persistence/prisma";
-import { UpdateOrganizationSettingsInput } from "@/server/interface-adapters/dtos/organization/update-organization-settings.dto";
 import { Organization } from "@/generated/prisma/client";
+import { UpdateOrganizationSettingsInput } from "../../dtos/organizations.dto";
 
 export class UpdateOrganizationSettingsUseCase {
     async execute(organizationId: string, input: UpdateOrganizationSettingsInput): Promise<Organization> {

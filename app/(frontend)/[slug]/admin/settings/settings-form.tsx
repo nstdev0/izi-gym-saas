@@ -47,7 +47,7 @@ export function SettingsForm({ defaultValues }: SettingsFormProps) {
     async function onSubmit(data: UpdateOrganizationSettingsInput) {
         setIsLoading(true);
         try {
-            const response = await fetch("/api/organization/settings", {
+            const response = await fetch("/api/settings", {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(data),

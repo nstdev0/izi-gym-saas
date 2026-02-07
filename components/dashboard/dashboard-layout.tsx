@@ -19,7 +19,7 @@ export function DashboardLayout({
   breadcrumbs = [],
 }: DashboardLayoutProps) {
   return (
-    <div className="flex-1 space-y-4 h-full flex flex-col overflow-hidden">
+    <div className="flex-1 space-y-4 h-full flex flex-col overflow-y-auto scrollbar-hide">
       {breadcrumbs.length > 0 && (
         <div className="flex items-center space-x-2 text-sm text-muted-foreground mb-2 shrink-0">
           {breadcrumbs.map((crumb, index) => (

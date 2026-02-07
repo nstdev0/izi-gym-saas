@@ -2,6 +2,7 @@
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
 import { PageHeader } from "@/components/ui/page-header";
 import { SettingsForm } from "./settings-form";
+import { AppearanceSettings } from "./appearance-settings";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 
@@ -55,8 +56,9 @@ export default async function SettingsPage() {
                     description="Administra los detalles y preferencias de tu organización"
                 />
 
-                <div className="container mx-auto max-w-4xl py-6">
+                <div className="container mx-auto max-w-4xl py-6 space-y-6">
                     <SettingsForm defaultValues={defaultValues} />
+                    <AppearanceSettings />
                 </div>
             </div>
         </DashboardLayout>

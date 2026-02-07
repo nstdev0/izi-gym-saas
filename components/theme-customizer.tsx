@@ -3,6 +3,7 @@
 import * as React from "react";
 import { Monitor, Moon, Palette, Sun, Type, Check } from "lucide-react";
 import { useTheme } from "next-themes";
+import { useAppearance } from "@/components/appearance-provider";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -20,34 +21,24 @@ import {
 
 export function ThemeCustomizer() {
   const { setTheme, theme } = useTheme();
+  // We can still keep color logic here or move it to AppearanceProvider later if needed.
+  // For now, let's keep color local/manual as it was, but use AppearanceProvider for fonts.
+  const { font, setFont } = useAppearance();
   const [color, setColor] = React.useState("default");
-  const [font, setFont] = React.useState("sans");
   const [mounted, setMounted] = React.useState(false);
 
   React.useEffect(() => {
     setMounted(true);
-    // Initial load from storage or document state if possible
+    // Initial color load
     const savedColor = localStorage.getItem("theme-color") || "default";
-    const savedFont = localStorage.getItem("theme-font") || "sans";
-
     setColor(savedColor);
-    setFont(savedFont);
-
-    // Apply immediately
     document.documentElement.setAttribute("data-theme", savedColor);
-    document.documentElement.setAttribute("data-font", savedFont);
   }, []);
 
   const handleColorChange = (newColor: string) => {
     setColor(newColor);
     localStorage.setItem("theme-color", newColor);
     document.documentElement.setAttribute("data-theme", newColor);
-  };
-
-  const handleFontChange = (newFont: string) => {
-    setFont(newFont);
-    localStorage.setItem("theme-font", newFont);
-    document.documentElement.setAttribute("data-font", newFont);
   };
 
   if (!mounted) {
@@ -108,25 +99,25 @@ export function ThemeCustomizer() {
           </DropdownMenuSubTrigger>
           <DropdownMenuSubContent>
             <DropdownMenuItem
-              onClick={() => handleFontChange("sans")}
+              onClick={() => setFont("inter")}
               className="justify-between"
             >
-              <span className="font-sans">Sans (Inter)</span>
-              {font === "sans" && <Check className="h-4 w-4 ml-2" />}
+              <span style={{ fontFamily: 'var(--font-inter)' }}>Inter</span>
+              {font === "inter" && <Check className="h-4 w-4 ml-2" />}
             </DropdownMenuItem>
             <DropdownMenuItem
-              onClick={() => handleFontChange("serif")}
+              onClick={() => setFont("outfit")}
               className="justify-between"
             >
-              <span className="font-serif">Serif (Playfair)</span>
-              {font === "serif" && <Check className="h-4 w-4 ml-2" />}
+              <span style={{ fontFamily: 'var(--font-outfit)' }}>Outfit</span>
+              {font === "outfit" && <Check className="h-4 w-4 ml-2" />}
             </DropdownMenuItem>
             <DropdownMenuItem
-              onClick={() => handleFontChange("mono")}
+              onClick={() => setFont("lato")}
               className="justify-between"
             >
-              <span className="font-mono">Mono (JetBrains)</span>
-              {font === "mono" && <Check className="h-4 w-4 ml-2" />}
+              <span style={{ fontFamily: 'var(--font-lato)' }}>Lato</span>
+              {font === "lato" && <Check className="h-4 w-4 ml-2" />}
             </DropdownMenuItem>
           </DropdownMenuSubContent>
         </DropdownMenuSub>

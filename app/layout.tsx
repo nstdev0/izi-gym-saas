@@ -3,11 +3,12 @@ import {
   Geist,
   Geist_Mono,
   Inter,
-  Playfair_Display,
-  JetBrains_Mono,
+  Outfit,
+  Lato,
 } from "next/font/google";
 import { Analytics } from "@vercel/analytics/react";
 import { ThemeProvider } from "@/components/theme-provider";
+import { AppearanceProvider } from "@/components/appearance-provider";
 import "./globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Toaster } from "@/components/ui/sonner";
@@ -31,14 +32,15 @@ const inter = Inter({
   subsets: ["latin"],
 });
 
-const playfair = Playfair_Display({
-  variable: "--font-playfair",
+const outfit = Outfit({
+  variable: "--font-outfit",
   subsets: ["latin"],
 });
 
-const jetbrainsMono = JetBrains_Mono({
-  variable: "--font-jetbrains-mono",
+const lato = Lato({
+  variable: "--font-lato",
   subsets: ["latin"],
+  weight: ["100", "300", "400", "700", "900"],
 });
 
 export const metadata: Metadata = {
@@ -71,7 +73,7 @@ export default function RootLayout({
     <html
       lang="es"
       suppressHydrationWarning
-      className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} ${playfair.variable} ${jetbrainsMono.variable}`}
+      className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} ${outfit.variable} ${lato.variable}`}
     >
       <body className="font-sans antialiased bg-background text-foreground transition-colors duration-300">
         <ThemeProvider
@@ -84,12 +86,14 @@ export default function RootLayout({
             signInFallbackRedirectUrl="/"
             signUpFallbackRedirectUrl="/"
           >
-            <ReactQueryProvider>
-              <NextSSRPlugin routerConfig={extractRouterConfig(ourFileRouter)} />
-              {children}
-              <Analytics />
-              <Toaster />
-            </ReactQueryProvider>
+            <AppearanceProvider>
+              <ReactQueryProvider>
+                <NextSSRPlugin routerConfig={extractRouterConfig(ourFileRouter)} />
+                {children}
+                <Analytics />
+                <Toaster />
+              </ReactQueryProvider>
+            </AppearanceProvider>
           </ClerkProvider>
         </ThemeProvider>
       </body>
