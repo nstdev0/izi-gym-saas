@@ -453,8 +453,61 @@ export default function DashboardPage() {
                         </CardContent>
                     </Card>
 
+                    {/* Upcoming Expirations */}
+                    <Card className="lg:col-span-1">
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+                            <CardTitle className="text-base sm:text-lg font-semibold flex items-center gap-2">
+                                <AlertTriangle className="h-4 w-4 text-orange-500" />
+                                Próximos Vencimientos
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
+                            {loading ? (
+                                <div className="flex items-center justify-center py-8">
+                                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                                </div>
+                            ) : (
+                                <div className="space-y-3 sm:space-y-4">
+                                    {metrics?.upcomingExpirations?.map((member) => (
+                                        <div
+                                            key={member.id}
+                                            className="flex items-center justify-between gap-3 p-2 sm:p-3 rounded-lg hover:bg-muted/50 transition-colors"
+                                        >
+                                            <div className="flex items-center gap-3 min-w-0">
+                                                <Avatar className="h-8 w-8 shrink-0">
+                                                    <AvatarImage src={member.avatar || undefined} alt={member.name} />
+                                                    <AvatarFallback className="bg-orange-500/10 text-orange-500 text-xs">
+                                                        {member.name.split(" ").map((n) => n[0]).join("")}
+                                                    </AvatarFallback>
+                                                </Avatar>
+                                                <div className="min-w-0">
+                                                    <p className="text-sm font-medium text-foreground truncate">
+                                                        {member.name}
+                                                    </p>
+                                                    <p className="text-xs text-muted-foreground truncate">
+                                                        Vence en {member.daysUntil} días
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-2 shrink-0">
+                                                <Badge variant="outline" className="text-xs border-orange-200 text-orange-700 bg-orange-50">
+                                                    {format(new Date(member.endDate), "dd MMM", { locale: es })}
+                                                </Badge>
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {(!metrics?.upcomingExpirations || metrics.upcomingExpirations.length === 0) && (
+                                        <p className="text-sm text-muted-foreground text-center py-8">
+                                            No hay vencimientos próximos.
+                                        </p>
+                                    )}
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+
                     {/* Recent Members */}
-                    <Card className="lg:col-span-2">
+                    <Card className="lg:col-span-1">
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
                             <CardTitle className="text-base sm:text-lg font-semibold">
                                 Miembros Recientes

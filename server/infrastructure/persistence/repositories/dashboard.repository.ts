@@ -149,12 +149,50 @@ export class PrismaDashboardRepository implements IDashboardRepository {
             };
         });
 
+
+        // --- 7. UPCOMING EXPIRATIONS ---
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const expiringMemberships = await this.prisma.membership.findMany({
+            where: {
+                organizationId,
+                status: "ACTIVE",
+                endDate: {
+                    gte: today, // Only future expirations
+                },
+            },
+            orderBy: { endDate: "asc" },
+            take: 5,
+            include: {
+                member: true,
+                plan: true,
+            },
+        });
+
+        const upcomingExpirations = expiringMemberships.map((m) => {
+            const endDate = new Date(m.endDate);
+            const diffTime = endDate.getTime() - today.getTime();
+            const daysUntil = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            return {
+                id: m.member.id,
+                name: `${m.member.firstName} ${m.member.lastName}`,
+                email: m.member.email || "",
+                avatar: m.member.image,
+                planName: m.plan?.name || "Sin Plan",
+                endDate: m.endDate,
+                daysUntil,
+            };
+        });
+
         return {
             revenue: revenueMetric,
             activeMembers: activeMembersMetric,
             expiringSoon: expiringSoonCount,
             salesByPlan,
             recentActivity,
+            upcomingExpirations,
             revenueOverTime,
             currency,
         };

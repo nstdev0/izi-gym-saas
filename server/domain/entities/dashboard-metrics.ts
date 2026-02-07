@@ -21,6 +21,15 @@ export interface DashboardMetrics {
         planName?: string;
         joinedAt: Date;
     }[];
+    upcomingExpirations: {
+        id: string;
+        name: string;
+        email: string;
+        avatar?: string | null;
+        planName?: string;
+        endDate: Date;
+        daysUntil: number;
+    }[];
     revenueOverTime: {
         month: string;
         revenue: number;
