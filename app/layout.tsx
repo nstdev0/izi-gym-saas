@@ -102,6 +102,7 @@ export default async function RootLayout({
           <ClerkProvider
             signInFallbackRedirectUrl="/"
             signUpFallbackRedirectUrl="/"
+            afterSignOutUrl="/"
           >
             <AppearanceProvider initialFont={initialFont}>
               <ReactQueryProvider>

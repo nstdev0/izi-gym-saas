@@ -33,7 +33,7 @@ export default function MembersViewPage() {
     limit,
     search,
     sort,
-    membershipStatus: membership, // Mapping 'membership' filter to 'status' param if that's the intent
+    membershipStatus: membership,
   });
 
   const filtersConfig: FilterConfiguration<Member> = {

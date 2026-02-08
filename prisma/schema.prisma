@@ -201,3 +201,11 @@ enum MembershipStatus {
   PENDING
   CANCELLED
 }
+
+model SystemConfig {
+  id                 String   @id @default(cuid())
+  maintenanceMode    Boolean  @default(false)
+  globalAnnouncement String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}

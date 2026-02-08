@@ -90,6 +90,30 @@ import { PrismaDashboardRepository } from "../infrastructure/persistence/reposit
 import { GetDashboardMetricsUseCase } from "../application/use-cases/dashboard/get-dashboard-metrics.use-case";
 import { GetDashboardMetricsController } from "../interface-adapters/controllers/dashboard/get-dashboard-metrics.controller";
 
+// --- Imports: System ---
+import { SystemRepository } from "../infrastructure/persistence/repositories/system.repository";
+import { SystemGetSystemStatsUseCase } from "../application/use-cases/system/system-get-system-stats.use-case";
+import { SystemGetAllOrganizationsUseCase } from "../application/use-cases/system/system-get-all-organizations.use-case";
+import { SystemSuspendOrganizationUseCase } from "../application/use-cases/system/system-suspend-organization.use-case";
+import { SystemGetSystemStatsController } from "../interface-adapters/controllers/system/system-get-system-stats.controller";
+import { SystemGetAllOrganizationsController } from "../interface-adapters/controllers/system/system-get-all-organizations.controller";
+import { SystemSuspendOrganizationController } from "../interface-adapters/controllers/system/system-suspend-organization.controller";
+import { SystemGetRecentSignupsUseCase } from "../application/use-cases/system/system-get-recent-signups.use-case";
+import { SystemGetRevenueStatsUseCase } from "../application/use-cases/system/system-get-revenue-stats.use-case";
+import { SystemGetSystemConfigUseCase } from "../application/use-cases/system/system-get-system-config.use-case";
+import { SystemUpdateSystemConfigUseCase } from "../application/use-cases/system/system-update-system-config.use-case";
+import { SystemGetRecentSignupsController } from "../interface-adapters/controllers/system/system-get-recent-signups.controller";
+import { SystemGetRevenueStatsController } from "../interface-adapters/controllers/system/system-get-revenue-stats.controller";
+import { SystemGetSystemConfigController } from "../interface-adapters/controllers/system/system-get-system-config.controller";
+import { SystemGetPlansController } from "../interface-adapters/controllers/system/system-get-plans.controller";
+import { SystemCreatePlanController } from "../interface-adapters/controllers/system/system-create-plan.controller";
+import { SystemUpdateSystemConfigController } from "../interface-adapters/controllers/system/update-system-config.controller";
+import { SystemUpdatePlanController } from "../interface-adapters/controllers/system/update-plan.controller";
+import { SystemUpdatePlanUseCase } from "../application/use-cases/system/system-update-plan.use-case";
+import { SystemCreatePlanUseCase } from "../application/use-cases/system/system-create-plan.use-case";
+import { SystemGetPlansUseCase } from "../application/use-cases/system/system-get-plans.use-case";
+
+
 // Factory function "memoizada" por request
 export const getContainer = cache(async () => {
   const { orgId } = await auth(); // Clerk cachea esto, no es doble llamada lenta
@@ -271,6 +295,41 @@ export const getContainer = cache(async () => {
   const getDashboardMetricsController = new GetDashboardMetricsController(getDashboardMetricsUseCase);
 
   // ===========================================================================
+  // 8. SYSTEM (GOD MODE)
+  // ===========================================================================
+  // Repo
+  const systemRepository = new SystemRepository();
+  // Use Cases
+  const getSystemStatsUseCase = new SystemGetSystemStatsUseCase(systemRepository);
+  const getAllOrganizationsSystemUseCase = new SystemGetAllOrganizationsUseCase(systemRepository);
+  const suspendOrganizationUseCase = new SystemSuspendOrganizationUseCase(systemRepository);
+  // Controllers
+  const getSystemStatsController = new SystemGetSystemStatsController(getSystemStatsUseCase);
+  const getAllOrganizationsSystemController = new SystemGetAllOrganizationsController(getAllOrganizationsSystemUseCase);
+  const suspendOrganizationController = new SystemSuspendOrganizationController(suspendOrganizationUseCase);
+
+  const getRecentSignupsUseCase = new SystemGetRecentSignupsUseCase(systemRepository);
+  const getRecentSignupsController = new SystemGetRecentSignupsController(getRecentSignupsUseCase);
+
+  const getRevenueStatsUseCase = new SystemGetRevenueStatsUseCase(systemRepository);
+  const getRevenueStatsController = new SystemGetRevenueStatsController(getRevenueStatsUseCase);
+
+  const getSystemConfigUseCase = new SystemGetSystemConfigUseCase(systemRepository);
+  const getSystemConfigController = new SystemGetSystemConfigController(getSystemConfigUseCase);
+
+  const updateSystemConfigUseCase = new SystemUpdateSystemConfigUseCase(systemRepository);
+  const updateSystemConfigController = new SystemUpdateSystemConfigController(updateSystemConfigUseCase);
+
+  const getSystemPlansUseCase = new SystemGetPlansUseCase(systemRepository);
+  const getSystemPlansController = new SystemGetPlansController(getSystemPlansUseCase);
+
+  const createSystemPlanUseCase = new SystemCreatePlanUseCase(systemRepository);
+  const createSystemPlanController = new SystemCreatePlanController(createSystemPlanUseCase);
+
+  const updateSystemPlanUseCase = new SystemUpdatePlanUseCase(systemRepository);
+  const updateSystemPlanController = new SystemUpdatePlanController(updateSystemPlanUseCase);
+
+  // ===========================================================================
   // RETURN
   // ===========================================================================
   return {
@@ -314,5 +373,16 @@ export const getContainer = cache(async () => {
     deleteUserController,
     // Dashboard
     getDashboardMetricsController,
+    // System
+    getSystemStatsController,
+    getAllOrganizationsSystemController,
+    suspendOrganizationController,
+    getRecentSignupsController,
+    getRevenueStatsController,
+    getSystemConfigController,
+    updateSystemConfigController,
+    getSystemPlansController,
+    createSystemPlanController,
+    updateSystemPlanController,
   };
 });

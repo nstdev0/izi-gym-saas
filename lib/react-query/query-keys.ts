@@ -52,3 +52,12 @@ export const dashboardKeys = {
     all: ['dashboard'] as const,
     metrics: (params: Record<string, unknown>) => [...dashboardKeys.all, 'metrics', removeEmptyParams(params)] as const,
 };
+
+export const systemKeys = {
+    all: ['system'] as const,
+    stats: () => [...systemKeys.all, 'stats'] as const,
+    organizations: (params: Record<string, unknown>) => [...systemKeys.all, 'organizations', removeEmptyParams(params)] as const,
+    recentSignups: () => [...systemKeys.all, 'recent-signups'] as const,
+    revenue: () => [...systemKeys.all, 'revenue'] as const,
+    config: () => [...systemKeys.all, 'config'] as const,
+};
