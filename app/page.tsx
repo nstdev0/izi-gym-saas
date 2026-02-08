@@ -1,6 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { LandingPage } from "@/components/landing-page";
 import { prisma } from "@/server/infrastructure/persistence/prisma";
+import { useUser } from "@clerk/nextjs";
 
 export default async function RootPage() {
   // 1. Verificación básica de sesión en Clerk
@@ -35,5 +36,13 @@ export default async function RootPage() {
     );
   }
 
-  return <LandingPage dashboardUrl={user.organization?.slug ? `/${user.organization.slug}/admin/dashboard` : "/sign-in"} isLoggedIn={true} />;
+  let dashboardUrl = "/sign-in";
+
+  if (user.role === "GOD") {
+    dashboardUrl = "/system/dashboard";
+  } else if (user.organization?.slug) {
+    dashboardUrl = `/${user.organization.slug}/admin/dashboard`;
+  }
+
+  return <LandingPage dashboardUrl={dashboardUrl} isLoggedIn={true} />;
 }

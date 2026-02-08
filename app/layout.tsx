@@ -11,6 +11,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { AppearanceProvider } from "@/components/appearance-provider";
 import "./globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
+import { shadcn } from "@clerk/themes";
 import { Toaster } from "@/components/ui/sonner";
 import { ReactQueryProvider } from "@/components/react-query-provider";
 import { NextSSRPlugin } from "@uploadthing/react/next-ssr-plugin";
@@ -87,6 +88,9 @@ export default async function RootLayout({
 
   return (
     <ClerkProvider
+      appearance={{
+        theme: shadcn,
+      }}
       signInFallbackRedirectUrl="/"
       signUpFallbackRedirectUrl="/"
       afterSignOutUrl="/"

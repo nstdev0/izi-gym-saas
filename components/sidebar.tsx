@@ -125,6 +125,13 @@ export function Sidebar({
         pathname === `/${safeSlug}/admin/settings` ||
         pathname.startsWith(`/${safeSlug}/admin/settings/`),
     },
+    ...(user?.publicMetadata?.role === "GOD" ? [{
+      label: "GOD Panel",
+      icon: ShieldAlert,
+      href: "/system/dashboard",
+      active: pathname.startsWith("/system"),
+      color: "text-sky-500",
+    }] : []),
   ];
 
   const systemRoutes: RouteProps[] = [
@@ -155,6 +162,13 @@ export function Sidebar({
       href: "/system/settings",
       active: pathname === "/system/settings",
     },
+    // ...(user?.publicMetadata?.role === "GOD" ? [{
+    //   label: "Dummy Gym Panel",
+    //   icon: ShieldAlert,
+    //   href: `${safeSlug}/admin/dashboard`,
+    //   active: pathname.startsWith(`/${safeSlug}/admin/dashboard`),
+    //   color: "text-sky-500",
+    // }] : []),
   ];
 
   const routes = mode === "system" ? systemRoutes : orgRoutes;

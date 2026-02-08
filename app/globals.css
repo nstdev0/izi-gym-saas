@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "@clerk/themes/shadcn.css";
 
 @import "uploadthing/tw/v4";
 @source "../node_modules/@uploadthing/react/dist";

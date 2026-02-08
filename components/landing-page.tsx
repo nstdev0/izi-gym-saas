@@ -39,7 +39,7 @@ export function LandingPage({ dashboardUrl, isLoggedIn }: { dashboardUrl?: strin
                     <div className="flex gap-3 items-center">
                         {isLoggedIn ? (
                             <Link href={dashboardUrl || "/sign-in"}>
-                                <Button>Ir al Dashboard</Button>
+                                <Button>Ir a mi panel</Button>
                             </Link>
                         ) : (
                             <>
