@@ -21,11 +21,11 @@ export async function POST(req: Request) {
 
   const payload = await req.json();
   const body = JSON.stringify(payload);
-  const wh = new Webhook(WEBHOOK_SECRET);
-  let evt: WebhookEvent;
+  const webhook = new Webhook(WEBHOOK_SECRET);
+  let event: WebhookEvent;
 
   try {
-    evt = wh.verify(body, {
+    event = webhook.verify(body, {
       "svix-id": svix_id,
       "svix-timestamp": svix_timestamp,
       "svix-signature": svix_signature,
@@ -35,7 +35,7 @@ export async function POST(req: Request) {
   }
 
   // 2. Manejo de Eventos
-  const eventType = evt.type;
+  const eventType = event.type;
   console.log(`📨 Webhook recibido: ${eventType}`);
 
   try {
@@ -57,7 +57,7 @@ export async function POST(req: Request) {
       // ------------------------------------------------------------------
       case "user.created":
       case "user.updated": {
-        const { id, email_addresses, first_name, last_name, image_url } = evt.data;
+        const { id, email_addresses, first_name, last_name, image_url } = event.data;
         const email = email_addresses[0]?.email_address;
 
         // --- 🛡️ PROTECCIÓN CONTRA ZOMBIES (Email Conflict) ---
@@ -107,7 +107,7 @@ export async function POST(req: Request) {
       // CASO 2: SE ELIMINA EL USUARIO
       // ------------------------------------------------------------------
       case "user.deleted": {
-        const { id } = evt.data;
+        const { id } = event.data;
         if (!id) break;
 
         try {
@@ -130,31 +130,31 @@ export async function POST(req: Request) {
       // CASO 3: SE CREA LA ORGANIZACIÓN
       // ------------------------------------------------------------------
       case "organization.created": {
-        const { id, name, slug, image_url } = evt.data;
+        const { id, name, slug, image_url } = event.data;
 
         await prisma.$transaction(async (tx) => {
           await tx.organization.upsert({
             where: { id },
             update: {
               name,
-              slug: slug || name,
+              slug: slug || name.toLowerCase().replace(/\s+/g, "-"),
               image: image_url,
               // Si ya existe, no cambiamos el plan, solo datos visuales
             },
             create: {
               id,
               name,
-              slug: slug || name,
+              slug: slug || name.toLowerCase().replace(/\s+/g, "-"),
               image: image_url,
               organizationPlanId: freePlan.id // Usamos el plan recuperado arriba
             },
           });
 
-          const existingSub = await tx.subscription.findUnique({
+          const existingSubscription = await tx.subscription.findUnique({
             where: { organizationId: id }
           });
 
-          if (!existingSub) {
+          if (!existingSubscription) {
             await tx.subscription.create({
               data: {
                 organizationId: id,
@@ -174,7 +174,17 @@ export async function POST(req: Request) {
       // CASO 4: SE CREA LA MEMBRESÍA (SOLUCIÓN A RACE CONDITION)
       // ------------------------------------------------------------------
       case "organizationMembership.created": {
-        const { organization, public_user_data, role } = evt.data;
+        const { organization, public_user_data, role } = event.data;
+
+        const email = public_user_data.identifier;
+
+        if (email) {
+          const existingUser = await prisma.user.findUnique({ where: { email } });
+          if (existingUser && existingUser.id !== public_user_data.user_id) {
+            console.log(`🧟 Zombie detectado en Membresía: Email ${email} ocupado. Eliminando...`);
+            await prisma.user.delete({ where: { id: existingUser.id } });
+          }
+        }
 
         // --- Lógica de Roles ---
         let appRole: Role = Role.STAFF;
@@ -242,7 +252,7 @@ export async function POST(req: Request) {
       // CASO 5: SE ELIMINA LA MEMBRESÍA
       // ------------------------------------------------------------------
       case "organizationMembership.deleted": {
-        const { public_user_data } = evt.data;
+        const { public_user_data } = event.data;
         try {
           await prisma.user.update({
             where: { id: public_user_data.user_id },
@@ -264,7 +274,7 @@ export async function POST(req: Request) {
       // CASO 6: SE ACTUALIZA LA ORGANIZACIÓN
       // ------------------------------------------------------------------
       case "organization.updated": {
-        const { id, name, slug, image_url } = evt.data;
+        const { id, name, slug, image_url } = event.data;
         // Solo intentamos actualizar si existe, si no, ignoramos (evitar errores 404 raros)
         try {
           await prisma.organization.update({

@@ -86,23 +86,23 @@ export default async function RootLayout({
   }
 
   return (
-    <html
-      lang="es"
-      suppressHydrationWarning
-      className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} ${outfit.variable} ${lato.variable}`}
-      data-font={initialFont}
+    <ClerkProvider
+      signInFallbackRedirectUrl="/"
+      signUpFallbackRedirectUrl="/"
+      afterSignOutUrl="/"
     >
-      <body className="font-sans antialiased bg-background text-foreground transition-colors duration-300">
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <ClerkProvider
-            signInFallbackRedirectUrl="/"
-            signUpFallbackRedirectUrl="/"
-            afterSignOutUrl="/"
+      <html
+        lang="es"
+        suppressHydrationWarning
+        className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} ${outfit.variable} ${lato.variable}`}
+        data-font={initialFont}
+      >
+        <body className="font-sans antialiased bg-background text-foreground transition-colors duration-300">
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
           >
             <AppearanceProvider initialFont={initialFont}>
               <ReactQueryProvider>
@@ -112,9 +112,9 @@ export default async function RootLayout({
                 <Toaster />
               </ReactQueryProvider>
             </AppearanceProvider>
-          </ClerkProvider>
-        </ThemeProvider>
-      </body>
-    </html>
+          </ThemeProvider>
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }

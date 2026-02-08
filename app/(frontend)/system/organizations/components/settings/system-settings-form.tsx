@@ -31,10 +31,10 @@ export function SystemSettingsForm({ initialData, onSubmit: externalSubmit, isSu
 
     const form = useForm<SystemSettingsValues>({
         resolver: zodResolver(systemSettingsSchema),
-        defaultValues: initialData || {
-            maintenanceMode: false,
-            globalAnnouncement: "",
-        },
+        defaultValues: {
+            maintenanceMode: initialData?.maintenanceMode || false,
+            globalAnnouncement: initialData?.globalAnnouncement || "",
+        }
     });
 
     async function onSubmit(data: SystemSettingsValues) {

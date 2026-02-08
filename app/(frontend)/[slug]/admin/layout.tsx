@@ -1,5 +1,6 @@
-import { Sidebar } from "@/components/dashboard/sidebar";
-import { Header } from "@/components/dashboard/header";
+import { ReactQueryProvider } from "@/components/react-query-provider";
+import { Sidebar } from "@/components/sidebar";
+import { Header } from "@/components/header";
 import { DashboardProvider } from "@/components/dashboard/dashboard-provider";
 import { auth } from "@clerk/nextjs/server";
 import { notFound, redirect } from "next/navigation";
@@ -47,16 +48,18 @@ export default async function AdminLayout({
   }
 
   return (
-    <DashboardProvider>
-      <div className="grid min-h-screen w-full md:grid-cols-[auto_1fr] h-screen overflow-hidden">
-        <Sidebar slug={slug} className="hidden border-r bg-muted/40 md:flex" />
-        <div className="flex flex-col h-full overflow-hidden">
-          <Header slug={slug} />
-          <main className="flex-1 overflow-auto scrollbar-hide p-4 lg:p-6 bg-muted/10">
-            {children}
-          </main>
+    <ReactQueryProvider>
+      <DashboardProvider>
+        <div className="grid min-h-screen w-full md:grid-cols-[auto_1fr] h-screen overflow-hidden">
+          <Sidebar slug={slug} className="hidden border-r bg-muted/40 md:flex" />
+          <div className="flex flex-col h-full overflow-hidden">
+            <Header slug={slug} mode="organization" />
+            <main className="flex-1 overflow-auto scrollbar-hide p-4 lg:p-6 bg-muted/10">
+              {children}
+            </main>
+          </div>
         </div>
-      </div>
-    </DashboardProvider>
+      </DashboardProvider>
+    </ReactQueryProvider>
   );
 }

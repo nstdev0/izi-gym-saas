@@ -221,8 +221,9 @@ export function TenantsTable({ data }: TenantsTableProps) {
                     </DropdownMenuContent>
                 </DropdownMenu>
             </div>
-            <div className="rounded-md border">
-                <Table>
+            {/* Wrapper con overflow-auto para scroll horizontal en mobile */}
+            <div className="rounded-md border overflow-hidden w-full overflow-x-auto">
+                <Table className="min-w-[800px]"> {/* min-w forzamos scroll si es muy estrecho */}
                     <TableHeader>
                         {table.getHeaderGroups().map((headerGroup) => (
                             <TableRow key={headerGroup.id}>

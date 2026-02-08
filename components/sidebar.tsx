@@ -12,6 +12,8 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   UserCog,
+  Building2,
+  ShieldAlert,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -39,10 +41,12 @@ export function Sidebar({
   className,
   slug,
   forceExpanded = false,
+  mode = "organization",
 }: {
   className?: string;
-  slug: string;
+  slug?: string;
   forceExpanded?: boolean;
+  mode?: "organization" | "system";
 }) {
   const pathname = usePathname();
   const { isSidebarCollapsed: contextCollapsed, toggleSidebar } =
@@ -54,50 +58,126 @@ export function Sidebar({
   // If forceExpanded is true, we treat sidebar as NOT collapsed.
   const isSidebarCollapsed = forceExpanded ? false : contextCollapsed;
 
-  const routes = [
+  interface RouteProps {
+    label: string;
+    icon: any;
+    href: string;
+    active: boolean;
+    color?: string;
+  }
+
+  const safeSlug = slug || "";
+
+  const orgRoutes: RouteProps[] = [
     {
       label: "Dashboard",
       icon: LayoutDashboard,
-      href: `/${slug}/admin/dashboard`,
-      active: pathname === `/${slug}/admin/dashboard` || pathname.startsWith(`/${slug}/admin/dashboard/`),
+      href: `/${safeSlug}/admin/dashboard`,
+      active:
+        pathname === `/${safeSlug}/admin/dashboard` ||
+        pathname.startsWith(`/${safeSlug}/admin/dashboard/`),
     },
     {
       label: "Miembros",
       icon: Users,
-      href: `/${slug}/admin/members`,
-      active: pathname === `/${slug}/admin/members` || pathname.startsWith(`/${slug}/admin/members/`),
+      href: `/${safeSlug}/admin/members`,
+      active:
+        pathname === `/${safeSlug}/admin/members` ||
+        pathname.startsWith(`/${safeSlug}/admin/members/`),
     },
     {
       label: "Membresías",
       icon: CreditCard,
-      href: `/${slug}/admin/memberships`,
-      active: pathname === `/${slug}/admin/memberships` || pathname.startsWith(`/${slug}/admin/memberships/`),
+      href: `/${safeSlug}/admin/memberships`,
+      active:
+        pathname === `/${safeSlug}/admin/memberships` ||
+        pathname.startsWith(`/${safeSlug}/admin/memberships/`),
     },
     {
       label: "Planes",
       icon: Dumbbell,
-      href: `/${slug}/admin/plans`,
-      active: pathname === `/${slug}/admin/plans` || pathname.startsWith(`/${slug}/admin/plans/`),
+      href: `/${safeSlug}/admin/plans`,
+      active:
+        pathname === `/${safeSlug}/admin/plans` ||
+        pathname.startsWith(`/${safeSlug}/admin/plans/`),
     },
     {
       label: "Productos",
       icon: Package,
-      href: `/${slug}/admin/products`,
-      active: pathname === `/${slug}/admin/products` || pathname.startsWith(`/${slug}/admin/products/`),
+      href: `/${safeSlug}/admin/products`,
+      active:
+        pathname === `/${safeSlug}/admin/products` ||
+        pathname.startsWith(`/${safeSlug}/admin/products/`),
     },
     {
       label: "Usuarios",
       icon: UserCog,
-      href: `/${slug}/admin/users`,
-      active: pathname === `/${slug}/admin/users` || pathname.startsWith(`/${slug}/admin/users/`),
+      href: `/${safeSlug}/admin/users`,
+      active:
+        pathname === `/${safeSlug}/admin/users` ||
+        pathname.startsWith(`/${safeSlug}/admin/users/`),
     },
     {
       label: "Configuración",
       icon: Settings,
-      href: `/${slug}/admin/settings`,
-      active: pathname === `/${slug}/admin/settings` || pathname.startsWith(`/${slug}/admin/settings/`),
+      href: `/${safeSlug}/admin/settings`,
+      active:
+        pathname === `/${safeSlug}/admin/settings` ||
+        pathname.startsWith(`/${safeSlug}/admin/settings/`),
     },
   ];
+
+  const systemRoutes: RouteProps[] = [
+    {
+      label: "Overview",
+      icon: LayoutDashboard,
+      href: "/system/dashboard",
+      active: pathname === "/system/dashboard",
+      color: "text-sky-500",
+    },
+    {
+      label: "Organizaciones",
+      icon: Building2,
+      href: "/system/organizations",
+      active: pathname === "/system/organizations",
+      color: "text-violet-500",
+    },
+    {
+      label: "Usuarios Globales",
+      icon: Users,
+      href: "/system/users",
+      active: pathname === "/system/users",
+      color: "text-pink-700",
+    },
+    {
+      label: "Configuración SaaS",
+      icon: Settings,
+      href: "/system/settings",
+      active: pathname === "/system/settings",
+    },
+  ];
+
+  const routes = mode === "system" ? systemRoutes : orgRoutes;
+
+  // Lógica de visualización del nombre
+  const renderOrgName = () => {
+    if (mode === "system") {
+      return (
+        <div className="flex items-center gap-2">
+          <ShieldAlert className="w-5 h-5 text-indigo-500" />
+          <span>Izi<span className="text-indigo-600">Gym</span> GOD</span>
+          {process.env.NODE_ENV === "development" && <span className="text-red-500"> (DEV)</span>}
+        </div>
+      );
+    }
+    // Fallback seguro si organization aún no carga o es null
+    return (
+      <span>
+        {organization?.name || "Cargando..."}
+        {process.env.NODE_ENV === "development" && <span className="text-red-500"> (DEV)</span>}
+      </span>
+    );
+  };
 
   return (
     <div
@@ -115,7 +195,7 @@ export function Sidebar({
       >
         {!isSidebarCollapsed && (
           <span className="font-semibold tracking-tight whitespace-nowrap overflow-hidden transition-all duration-300">
-            {organization?.name}
+            {renderOrgName()}
           </span>
         )}
         {!forceExpanded && (
@@ -124,6 +204,7 @@ export function Sidebar({
             size="icon"
             className="h-8 w-8"
             onClick={toggleSidebar}
+            aria-label="Toggle Sidebar"
           >
             {isSidebarCollapsed ? (
               <PanelLeftOpen className="h-4 w-4" />
@@ -149,7 +230,7 @@ export function Sidebar({
                       asChild
                     >
                       <Link href={route.href}>
-                        <route.icon className="h-4 w-4" />
+                        <route.icon className={cn("h-4 w-4", route.color)} />
                         <span className="sr-only">{route.label}</span>
                       </Link>
                     </Button>
@@ -173,7 +254,7 @@ export function Sidebar({
                   asChild
                 >
                   <Link href={route.href}>
-                    <route.icon className="h-4 w-4" />
+                    <route.icon className={cn("h-4 w-4", route.color)} />
                     {route.label}
                   </Link>
                 </Button>

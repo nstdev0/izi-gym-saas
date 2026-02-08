@@ -159,6 +159,14 @@ model Product {
   @@index([organizationId])
 }
 
+model SystemConfig {
+  id                 String   @id @default(cuid())
+  maintenanceMode    Boolean  @default(false)
+  globalAnnouncement String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
 enum SubscriptionStatus {
   ACTIVE
   PAST_DUE
@@ -200,12 +208,4 @@ enum MembershipStatus {
   EXPIRED
   PENDING
   CANCELLED
-}
-
-model SystemConfig {
-  id                 String   @id @default(cuid())
-  maintenanceMode    Boolean  @default(false)
-  globalAnnouncement String?
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
 }
