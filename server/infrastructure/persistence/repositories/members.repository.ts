@@ -31,12 +31,12 @@ export class MembersRepository
     const safePage = page < 1 ? 1 : page;
     const skip = (safePage - 1) * limit;
 
-    let where: Prisma.MemberWhereInput = {};
+    let where: Prisma.MemberWhereInput = { deletedAt: null };
     let orderBy: Prisma.MemberOrderByWithRelationInput = { createdAt: "desc" };
 
     if (filters) {
       const [whereClause, orderByClause] = await this.buildPrismaClauses(filters);
-      where = whereClause;
+      where = { ...where, ...whereClause };
       orderBy = orderByClause;
     }
 
@@ -77,6 +77,22 @@ export class MembersRepository
       hasPrevious: page > 1,
       records: records as unknown as Member[],
     };
+  }
+
+  async delete(id: string): Promise<Member> {
+    const member = await this.model.findUnique({ where: { id } });
+    if (!member) throw new Error("Member not found");
+
+    return (await this.model.update({
+      where: { id },
+      data: {
+        isActive: false,
+        deletedAt: new Date(),
+        // Importante: Liberar constraints únicos para permitir re-registro
+        email: member.email ? `${member.email}_deleted_${Date.now()}` : null,
+        docNumber: `${member.docNumber}_deleted_${Date.now()}`,
+      },
+    })) as unknown as Member;
   }
 
 

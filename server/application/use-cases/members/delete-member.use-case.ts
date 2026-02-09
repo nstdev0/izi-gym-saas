@@ -29,7 +29,7 @@ export class DeleteMemberUseCase implements IDeleteMemberUseCase {
       );
     }
 
-    // 3. Soft Delete (set isActive = false)
-    return this.membersRepo.update(id, { isActive: false });
+    // 3. Hard Delete
+    return this.membersRepo.delete(id);
   }
 }

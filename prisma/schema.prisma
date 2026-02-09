@@ -91,6 +91,7 @@ model Member {
   image          String?
   imc            Float?
   weight         Float?
+  deletedAt      DateTime?
   organization   Organization @relation(fields: [organizationId], references: [id])
   memberships    Membership[]
 

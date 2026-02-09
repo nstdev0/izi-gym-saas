@@ -18,6 +18,7 @@ import { useRouter } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
 import { api, ApiError } from "@/lib/api";
 import { toast } from "sonner";
+import { useCreateMember, useUpdateMember } from "@/hooks/members/use-members";
 import { Member } from "@/server/domain/entities/Member";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { AvatarUploader } from "@/components/avatar-uploader";
@@ -56,26 +57,22 @@ export default function MemberForm({
   });
 
   // 2. Mutación (Conexión con Backend)
-  const { mutate: mutateMember, isPending } = useMutation({
-    mutationFn: async (values: z.infer<typeof CreateMemberSchema>) => {
-      // Clean Architecture: El DTO ya fue validado y transformado por Zod
-      if (isEdit && initialData?.id) {
-        return api.patch(`/api/members/${initialData.id}`, values);
-      }
-      return api.post("/api/members", values);
-    },
-    onSuccess: () => {
-      toast.success(
-        isEdit ? "Miembro actualizado correctamente" : "Miembro registrado con éxito"
-      );
-      router.refresh(); // Refresca los Server Components (Tablas)
+  const { mutate: createMember, isPending: isCreating } = useCreateMember();
+  const { mutate: updateMember, isPending: isUpdating } = useUpdateMember();
+
+  const isPending = isCreating || isUpdating;
+
+  const onSubmit = (values: z.infer<typeof CreateMemberSchema>) => {
+    const onSuccess = () => {
+      // toast is handled by the hook
+      router.refresh();
       if (redirectUrl) {
         router.push(redirectUrl);
       }
-    },
-    onError: (error) => {
+    };
+
+    const onError = (error: any) => {
       if (error instanceof ApiError && error.code === "VALIDATION_ERROR" && error.errors) {
-        // Iteramos los errores del backend y los pintamos en el input correspondiente
         Object.entries(error.errors).forEach(([field, messages]) => {
           form.setError(field as keyof z.infer<typeof CreateMemberSchema>, {
             type: "server",
@@ -83,14 +80,15 @@ export default function MemberForm({
           }, { shouldFocus: true });
         });
         toast.error("Revisa los errores marcados en rojo.");
-      } else {
-        toast.error(error.message || "Error al guardar");
       }
-    },
-  });
+      // Generic error toast handled by hook
+    };
 
-  const onSubmit = (values: z.infer<typeof CreateMemberSchema>) => {
-    mutateMember(values);
+    if (isEdit && initialData?.id) {
+      updateMember({ id: initialData.id, data: values }, { onSuccess, onError });
+    } else {
+      createMember(values, { onSuccess, onError });
+    }
   };
 
   const onInvalid = (errors: any) => {
