@@ -8,14 +8,17 @@ export const GET = createContext(
   (c) => c.getAllMembersController,
   async (req): Promise<PageableRequest<MembersFilters>> => {
     const { page, limit } = parsePagination(req);
-    const { search, sort, membershipStatus } = Object.fromEntries(req.nextUrl.searchParams.entries());
+    const { search, sort, status, membershipStatus } = Object.fromEntries(req.nextUrl.searchParams.entries());
+
+    const finalMembershipStatus = status || membershipStatus;
+
     return {
       page,
       limit,
       filters: {
         search: search || undefined,
         sort: sort || undefined,
-        membershipStatus: membershipStatus || undefined,
+        membershipStatus: finalMembershipStatus || undefined,
       },
     };
   },

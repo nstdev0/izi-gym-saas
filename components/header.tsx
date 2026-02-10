@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useClerk, useUser } from "@clerk/nextjs";
-import { ChevronsUpDown, LogOut, Menu, User } from "lucide-react";
+import { LogOut, Menu, User } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Sidebar } from "./sidebar";
 import { CommandMenu } from "./dashboard/command-menu";
@@ -85,11 +85,11 @@ export function Header({ slug, mode = "organization" }: HeaderProps) {
               <Avatar className="h-8 w-8">
                 <AvatarImage
                   src={user?.imageUrl}
-                  alt={user?.fullName || ""}
+                  alt={process.env.NODE_ENV === "development" ? "test" : user?.fullName || ""}
                 />
                 <AvatarFallback className="bg-primary text-primary-foreground">
-                  {user?.firstName?.charAt(0)}
-                  {user?.lastName?.charAt(0)}
+                  {process.env.NODE_ENV === "development" ? "test" : user?.firstName?.charAt(0)}
+                  {process.env.NODE_ENV === "development" ? "test" : user?.lastName?.charAt(0)}
                 </AvatarFallback>
               </Avatar>
               {/* <div className="hidden flex-col items-end md:flex min-w-0 text-right">
@@ -108,10 +108,10 @@ export function Header({ slug, mode = "organization" }: HeaderProps) {
           <DropdownMenuLabel className="font-normal">
             <div className="flex flex-col space-y-1">
               <p className="text-sm font-medium leading-none">
-                {user?.fullName}
+                {process.env.NODE_ENV === "development" ? "test" : user?.fullName}
               </p>
               <p className="text-xs leading-none text-muted-foreground">
-                {user?.primaryEmailAddress?.emailAddress}
+                {process.env.NODE_ENV === "development" ? "test@development.dev" : user?.primaryEmailAddress?.emailAddress}
               </p>
             </div>
           </DropdownMenuLabel>

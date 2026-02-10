@@ -34,7 +34,7 @@ type PlanFormValues = z.infer<typeof planFormSchema>;
 interface PlanFormProps {
     initialData?: Plan;
     isEdit?: boolean;
-    redirectUrl: string;
+    redirectUrl?: string;
 }
 
 export default function PlanForm({
@@ -55,6 +55,9 @@ export default function PlanForm({
         },
     });
 
+    const isDirty = form.formState.isDirty;
+    const canSubmit = isEdit ? isDirty : true;
+
     const { mutate: mutatePlan, isPending } = useMutation({
         mutationFn: async (values: PlanFormValues) => {
             if (isEdit && initialData?.id) {
@@ -67,7 +70,9 @@ export default function PlanForm({
                 isEdit ? "Plan actualizado correctamente" : "Plan creado con éxito"
             );
             router.refresh();
-            router.push(redirectUrl);
+            if (redirectUrl) {
+                // router.push(redirectUrl);
+            }
         },
         onError: (error) => {
             if (error instanceof ApiError && error.code === "VALIDATION_ERROR" && error.errors) {
@@ -89,7 +94,7 @@ export default function PlanForm({
     };
 
     return (
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <Card>
                 <CardHeader>
                     <CardTitle>Información del Plan</CardTitle>
@@ -210,16 +215,8 @@ export default function PlanForm({
                 </CardContent>
             </Card>
 
-            <div className="flex justify-end gap-4 pt-4 border-t">
-                <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => router.back()}
-                    disabled={isPending}
-                >
-                    Cancelar
-                </Button>
-                <Button type="submit" disabled={isPending}>
+            <div className="flex justify-end gap-4">
+                <Button type="submit" disabled={isPending || !canSubmit}>
                     {isPending ? (
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     ) : (

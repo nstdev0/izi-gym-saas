@@ -179,8 +179,8 @@ export function Sidebar({
       return (
         <div className="flex items-center gap-2">
           <ShieldAlert className="w-5 h-5 text-indigo-500" />
-          <span>Izi<span className="text-indigo-600">Gym</span> GOD</span>
-          {process.env.NODE_ENV === "development" && <span className="text-red-500"> (DEV)</span>}
+          <span>Izi<span className="text-indigo-600">Gym</span> SaaS</span>
+          {process.env.NODE_ENV === "development" && <span className="text-red-500"> &lt; (DEV) &gt; </span>}
         </div>
       );
     }
@@ -188,7 +188,7 @@ export function Sidebar({
     return (
       <span>
         {organization?.name || "Cargando..."}
-        {process.env.NODE_ENV === "development" && <span className="text-red-500"> (DEV)</span>}
+        {process.env.NODE_ENV === "development" && <span className="text-red-500"> &lt; (DEV) &gt; </span>}
       </span>
     );
   };
@@ -310,10 +310,10 @@ export function Sidebar({
                   <>
                     <div className="flex flex-col items-start min-w-0">
                       <span className="text-sm font-medium truncate w-[130px] text-left">
-                        {user?.fullName || "Usuario"}
+                        {process.env.NODE_ENV === "development" ? "development" : user?.fullName || "Usuario"}
                       </span>
                       <span className="text-xs text-muted-foreground truncate w-[130px] text-left">
-                        {user?.primaryEmailAddress?.emailAddress || ""}
+                        {process.env.NODE_ENV === "development" ? "test@development.dev" : user?.primaryEmailAddress?.emailAddress || ""}
                       </span>
                     </div>
                     <ChevronsUpDown className="ml-auto h-4 w-4 text-muted-foreground" />
@@ -331,10 +331,10 @@ export function Sidebar({
             <DropdownMenuLabel className="font-normal">
               <div className="flex flex-col space-y-1">
                 <p className="text-sm font-medium leading-none">
-                  {user?.fullName}
+                  {process.env.NODE_ENV === "development" ? "development" : user?.fullName}
                 </p>
                 <p className="text-xs leading-none text-muted-foreground">
-                  {user?.primaryEmailAddress?.emailAddress}
+                  {process.env.NODE_ENV === "development" ? "test@development.dev" : user?.primaryEmailAddress?.emailAddress}
                 </p>
               </div>
             </DropdownMenuLabel>

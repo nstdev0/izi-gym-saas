@@ -2,7 +2,7 @@
 
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
+import z from "zod";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,18 +15,18 @@ import {
 import { CreateMemberSchema } from "@/server/application/dtos/members.dto";
 import { Loader2, Save } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useMutation } from "@tanstack/react-query";
-import { api, ApiError } from "@/lib/api";
+import { ApiError } from "@/lib/api";
 import { toast } from "sonner";
 import { useCreateMember, useUpdateMember } from "@/hooks/members/use-members";
 import { Member } from "@/server/domain/entities/Member";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { AvatarUploader } from "@/components/avatar-uploader";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 type MemberFormProps = {
   initialData?: Member;
   isEdit?: boolean;
-  redirectUrl?: string;
+  redirectUrl?: string; // Mantener por compatibilidad, pero el submit manejará la redirección/refresh
 };
 
 export default function MemberForm({
@@ -62,12 +62,19 @@ export default function MemberForm({
 
   const isPending = isCreating || isUpdating;
 
+  // Detectar cambios para habilitar/deshabilitar botón de guardar
+  const isDirty = form.formState.isDirty;
+
+  // Si estamos en modo edición (hay initialData), el botón solo se habilita si hay cambios (isDirty).
+  // Si estamos en modo creación, el botón siempre está habilitado (salvo isPending).
+  const canSubmit = isEdit ? isDirty : true;
+
   const onSubmit = (values: z.infer<typeof CreateMemberSchema>) => {
     const onSuccess = () => {
-      // toast is handled by the hook
+      toast.success(isEdit ? "Miembro actualizado exitosamente" : "Miembro creado exitosamente");
       router.refresh();
       if (redirectUrl) {
-        router.push(redirectUrl);
+        // Opcional: Redirigir si se requiere
       }
     };
 
@@ -81,7 +88,6 @@ export default function MemberForm({
         });
         toast.error("Revisa los errores marcados en rojo.");
       }
-      // Generic error toast handled by hook
     };
 
     if (isEdit && initialData?.id) {
@@ -93,16 +99,17 @@ export default function MemberForm({
 
   const onInvalid = (errors: any) => {
     console.log(errors);
+    toast.error("Por favor completa los campos requeridos");
   };
 
   const selectedDocType = form.watch("docType");
 
   const getMaxLength = (type: string) => {
     switch (type) {
-      case "DNI": return 8;      // DNI es exacto 8
-      case "RUC": return 11;     // RUC es exacto 11
-      case "CE": return 8;      // CE suele ser hasta 8
-      case "PASSPORT": return 12; // Pasaporte varía, 12 es seguro
+      case "DNI": return 8;
+      case "RUC": return 11;
+      case "CE": return 12;
+      case "PASSPORT": return 12;
       default: return 15;
     }
   };
@@ -121,290 +128,240 @@ export default function MemberForm({
   const currentDocNumberPlaceholder = getDocNumberPlaceholder(selectedDocType);
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit, onInvalid)} className="space-y-8">
+    <form onSubmit={form.handleSubmit(onSubmit, onInvalid)} className="grid grid-cols-1 md:grid-cols-3 gap-6">
 
-      <div className="flex justify-center mb-6">
-        <Controller
-          name="image"
-          control={form.control}
-          render={({ field }) => (
-            <AvatarUploader
-              value={field.value ?? undefined}
-              onChange={(url) => {
-                // AvatarUploader ya sube la imagen y devuelve la URL
-                console.log("Avatar URL recibida:", url);
-                field.onChange(url);
-              }}
-              fileNamePrefix={`${form.getValues("firstName") || "member"}-${form.getValues("lastName") || ""}-${form.getValues("docNumber") || ""}`}
+      {/* CONTENEDOR PRINCIPAL: Avatar + Datos Personales */}
+      <div className="md:col-span-3 space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Información Personal</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
+              {/* ZONA AVATAR (Izquierda en desktop) */}
+              <div className="md:col-span-3 flex flex-col items-center">
+                <Controller
+                  name="image"
+                  control={form.control}
+                  render={({ field }) => (
+                    <AvatarUploader
+                      value={field.value ?? undefined}
+                      onChange={(url) => field.onChange(url)}
+                      fileNamePrefix={`${form.getValues("firstName") || "member"}-${form.getValues("lastName") || "avatar"}`}
+                    />
+                  )}
+                />
+                <p className="text-sm text-muted-foreground mt-4 text-center">
+                  Sube una foto de perfil para identificar al miembro.
+                </p>
+              </div>
+
+              {/* ZONA CAMPOS (Derecha en desktop) */}
+              <div className="md:col-span-9 grid gap-6">
+                {/* Nombres y Apellidos */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Controller
+                    name="firstName"
+                    control={form.control}
+                    render={({ field, fieldState }) => (
+                      <Field data-invalid={fieldState.invalid}>
+                        <FieldLabel required>Nombres</FieldLabel>
+                        <Input {...field} aria-invalid={fieldState.invalid} placeholder="Jon" />
+                        {fieldState.invalid && fieldState.error && <FieldError errors={[fieldState.error]} />}
+                      </Field>
+                    )}
+                  />
+                  <Controller
+                    name="lastName"
+                    control={form.control}
+                    render={({ field, fieldState }) => (
+                      <Field data-invalid={fieldState.invalid}>
+                        <FieldLabel required>Apellidos</FieldLabel>
+                        <Input {...field} aria-invalid={fieldState.invalid} placeholder="Doe" />
+                        {fieldState.invalid && fieldState.error && <FieldError errors={[fieldState.error]} />}
+                      </Field>
+                    )}
+                  />
+                </div>
+
+                {/* Documento e Info Adicional */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex gap-2">
+                    <div className="w-1/3">
+                      <Controller
+                        name="docType"
+                        control={form.control}
+                        render={({ field, fieldState }) => (
+                          <Field data-invalid={fieldState.invalid}>
+                            <FieldLabel required>Tipo</FieldLabel>
+                            <Select
+                              onValueChange={(val) => {
+                                field.onChange(val);
+                                form.trigger("docNumber");
+                              }}
+                              defaultValue={field.value}
+                              disabled={isEdit}
+                            >
+                              <SelectTrigger aria-invalid={fieldState.invalid}>
+                                <SelectValue placeholder="Sel." />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="DNI">DNI</SelectItem>
+                                <SelectItem value="CE">CE</SelectItem>
+                                <SelectItem value="PASSPORT">Pas.</SelectItem>
+                                <SelectItem value="RUC">RUC</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </Field>
+                        )}
+                      />
+                    </div>
+                    <div className="w-2/3">
+                      <Controller
+                        name="docNumber"
+                        control={form.control}
+                        render={({ field, fieldState }) => (
+                          <Field data-invalid={fieldState.invalid}>
+                            <FieldLabel required>Número Documento</FieldLabel>
+                            <Input
+                              {...field}
+                              maxLength={currentMaxLength}
+                              aria-invalid={fieldState.invalid}
+                              placeholder={currentDocNumberPlaceholder}
+                              disabled={isEdit}
+                            />
+                            {fieldState.invalid && fieldState.error && <FieldError errors={[fieldState.error]} />}
+                          </Field>
+                        )}
+                      />
+                    </div>
+                  </div>
+
+                  <Controller
+                    name="birthDate"
+                    control={form.control}
+                    render={({ field, fieldState }) => (
+                      <Field data-invalid={fieldState.invalid}>
+                        <FieldLabel>Fecha Nacimiento</FieldLabel>
+                        <Input
+                          type="date"
+                          max={new Date().toISOString().split("T")[0]}
+                          aria-invalid={fieldState.invalid}
+                          {...field}
+                          value={field.value ? String(field.value) : ""}
+                        />
+                        {fieldState.invalid && fieldState.error && <FieldError errors={[fieldState.error]} />}
+                      </Field>
+                    )}
+                  />
+                </div>
+
+                {/* Contacto (Integrado) */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Controller
+                    name="email"
+                    control={form.control}
+                    render={({ field, fieldState }) => (
+                      <Field data-invalid={fieldState.invalid}>
+                        <FieldLabel>Email</FieldLabel>
+                        <Input {...field} value={field.value ?? ""} aria-invalid={fieldState.invalid} placeholder="jon@example.com" />
+                        {fieldState.invalid && fieldState.error && <FieldError errors={[fieldState.error]} />}
+                      </Field>
+                    )}
+                  />
+                  <Controller
+                    name="phone"
+                    control={form.control}
+                    render={({ field, fieldState }) => (
+                      <Field data-invalid={fieldState.invalid}>
+                        <FieldLabel>Celular</FieldLabel>
+                        <Input {...field} value={field.value ?? ""} aria-invalid={fieldState.invalid} placeholder="9..." maxLength={9} />
+                        {fieldState.invalid && fieldState.error && <FieldError errors={[fieldState.error]} />}
+                      </Field>
+                    )}
+                  />
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Datos Físicos</CardTitle>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Controller
+              name="gender"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel>Género</FieldLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <SelectTrigger aria-invalid={fieldState.invalid}>
+                      <SelectValue placeholder="Selecciona" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="MALE">Masculino</SelectItem>
+                      <SelectItem value="FEMALE">Femenino</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </Field>
+              )}
             />
-          )}
-        />
-      </div>
+            <Controller
+              name="height"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel>Altura (cm)</FieldLabel>
+                  <Input
+                    maxLength={3}
+                    type="number"
+                    aria-invalid={fieldState.invalid}
+                    placeholder="175"
+                    {...field}
+                    value={field.value ?? ""}
+                    onChange={field.onChange}
+                  />
+                </Field>
+              )}
+            />
+            <Controller
+              name="weight"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel>Peso (kg)</FieldLabel>
+                  <Input
+                    {...field}
+                    maxLength={5}
+                    type="number"
+                    step="0.1"
+                    aria-invalid={fieldState.invalid}
+                    placeholder="70.5"
+                    value={field.value ?? ""}
+                    onChange={(e) => {
+                      if (e.target.value.length <= 5) field.onChange(e.target.value);
+                    }}
+                  />
+                </Field>
+              )}
+            />
+          </CardContent>
+        </Card>
 
-      {/* SECCIÓN: DATOS PERSONALES */}
-      <div className="space-y-4">
-        <h3 className="text-lg font-medium">Datos Personales</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Controller
-            name="firstName"
-            control={form.control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel required>Nombres</FieldLabel>
-                <Input
-                  {...field}
-                  aria-invalid={fieldState.invalid}
-                  placeholder="Jon"
-                />
-                {fieldState.invalid && fieldState.error && (
-                  <FieldError errors={[fieldState.error]} />
-                )}
-              </Field>
+        <div className="flex justify-end gap-4">
+          {/* Botón Principal */}
+          <Button type="submit" disabled={isPending || !canSubmit}>
+            {isPending ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Save className="mr-2 h-4 w-4" />
             )}
-          />
-          <Controller
-            name="lastName"
-            control={form.control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel required>Apellidos</FieldLabel>
-                <Input
-                  {...field}
-                  aria-invalid={fieldState.invalid}
-                  placeholder="Doe"
-                />
-                {fieldState.invalid && fieldState.error && (
-                  <FieldError errors={[fieldState.error]} />
-                )}
-              </Field>
-            )}
-          />
-          <Controller
-            name="birthDate"
-            control={form.control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel>Fecha Nacimiento</FieldLabel>
-                <Input
-                  type="date"
-                  max={new Date().toISOString().split("T")[0]}
-                  aria-invalid={fieldState.invalid}
-
-                  // 1. Simplificación: Pasamos las props de react-hook-form directo
-                  // El input date nativo trabaja con strings "YYYY-MM-DD", ¡démosle eso!
-                  {...field}
-
-                  // 2. Manejo de nulos: Si es undefined/null, pon string vacío
-                  value={field.value ? String(field.value) : ""}
-                />
-
-                {fieldState.invalid && fieldState.error && (
-                  <FieldError errors={[fieldState.error]} />
-                )}
-              </Field>
-            )}
-          />
+            {isEdit ? "Guardar Cambios" : "Crear Miembro"}
+          </Button>
         </div>
-      </div>
-
-      {/* SECCIÓN: CONTACTO */}
-      <div className="space-y-4">
-        <h3 className="text-lg font-medium">Contacto</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Controller
-            name="email"
-            control={form.control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel>Email</FieldLabel>
-                <Input
-                  {...field}
-                  value={field.value ?? ""}
-                  aria-invalid={fieldState.invalid}
-                  placeholder="jon@example.com"
-                />
-                {fieldState.invalid && fieldState.error && (
-                  <FieldError errors={[fieldState.error]} />
-                )}
-              </Field>
-            )}
-          />
-          <Controller
-            name="phone"
-            control={form.control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel>Celular</FieldLabel>
-                <Input
-                  {...field}
-                  value={field.value ?? ""}
-                  aria-invalid={fieldState.invalid}
-                  placeholder="9..."
-                  maxLength={9}
-                />
-                {fieldState.invalid && fieldState.error && (
-                  <FieldError errors={[fieldState.error]} />
-                )}
-              </Field>
-            )}
-          />
-        </div>
-      </div>
-
-      {/* SECCIÓN: IDENTIFICACIÓN */}
-      <div className="space-y-4">
-        <h3 className="text-lg font-medium">Identificación</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-1">
-          <Controller
-            name="docType"
-            control={form.control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel required>Tipo de Documento</FieldLabel>
-                <Select
-                  onValueChange={(val) => {
-                    field.onChange(val);
-                    form.trigger("docNumber");
-                  }}
-                  defaultValue={field.value}
-                  disabled={isEdit}
-                >
-                  <SelectTrigger aria-invalid={fieldState.invalid}>
-                    <SelectValue placeholder="Selecciona" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="DNI">DNI</SelectItem>
-                    <SelectItem value="CE">CE</SelectItem>
-                    <SelectItem value="PASSPORT">Pasaporte</SelectItem>
-                    <SelectItem value="RUC">RUC</SelectItem>
-                  </SelectContent>
-                </Select>
-                {fieldState.invalid && fieldState.error && (
-                  <FieldError errors={[fieldState.error]} />
-                )}
-              </Field>
-            )}
-          />
-          <Controller
-            name="docNumber"
-            control={form.control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel required>Número de Documento</FieldLabel>
-                <Input
-                  {...field}
-                  maxLength={currentMaxLength}
-                  aria-invalid={fieldState.invalid}
-                  placeholder={currentDocNumberPlaceholder}
-                  disabled={isEdit}
-                  onChange={(e) => {
-                    field.onChange(e);
-                    if (form.formState.errors.docNumber?.type === 'server') {
-                      form.clearErrors("docNumber");
-                    }
-                  }}
-                />
-                {fieldState.invalid && fieldState.error && (
-                  <FieldError errors={[fieldState.error]} />
-                )}
-              </Field>
-            )}
-          />
-        </div>
-      </div>
-
-      {/* SECCIÓN: FÍSICO Y MÉDICO */}
-      <div className="space-y-4">
-        <h3 className="text-lg font-medium">Información Física</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Controller
-            name="gender"
-            control={form.control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel>Género</FieldLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <SelectTrigger aria-invalid={fieldState.invalid}>
-                    <SelectValue placeholder="Selecciona" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="MALE">Masculino</SelectItem>
-                    <SelectItem value="FEMALE">Femenino</SelectItem>
-                  </SelectContent>
-                </Select>
-                {fieldState.invalid && fieldState.error && (
-                  <FieldError errors={[fieldState.error]} />
-                )}
-              </Field>
-            )}
-          />
-          <Controller
-            name="height"
-            control={form.control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel>Altura (cm)</FieldLabel>
-                <Input
-                  maxLength={3}
-                  type="number"
-                  aria-invalid={fieldState.invalid}
-                  placeholder="175"
-                  {...field}
-                  value={field.value ?? ""}
-                  onChange={field.onChange}
-                />
-                {fieldState.invalid && fieldState.error && (
-                  <FieldError errors={[fieldState.error]} />
-                )}
-              </Field>
-            )}
-          />
-          <Controller
-            name="weight"
-            control={form.control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel>Peso (kg)</FieldLabel>
-                <Input
-                  {...field}
-                  maxLength={5}
-                  type="number"
-                  step="0.1"
-                  aria-invalid={fieldState.invalid}
-                  placeholder="70.5"
-                  value={field.value ?? ""}
-                  onChange={(e) => {
-                    if (e.target.value.length <= 5) {
-                      field.onChange(e.target.value);
-                    }
-                  }}
-                />
-                {fieldState.invalid && fieldState.error && (
-                  <FieldError errors={[fieldState.error]} />
-                )}
-              </Field>
-            )}
-          />
-        </div>
-      </div>
-
-      <div className="flex justify-end gap-4 pt-4 border-t">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => router.back()}
-          disabled={isPending}
-        >
-          Cancelar
-        </Button>
-        <Button type="submit" disabled={isPending}>
-          {isPending ? (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          ) : (
-            <Save className="mr-2 h-4 w-4" />
-          )}
-          {isEdit ? "Guardar Cambios" : "Registrar Miembro"}
-        </Button>
       </div>
     </form>
   );

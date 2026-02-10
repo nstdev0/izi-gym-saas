@@ -193,6 +193,7 @@ export const columns: ColumnDef<Member>[] = [
   },
   {
     id: "actions",
+    enableHiding: false,
     header: () => <div className="text-center">Acciones</div>,
     cell: ({ row }) => <MemberActions member={row.original} />,
   },

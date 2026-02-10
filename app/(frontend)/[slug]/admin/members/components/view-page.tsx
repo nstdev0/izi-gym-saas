@@ -8,7 +8,7 @@ import { Pagination } from "@/components/ui/pagination";
 import { MembersTable } from "./members-table";
 import Loading from "../loading";
 import { FilterConfiguration } from "@/components/ui/smart-filters";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams } from "next/navigation";
 import SmartFilters from "@/components/ui/smart-filters";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -16,25 +16,35 @@ import { PageHeader } from "@/components/ui/page-header";
 import Link from "next/link";
 import { useMembersList } from "@/hooks/members/use-members";
 import { Member } from "@/server/domain/entities/Member";
+import { membersParsers } from "@/lib/nuqs/search-params/members";
+import { useQueryStates } from "nuqs";
+import {
+  useReactTable,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  VisibilityState,
+} from "@tanstack/react-table";
+import { columns } from "./members-columns";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ChevronDown } from "lucide-react";
+import { useState } from "react";
 
 export default function MembersViewPage() {
   const params = useParams();
-  const searchParams = useSearchParams();
   const slug = params.slug as string;
 
-  const page = Number(searchParams.get("page")) || 1;
-  const limit = Number(searchParams.get("limit")) || 10;
-  const search = searchParams.get("search") || undefined;
-  const sort = searchParams.get("sort") || undefined;
-  const membership = searchParams.get("membership") || undefined;
-
-  const { data: paginatedMembers, isLoading } = useMembersList({
-    page,
-    limit,
-    search,
-    sort,
-    membershipStatus: membership,
+  const [filters, setFilters] = useQueryStates(membersParsers, {
+    shallow: false
   });
+
+  const { data: paginatedMembers, isLoading } = useMembersList(filters);
 
   const filtersConfig: FilterConfiguration<Member> = {
     sort: [
@@ -49,10 +59,9 @@ export default function MembersViewPage() {
         value: "firstName-desc"
       }
     ],
-
     filters: [
       {
-        key: "membership",
+        key: "status",
         label: "Membresía",
         options: [
           { label: "Activo", value: "active" },
@@ -62,14 +71,32 @@ export default function MembersViewPage() {
     ]
   };
 
-  // If loading or no data, handle appropriately. 
-  // Since we prefetch, data should be available immediately unless parameters changed.
-  // keepPreviousData is used in hook, so pagination should be smooth.
-
   const members = paginatedMembers?.records || [];
   const totalPages = paginatedMembers?.totalPages || 0;
   const totalRecords = paginatedMembers?.totalRecords || 0;
   const currentRecordsCount = members.length;
+
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+
+  const table = useReactTable({
+    data: members,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    onColumnVisibilityChange: setColumnVisibility,
+    state: {
+      columnVisibility,
+    },
+  });
+
+  const handleFilterChange = (key: string, value: string | null) => {
+    setFilters({
+      [key]: value,
+      page: 1,
+    });
+  };
 
   return (
     <Suspense fallback={<Loading />}>
@@ -89,13 +116,6 @@ export default function MembersViewPage() {
           }
         />
         <div className="flex flex-col h-full space-y-4 overflow-hidden">
-
-
-          {/* ⚠️ ADVERTENCIA DE LÓGICA: 
-                         Estas estadísticas solo reflejan la página actual (ej. 10 usuarios), 
-                         NO el total de la base de datos. 
-                         Para hacerlo bien, el backend debería devolver un objeto 'stats' junto con la paginación.
-                     */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {[
               { label: "Total Miembros", value: totalRecords.toString() },
@@ -111,26 +131,61 @@ export default function MembersViewPage() {
               </Card>
             ))}
           </div>
-
           <div className="flex flex-col sm:flex-row gap-2">
-            {/* SearchInput necesita Suspense boundary, pero como toda la pagina 
-                             esta envuelta, funcionará bien. */}
-            <SearchInput placeholder="Buscar por nombres, email..." />
-            <SmartFilters config={filtersConfig} />
+            <SearchInput
+              placeholder="Buscar por nombres, email..."
+              value={filters.search || ""}
+              onChange={(value) => setFilters({ search: value, page: 1 })}
+            />
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline">
+                  Columnas <ChevronDown className="ml-2 h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {table
+                  .getAllColumns()
+                  .filter((column) => column.getCanHide())
+                  .map((column) => {
+                    return (
+                      <DropdownMenuCheckboxItem
+                        key={column.id}
+                        className="capitalize"
+                        checked={column.getIsVisible()}
+                        onCheckedChange={(value) =>
+                          column.toggleVisibility(!!value)
+                        }
+                      >
+                        {column.columnDef.header as string || column.id}
+                      </DropdownMenuCheckboxItem>
+                    );
+                  })}
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <SmartFilters
+              config={filtersConfig}
+              activeValues={{ sort: filters.sort, status: filters.status }}
+              onFilterChange={handleFilterChange}
+            />
           </div>
-
           <Card className="flex-1 overflow-hidden flex flex-col min-h-0">
             {isLoading ? (
               <div className="p-4 flex justify-center items-center h-full">Cargando...</div>
             ) : (
               <>
-                <MembersTable members={members} />
+                <MembersTable table={table} />
                 <div className="p-2 border-t bg-background">
-                  <Pagination currentPage={page} totalPages={totalPages} />
+                  <Pagination
+                    currentPage={filters.page}
+                    totalPages={totalPages}
+                    onPageChange={(page) => setFilters({ page })}
+                    onLimitChange={(limit) => setFilters({ limit, page: 1 })}
+                    currentLimit={filters.limit}
+                  />
                 </div>
               </>
             )}
-
           </Card>
         </div>
       </DashboardLayout>

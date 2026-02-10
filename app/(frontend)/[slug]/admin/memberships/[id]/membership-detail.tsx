@@ -42,7 +42,7 @@ function formatDate(date: Date | string): string {
     });
 }
 
-function formatCurrency(amount: number): string {
+export function formatCurrency(amount: number): string {
     return new Intl.NumberFormat("es-PE", {
         style: "currency",
         currency: "PEN",
@@ -153,7 +153,7 @@ export default function MembershipDetail({ membership }: MembershipDetailProps) 
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                    <div className="grid grid-cols-1 sm:-grid-cols-1 md:grid-cols-1 lg:grid-cols-4 gap-4 text-sm">
                         <div>
                             <p className="text-muted-foreground">ID</p>
                             <p className="font-mono">{membership.id}</p>

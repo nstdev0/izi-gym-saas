@@ -128,7 +128,7 @@ export function AvatarUploader({
                 {/* CÍRCULO CLICKEABLE */}
                 <div
                     className={cn(
-                        "relative w-32 h-32 rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden bg-gray-50 hover:bg-gray-100 transition cursor-pointer group",
+                        "relative w-32 h-32 rounded-full border-2 border-dashed border-border flex items-center justify-center overflow-hidden bg-background hover:bg-background-100 transition cursor-pointer group",
                         value && "border-solid border-primary",
                         isUploading && "opacity-50 cursor-wait"
                     )}
@@ -140,7 +140,7 @@ export function AvatarUploader({
                             <span className="text-xs font-medium">Subiendo...</span>
                         </div>
                     ) : value ? (
-                        <Image src={value} alt="Avatar" className="w-full h-full object-cover" />
+                        <Image src={value} fill alt="Avatar" className="w-full h-full object-cover" />
                     ) : (
                         <div className="flex flex-col items-center text-gray-400">
                             <Camera className="w-8 h-8 mb-1" />

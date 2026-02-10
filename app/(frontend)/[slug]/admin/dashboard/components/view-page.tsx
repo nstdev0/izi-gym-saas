@@ -118,13 +118,13 @@ export default function DashboardViewPage() {
 
     // Date Range State
     const [date, setDate] = useState<DateRange | undefined>({
-        from: startOfYear(new Date()),
-        to: endOfYear(new Date()),
+        from: startOfMonth(new Date()),
+        to: endOfMonth(new Date()),
     });
-    const [grouping, setGrouping] = useState<'day' | 'month' | 'year'>('month');
+    const [grouping, setGrouping] = useState<'day' | 'month' | 'year'>('day');
 
     // Fetch Metrics using Hook
-    const { data: metrics, isLoading, isPlaceholderData } = useDashboardMetrics({
+    const { data: metrics, isLoading } = useDashboardMetrics({
         from: date?.from?.toISOString(),
         to: date?.to?.toISOString(),
         grouping,
@@ -471,7 +471,7 @@ export default function DashboardViewPage() {
                                                         {member.name}
                                                     </p>
                                                     <p className="text-xs text-muted-foreground truncate">
-                                                        Vence en {member.daysUntil} días
+                                                        {member.daysUntil === 0 ? "Vence hoy" : `Vence en ${member.daysUntil} días`}
                                                     </p>
                                                 </div>
                                             </div>

@@ -3,14 +3,30 @@
 import { useDebouncedCallback } from "use-debounce";
 import { Search } from "lucide-react";
 import { Input } from "./input";
-import { useUrlFilters } from "@/hooks/use-url-filters";
+import { useEffect, useState } from "react";
 
-export function SearchInput({ placeholder }: { placeholder: string }) {
-  const { setFilter, getFilter } = useUrlFilters();
+interface SearchInputProps {
+  placeholder: string;
+  value: string;
+  onChange: (value: string) => void;
+}
+
+export function SearchInput({ placeholder, value, onChange }: SearchInputProps) {
+  const [localValue, setLocalValue] = useState(value);
+
+  useEffect(() => {
+    setLocalValue(value);
+  }, [value]);
 
   const handleSearch = useDebouncedCallback((term: string) => {
-    setFilter("search", term);
+    onChange(term);
   }, 350);
+
+  const onInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
+    setLocalValue(newValue);
+    handleSearch(newValue);
+  };
 
   return (
     <div className="flex-1 relative">
@@ -18,8 +34,8 @@ export function SearchInput({ placeholder }: { placeholder: string }) {
       <Input
         placeholder={placeholder}
         className="pl-9"
-        onChange={(e) => handleSearch(e.target.value)}
-        defaultValue={getFilter("search")?.toString()}
+        value={localValue}
+        onChange={onInputChange}
       />
     </div>
   );

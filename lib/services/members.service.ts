@@ -7,10 +7,8 @@ export interface PaginationParams {
     page?: number;
     limit?: number;
     search?: string;
-    sort?: string;
-    status?: string;
-    membershipStatus?: string;
-    [key: string]: any;
+    sort?: string | null;
+    status?: string | null;
 }
 
 export class MembersService {

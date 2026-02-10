@@ -133,7 +133,7 @@ export const createContext = <TInput = void, TResult = unknown>(
       }
 
       // 3. Error No Controlado (Crash) pero verificando si es Prisma
-      // @ts-ignore - Prisma error might not be fully typed here without importing everything
+      // @ts-expect-error
       if (error?.code === 'P2003') {
         return NextResponse.json(
           {

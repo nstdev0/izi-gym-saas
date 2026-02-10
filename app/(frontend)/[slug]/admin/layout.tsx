@@ -54,7 +54,7 @@ export default async function AdminLayout({
           <Sidebar slug={slug} className="hidden border-r bg-muted/40 md:flex" />
           <div className="flex flex-col h-full overflow-hidden">
             <Header slug={slug} mode="organization" />
-            <main className="flex-1 overflow-auto scrollbar-hide p-4 lg:p-6 bg-muted/10">
+            <main className="flex-1 overflow-auto scrollbar-hide p-4 bg-muted/10">
               {children}
             </main>
           </div>

@@ -19,6 +19,7 @@ import { extractRouterConfig } from "uploadthing/server";
 import { ourFileRouter } from "./(backend)/api/uploadthing/core";
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/server/infrastructure/persistence/prisma";
+import { NuqsAdapter } from 'nuqs/adapters/next/app'
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -109,12 +110,14 @@ export default async function RootLayout({
             disableTransitionOnChange
           >
             <AppearanceProvider initialFont={initialFont}>
-              <ReactQueryProvider>
-                <NextSSRPlugin routerConfig={extractRouterConfig(ourFileRouter)} />
-                {children}
-                <Analytics />
-                <Toaster />
-              </ReactQueryProvider>
+              <NuqsAdapter>
+                <ReactQueryProvider>
+                  <NextSSRPlugin routerConfig={extractRouterConfig(ourFileRouter)} />
+                  {children}
+                  <Analytics />
+                  <Toaster />
+                </ReactQueryProvider>
+              </NuqsAdapter>
             </AppearanceProvider>
           </ThemeProvider>
         </body>

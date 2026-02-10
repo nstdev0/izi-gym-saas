@@ -173,7 +173,7 @@ export class PrismaDashboardRepository implements IDashboardRepository {
         const upcomingExpirations = expiringMemberships.map((m) => {
             const endDate = new Date(m.endDate);
             const diffTime = endDate.getTime() - today.getTime();
-            const daysUntil = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            const daysUntil = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
             return {
                 id: m.member.id,

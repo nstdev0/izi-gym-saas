@@ -19,7 +19,10 @@ export default async function NewPlanPage({ params }: PageProps) {
                             <ChevronLeft className="h-4 w-4" />
                         </Link>
                     </Button>
-                    <h1 className="text-3xl font-bold tracking-tight">Nuevo Plan</h1>
+                    <div className="flex flex-col">
+                        <h1 className="text-3xl font-bold tracking-tight">Nuevo Plan</h1>
+                        <p className="text-sm text-muted-foreground">Crea un nuevo plan de suscripción</p>
+                    </div>
                 </div>
             </div>
 
