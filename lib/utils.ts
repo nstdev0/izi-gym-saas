@@ -14,3 +14,18 @@ export function removeEmptyParams(obj: Record<string, any>): Record<string, any>
   });
   return newObj;
 }
+
+export function formatDate(date: Date | string): string {
+  return new Date(date).toLocaleDateString("es-PE", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
+}
+
+export function formatCurrency(amount: number): string {
+  return new Intl.NumberFormat("es-PE", {
+    style: "currency",
+    currency: "PEN",
+  }).format(amount);
+}

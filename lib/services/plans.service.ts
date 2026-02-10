@@ -1,27 +1,25 @@
 import { fetchClient } from "@/lib/api-client";
 import { CreatePlanInput, UpdatePlanInput } from "@/server/application/dtos/plans.dto";
 import { Plan } from "@/server/domain/entities/Plan";
-import { PageableResponse } from "@/server/shared/common/pagination";
-
-export interface PlanPaginationParams {
-    page?: number;
-    limit?: number;
-    search?: string;
-    sort?: string;
-    status?: string;
-    [key: string]: any;
-}
+import { PageableRequest, PageableResponse } from "@/server/shared/common/pagination";
+import { PlansFilters } from "@/server/domain/types/plans";
 
 export class PlansService {
     private static readonly BASE_PATH = "/api/plans";
 
-    static async getAll(params: PlanPaginationParams = {}) {
+    static async getAll(params: PageableRequest<PlansFilters>) {
         const searchParams = new URLSearchParams();
-        Object.entries(params).forEach(([key, value]) => {
-            if (value !== undefined && value !== null) {
-                searchParams.append(key, String(value));
-            }
-        });
+
+        if (params.page) searchParams.append("page", String(params.page));
+        if (params.limit) searchParams.append("limit", String(params.limit));
+
+        if (params.filters) {
+            Object.entries(params.filters).forEach(([key, value]) => {
+                if (value !== undefined && value !== null && value !== "") {
+                    searchParams.append(key, String(value));
+                }
+            });
+        }
 
         const queryString = searchParams.toString();
         const endpoint = queryString ? `${this.BASE_PATH}?${queryString}` : this.BASE_PATH;

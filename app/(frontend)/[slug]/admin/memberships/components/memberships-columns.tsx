@@ -62,7 +62,13 @@ function formatCurrency(amount: number): string {
     }).format(amount);
 }
 
-function ActionsCell({ membership, slug }: { membership: MembershipWithRelations; slug: string }) {
+import { useParams } from "next/navigation";
+
+// ... existing imports ...
+
+function ActionsCell({ membership }: { membership: MembershipWithRelations }) {
+    const params = useParams();
+    const slug = params.slug as string;
     const { mutate: deleteMembership, isPending } = useDeleteMembership();
     const [open, setOpen] = useState(false);
 
@@ -118,55 +124,53 @@ function ActionsCell({ membership, slug }: { membership: MembershipWithRelations
     );
 }
 
-export function getMembershipsColumns(slug: string): ColumnDef<MembershipWithRelations>[] {
-    return [
-        {
-            accessorKey: "member",
-            header: "Miembro",
-            cell: ({ row }) => {
-                const member = row.original.member;
-                return member ? `${member.firstName} ${member.lastName}` : "N/A";
-            },
+export const columns: ColumnDef<MembershipWithRelations>[] = [
+    {
+        accessorKey: "member",
+        header: "Miembro",
+        cell: ({ row }) => {
+            const member = row.original.member;
+            return member ? `${member.firstName} ${member.lastName}` : "N/A";
         },
-        {
-            accessorKey: "plan",
-            header: "Plan",
-            cell: ({ row }) => {
-                const plan = row.original.plan;
-                return plan?.name || "N/A";
-            },
+    },
+    {
+        accessorKey: "plan",
+        header: "Plan",
+        cell: ({ row }) => {
+            const plan = row.original.plan;
+            return plan?.name || "N/A";
         },
-        {
-            accessorKey: "startDate",
-            header: "Inicio",
-            cell: ({ row }) => formatDate(row.original.startDate),
+    },
+    {
+        accessorKey: "startDate",
+        header: "Inicio",
+        cell: ({ row }) => formatDate(row.original.startDate),
+    },
+    {
+        accessorKey: "endDate",
+        header: "Vencimiento",
+        cell: ({ row }) => formatDate(row.original.endDate),
+    },
+    {
+        accessorKey: "pricePaid",
+        header: "Precio",
+        cell: ({ row }) => formatCurrency(row.original.pricePaid),
+    },
+    {
+        accessorKey: "status",
+        header: "Estado",
+        cell: ({ row }) => {
+            const status = row.original.status;
+            return (
+                <Badge variant={statusVariants[status] || "outline"}>
+                    {statusLabels[status] || status}
+                </Badge>
+            );
         },
-        {
-            accessorKey: "endDate",
-            header: "Vencimiento",
-            cell: ({ row }) => formatDate(row.original.endDate),
-        },
-        {
-            accessorKey: "pricePaid",
-            header: "Precio",
-            cell: ({ row }) => formatCurrency(row.original.pricePaid),
-        },
-        {
-            accessorKey: "status",
-            header: "Estado",
-            cell: ({ row }) => {
-                const status = row.original.status;
-                return (
-                    <Badge variant={statusVariants[status] || "outline"}>
-                        {statusLabels[status] || status}
-                    </Badge>
-                );
-            },
-        },
-        {
-            id: "actions",
-            header: () => <div className="text-center">Acciones</div>,
-            cell: ({ row }) => <ActionsCell membership={row.original} slug={slug} />,
-        },
-    ];
-}
+    },
+    {
+        id: "actions",
+        header: () => <div className="text-center">Acciones</div>,
+        cell: ({ row }) => <ActionsCell membership={row.original} />,
+    },
+];

@@ -18,24 +18,24 @@ import { Plus } from "lucide-react";
 import Link from "next/link";
 import { useOrganizationsList } from "@/hooks/organizations/use-organizations";
 import { OrganizationsTable } from "./organizations-table";
+import { useQueryStates } from "nuqs";
+import { organizationParsers } from "@/lib/nuqs/search-params/organizationParsers";
 
 export default function OrganizationsViewPage() {
     const params = useParams();
-    const searchParams = useSearchParams();
     const slug = params.slug as string;
 
-    const page = Number(searchParams.get("page")) || 1;
-    const limit = Number(searchParams.get("limit")) || 10;
-    const search = searchParams.get("search") || undefined;
-    const sort = searchParams.get("sort") || undefined;
-    const status = searchParams.get("status") || undefined;
+    const [queryStates, setQueryStates] = useQueryStates(organizationParsers, {
+        shallow: true,
+        history: "push"
+    });
+
+    const { page, limit, ...restFilters } = queryStates;
 
     const { data: paginatedOrganizations, isLoading } = useOrganizationsList({
         page,
         limit,
-        search,
-        sort,
-        status,
+        ...restFilters,
     });
 
     const organizations = paginatedOrganizations?.records || [];
@@ -60,6 +60,13 @@ export default function OrganizationsViewPage() {
                 ]
             }
         ]
+    };
+
+    const handleFilterChange = (key: string, value: string | null) => {
+        setQueryStates({
+            [key]: value,
+            page: 1,
+        });
     };
 
     return (
@@ -97,10 +104,21 @@ export default function OrganizationsViewPage() {
                     </div>
 
                     <div className="flex flex-col sm:flex-row gap-2">
-                        {/* SearchInput necesita Suspense boundary, pero como toda la pagina 
-                            esta envuelta, funcionará bien. */}
-                        <SearchInput placeholder="Buscar por nombre, slug..." />
-                        <SmartFilters config={filtersConfig} />
+                        <SearchInput
+                            placeholder="Buscar por nombre, slug..."
+                            value={queryStates.search || ""}
+                            onChange={(value) => {
+                                setQueryStates({
+                                    search: value,
+                                    page: 1,
+                                });
+                            }}
+                        />
+                        <SmartFilters
+                            config={filtersConfig}
+                            activeValues={{ sort: queryStates.sort, status: queryStates.status }}
+                            onFilterChange={handleFilterChange}
+                        />
                     </div>
 
                     <Card className="flex-1 overflow-hidden flex flex-col min-h-0">
@@ -110,7 +128,13 @@ export default function OrganizationsViewPage() {
                             <>
                                 <OrganizationsTable organizations={organizations} />
                                 <div className="p-2 border-t bg-background">
-                                    <Pagination currentPage={page} totalPages={totalPages} />
+                                    <Pagination
+                                        currentPage={queryStates.page}
+                                        totalPages={totalPages}
+                                        onPageChange={(page) => setQueryStates({ page })}
+                                        onLimitChange={(limit) => setQueryStates({ limit, page: 1 })}
+                                        currentLimit={queryStates.limit}
+                                    />
                                 </div>
                             </>
                         )}

@@ -9,7 +9,6 @@ export interface MembersFilters {
   search?: string;
   sort?: string;
   status?: string
-  membershipStatus?: string
 }
 
 export interface IMembersRepository extends IBaseRepository<

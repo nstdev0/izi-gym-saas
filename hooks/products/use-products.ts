@@ -1,10 +1,12 @@
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
-import { ProductsService, ProductPaginationParams } from "@/lib/services/products.service";
+import { ProductsService } from "@/lib/services/products.service";
 import { productKeys } from "@/lib/react-query/query-keys";
 import { toast } from "sonner";
 import { CreateProductSchema, UpdateProductSchema } from "@/server/application/dtos/products.dto";
+import { PageableRequest } from "@/server/shared/common/pagination";
+import { ProductsFilters } from "@/server/domain/types/products";
 
-export const useProductsList = (params: ProductPaginationParams) => {
+export const useProductsList = (params: PageableRequest<ProductsFilters>) => {
     return useQuery({
         queryKey: productKeys.list(params),
         queryFn: () => ProductsService.getAll(params),

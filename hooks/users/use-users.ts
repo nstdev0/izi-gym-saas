@@ -1,10 +1,12 @@
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
-import { UsersService, UserPaginationParams } from "@/lib/services/users.service";
+import { UsersService } from "@/lib/services/users.service";
 import { userKeys } from "@/lib/react-query/query-keys";
 import { toast } from "sonner";
 import { CreateUserInput, UpdateUserInput } from "@/server/application/dtos/users.dto";
+import { PageableRequest } from "@/server/shared/common/pagination";
+import { UsersFilters } from "@/server/domain/types/users";
 
-export const useUsersList = (params: UserPaginationParams) => {
+export const useUsersList = (params: PageableRequest<UsersFilters>) => {
     return useQuery({
         queryKey: userKeys.list(params),
         queryFn: () => UsersService.getAll(params),

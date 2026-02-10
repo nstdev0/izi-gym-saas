@@ -137,7 +137,7 @@ export default function MemberForm({
             <CardTitle>Información Personal</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
               {/* ZONA AVATAR (Izquierda en desktop) */}
               <div className="md:col-span-3 flex flex-col items-center">
                 <Controller
@@ -208,7 +208,7 @@ export default function MemberForm({
                               <SelectContent>
                                 <SelectItem value="DNI">DNI</SelectItem>
                                 <SelectItem value="CE">CE</SelectItem>
-                                <SelectItem value="PASSPORT">Pas.</SelectItem>
+                                <SelectItem value="PASSPORT">Pasaporte</SelectItem>
                                 <SelectItem value="RUC">RUC</SelectItem>
                               </SelectContent>
                             </Select>
@@ -242,7 +242,7 @@ export default function MemberForm({
                     control={form.control}
                     render={({ field, fieldState }) => (
                       <Field data-invalid={fieldState.invalid}>
-                        <FieldLabel>Fecha Nacimiento</FieldLabel>
+                        <FieldLabel optional>Fecha Nacimiento</FieldLabel>
                         <Input
                           type="date"
                           max={new Date().toISOString().split("T")[0]}
@@ -263,7 +263,7 @@ export default function MemberForm({
                     control={form.control}
                     render={({ field, fieldState }) => (
                       <Field data-invalid={fieldState.invalid}>
-                        <FieldLabel>Email</FieldLabel>
+                        <FieldLabel optional>Email</FieldLabel>
                         <Input {...field} value={field.value ?? ""} aria-invalid={fieldState.invalid} placeholder="jon@example.com" />
                         {fieldState.invalid && fieldState.error && <FieldError errors={[fieldState.error]} />}
                       </Field>
@@ -274,7 +274,7 @@ export default function MemberForm({
                     control={form.control}
                     render={({ field, fieldState }) => (
                       <Field data-invalid={fieldState.invalid}>
-                        <FieldLabel>Celular</FieldLabel>
+                        <FieldLabel optional>Celular</FieldLabel>
                         <Input {...field} value={field.value ?? ""} aria-invalid={fieldState.invalid} placeholder="9..." maxLength={9} />
                         {fieldState.invalid && fieldState.error && <FieldError errors={[fieldState.error]} />}
                       </Field>
@@ -296,7 +296,7 @@ export default function MemberForm({
               control={form.control}
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel>Género</FieldLabel>
+                  <FieldLabel optional>Género</FieldLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <SelectTrigger aria-invalid={fieldState.invalid}>
                       <SelectValue placeholder="Selecciona" />
@@ -314,7 +314,7 @@ export default function MemberForm({
               control={form.control}
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel>Altura (cm)</FieldLabel>
+                  <FieldLabel optional>Altura (cm)</FieldLabel>
                   <Input
                     maxLength={3}
                     type="number"
@@ -332,7 +332,7 @@ export default function MemberForm({
               control={form.control}
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel>Peso (kg)</FieldLabel>
+                  <FieldLabel optional>Peso (kg)</FieldLabel>
                   <Input
                     {...field}
                     maxLength={5}

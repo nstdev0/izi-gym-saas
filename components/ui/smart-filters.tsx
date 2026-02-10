@@ -33,20 +33,26 @@ interface SmartFiltersProps<T> {
         [key: string]: any;
     };
     onFilterChange: (key: string, value: string | null) => void;
+    defaultSort?: string
 }
 
 export default function SmartFilters<T>({
     config,
     activeValues,
-    onFilterChange
+    onFilterChange,
+    defaultSort = "createdAt-desc"
 }: SmartFiltersProps<T>) {
     const handleReset = () => {
         config.filters?.forEach(f => onFilterChange(f.key, null));
-        onFilterChange("sort", null);
+        onFilterChange("sort", defaultSort);
     };
 
     const hasActiveFilters = Object.entries(activeValues).some(
-        ([key, val]) => val !== null && val !== undefined && val !== "all" && val !== "createdAt-desc"
+        ([key, val]) => {
+            if (val === null || val === undefined || val === "" || val === "all") return false;
+            if (key === "sort" && val === defaultSort) return false;
+            return true;
+        }
     );
 
     return (

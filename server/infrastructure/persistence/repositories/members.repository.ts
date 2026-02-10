@@ -22,7 +22,6 @@ export class MembersRepository
   >
   implements IMembersRepository {
 
-  // Override findAll to include active membership with plan
   async findAll(
     request: PageableRequest<MembersFilters> = { page: 1, limit: 10 },
   ): Promise<PageableResponse<Member>> {
@@ -121,16 +120,14 @@ export class MembersRepository
       }
     }
 
-    if (filters.membershipStatus) {
-      const statusInput = filters.membershipStatus.toLowerCase();
+    if (filters.status && filters.status !== "all") {
+      const statusInput = filters.status.toLowerCase();
       const isValidStatus = (ALLOWED_STATUS as readonly string[]).includes(statusInput);
 
       if (isValidStatus) {
         if (statusInput === "active") {
-          // Member IS active if they have AT LEAST ONE active membership
           conditions.push({ memberships: { some: { status: "ACTIVE" } } });
         } else {
-          // Member is INACTIVE if they have NO active memberships
           conditions.push({
             memberships: {
               none: {

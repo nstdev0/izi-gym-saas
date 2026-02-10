@@ -47,11 +47,16 @@ const ProductActions = ({ product }: { product: Product }) => {
 
     return (
         <div className="flex justify-end gap-2">
-            <Link href={`/${slug}/admin/products/${product.id}/edit`}>
+            <Link href={`/${slug}/admin/products/${product.id}`}>
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                    <Eye className="w-4 h-4" />
+                </Button>
+            </Link>
+            {/* <Link href={`/${slug}/admin/products/${product.id}/edit`}>
                 <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                     <Edit className="w-4 h-4" />
                 </Button>
-            </Link>
+            </Link> */}
 
             <AlertDialog open={open} onOpenChange={setOpen}>
                 <AlertDialogTrigger asChild>

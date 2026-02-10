@@ -1,19 +1,22 @@
 import { createContext } from "@/server/lib/api-handler";
 import { PageableRequest } from "@/server/shared/common/pagination";
 import { ProductsFilters } from "@/server/application/repositories/products.repository.interface";
+import { parsePagination } from "@/server/shared/utils/pagination-parser";
+import { createProductSchema } from "@/server/application/dtos/products.dto";
 
 export const GET = createContext(
   (container) => container.getAllProductsController,
   async (req): Promise<PageableRequest<ProductsFilters>> => {
-    const { searchParams } = req.nextUrl;
+    const { page, limit } = parsePagination(req);
+    const { search, sort, type, status } = Object.fromEntries(req.nextUrl.searchParams.entries());
     return {
-      page: Number(searchParams.get("page")) || 1,
-      limit: Number(searchParams.get("limit")) || 10,
+      page,
+      limit,
       filters: {
-        search: searchParams.get("search") || undefined,
-        sort: searchParams.get("sort") || undefined,
-        type: searchParams.get("type") || undefined,
-        status: searchParams.get("status") || undefined,
+        search: search || undefined,
+        sort: sort || undefined,
+        type: type || undefined,
+        status: status || undefined,
       },
     };
   },
@@ -21,5 +24,8 @@ export const GET = createContext(
 
 export const POST = createContext(
   (container) => container.createProductController,
-  async (req) => await req.json(),
+  async (req) => {
+    const body = await req.json();
+    return createProductSchema.parse(body);
+  },
 );

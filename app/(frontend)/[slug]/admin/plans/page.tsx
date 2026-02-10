@@ -27,8 +27,24 @@ export default async function PlansPage({ searchParams }: PageProps) {
     };
 
     await queryClient.prefetchQuery({
-        queryKey: planKeys.list(filters),
-        queryFn: () => PlansService.getAll(filters),
+        queryKey: planKeys.list({
+            page,
+            limit,
+            filters: {
+                search: filters.search ?? undefined,
+                sort: filters.sort ?? undefined,
+                status: filters.status ?? undefined,
+            }
+        }),
+        queryFn: () => PlansService.getAll({
+            page,
+            limit,
+            filters: {
+                search: filters.search ?? undefined,
+                sort: filters.sort ?? undefined,
+                status: filters.status ?? undefined,
+            }
+        }),
     });
 
     return (

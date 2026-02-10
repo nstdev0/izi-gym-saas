@@ -12,7 +12,11 @@ interface PageProps {
 export default async function MembersPage({ searchParams }: PageProps) {
   const queryClient = makeQueryClient();
 
-  const filters = await membersSearchParamsCache.parse(searchParams);
+  const { page, limit, search, sort, status } = await membersSearchParamsCache.parse(searchParams);
+
+  const filters = {
+    page, limit, filters: { search, sort, status }
+  }
 
   await queryClient.prefetchQuery({
     queryKey: memberKeys.list(filters),

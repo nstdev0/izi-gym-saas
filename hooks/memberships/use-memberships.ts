@@ -1,10 +1,12 @@
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
-import { MembershipsService, MembershipPaginationParams } from "@/lib/services/memberships.service";
+import { MembershipsService } from "@/lib/services/memberships.service";
 import { membershipKeys } from "@/lib/react-query/query-keys";
 import { toast } from "sonner";
 import { CreateMembershipInput, UpdateMembershipInput } from "@/server/application/dtos/memberships.dto";
+import { PageableRequest } from "@/server/shared/common/pagination";
+import { MembershipsFilters } from "@/server/application/repositories/memberships.repository.interface";
 
-export const useMembershipsList = (params: MembershipPaginationParams) => {
+export const useMembershipsList = (params: PageableRequest<MembershipsFilters>) => {
     return useQuery({
         queryKey: membershipKeys.list(params),
         queryFn: () => MembershipsService.getAll(params),

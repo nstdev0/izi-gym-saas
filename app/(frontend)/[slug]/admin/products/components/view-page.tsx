@@ -2,45 +2,70 @@
 
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
 import { Card } from "@/components/ui/card";
-import { Suspense } from "react";
+import { Suspense, useState } from "react";
 import { Product, ProductType } from "@/server/domain/entities/Product";
 import { SearchInput } from "@/components/ui/search-input";
 import { Pagination } from "@/components/ui/pagination";
 import { FilterConfiguration } from "@/components/ui/smart-filters";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams } from "next/navigation";
 import SmartFilters from "@/components/ui/smart-filters";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, ChevronDown } from "lucide-react";
 import Link from "next/link";
 import { useProductsList } from "@/hooks/products/use-products";
 import Loading from "../loading";
-import { ProductsTable } from "./products-table";
+import { useQueryStates } from "nuqs";
+import { productsParsers } from "@/lib/nuqs/search-params/products";
+import {
+    getCoreRowModel,
+    useReactTable,
+    flexRender,
+    VisibilityState
+} from "@tanstack/react-table";
+import { columns } from "./products-columns";
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
+import {
+    DropdownMenu,
+    DropdownMenuCheckboxItem,
+    DropdownMenuContent,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
 
 export default function ProductsViewPage() {
     const params = useParams();
-    const searchParams = useSearchParams();
     const slug = params.slug as string;
 
-    const page = Number(searchParams.get("page")) || 1;
-    const limit = Number(searchParams.get("limit")) || 10;
-    const search = searchParams.get("search") || undefined;
-    const sort = searchParams.get("sort") || undefined;
-    const type = searchParams.get("type") || undefined;
-    const status = searchParams.get("status") || undefined;
+    const [queryStates, setQueryStates] = useQueryStates(productsParsers, {
+        shallow: true,
+        history: "push"
+    });
 
-    const { data: paginatedProducts, isLoading } = useProductsList({
+    const { page, limit, ...restFilters } = queryStates;
+
+    const { data: paginatedProducts, isLoading, isFetching } = useProductsList({
         page,
         limit,
-        search,
-        sort,
-        type,
-        status,
+        filters: {
+            search: restFilters.search ?? undefined,
+            sort: restFilters.sort ?? undefined,
+            type: restFilters.type ?? undefined,
+            status: restFilters.status ?? undefined,
+        }
     });
 
     const products = paginatedProducts?.records || [];
     const totalPages = paginatedProducts?.totalPages || 0;
     const totalRecords = paginatedProducts?.totalRecords || 0;
+    const currentRecordsCount = products.length;
 
     const filtersConfig: FilterConfiguration<Product> = {
         sort: [
@@ -74,10 +99,38 @@ export default function ProductsViewPage() {
         ]
     };
 
+    const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+
+    const table = useReactTable({
+        data: products,
+        columns,
+        getCoreRowModel: getCoreRowModel(),
+        onColumnVisibilityChange: setColumnVisibility,
+        manualPagination: true,
+        manualSorting: true,
+        manualFiltering: true,
+        rowCount: totalRecords,
+        state: {
+            columnVisibility,
+            sorting: queryStates.sort ? [{
+                id: queryStates.sort.split("-")[0],
+                desc: queryStates.sort.endsWith("desc"),
+            }] : [],
+            pagination: {
+                pageIndex: page - 1,
+                pageSize: limit,
+            }
+        },
+    });
+
+    const handleFilterChange = (key: string, value: string | null) => {
+        setQueryStates({ [key]: value, page: 1 });
+    };
+
     return (
         <Suspense fallback={<Loading />}>
             <DashboardLayout
-                breadcrumbs={[{ label: "Dashboard", href: `/${slug}/admin/dashboard` }, { label: "Productos" }]}
+                breadcrumbs={[{ label: "Admin", href: `/${slug}/admin/dashboard` }, { label: "Productos" }]}
             >
                 <PageHeader
                     title="Gestión de Productos"
@@ -95,7 +148,7 @@ export default function ProductsViewPage() {
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         {[
                             { label: "Total Productos", value: totalRecords.toString() },
-                            { label: "En esta página", value: products.length.toString() },
+                            { label: "En esta página", value: currentRecordsCount.toString() },
                             // { label: "Bajo Stock", value: ??? }
                         ].map((stat, index) => (
                             <Card key={index} className="p-3">
@@ -110,20 +163,116 @@ export default function ProductsViewPage() {
                     </div>
 
                     <div className="flex flex-col sm:flex-row gap-2">
-                        {/* SearchInput necesita Suspense boundary, pero como toda la pagina 
-                            esta envuelta, funcionará bien. */}
-                        <SearchInput placeholder="Buscar por nombre, SKU..." />
-                        <SmartFilters config={filtersConfig} />
+                        <SearchInput
+                            placeholder="Buscar por nombre, SKU..."
+                            value={queryStates.search || ""}
+                            onChange={(value) => setQueryStates({ search: value, page: 1 })}
+                        />
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="outline">
+                                    Columnas <ChevronDown className="ml-2 h-4 w-4" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                {table
+                                    .getAllColumns()
+                                    .filter((column) => column.getCanHide())
+                                    .map((column) => {
+                                        return (
+                                            <DropdownMenuCheckboxItem
+                                                key={column.id}
+                                                className="capitalize"
+                                                checked={column.getIsVisible()}
+                                                onCheckedChange={(value) =>
+                                                    column.toggleVisibility(!!value)
+                                                }
+                                            >
+                                                {column.columnDef.header as string || column.id}
+                                            </DropdownMenuCheckboxItem>
+                                        );
+                                    })}
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                        <SmartFilters
+                            config={filtersConfig}
+                            activeValues={{
+                                sort: queryStates.sort,
+                                type: queryStates.type,
+                                status: queryStates.status
+                            }}
+                            onFilterChange={handleFilterChange}
+                        />
                     </div>
 
-                    <Card className="flex-1 overflow-hidden flex flex-col min-h-0">
+                    <Card className="flex-1 overflow-hidden flex flex-col min-h-0 relative">
                         {isLoading ? (
                             <div className="p-4 flex justify-center items-center h-full">Cargando...</div>
                         ) : (
                             <>
-                                <ProductsTable products={products} />
+                                <div className={cn("flex-1 overflow-auto transition-opacity duration-200", isFetching ? "opacity-50 pointer-events-none" : "opacity-100")}>
+                                    <Table>
+                                        <TableHeader className="sticky top-0 z-10 bg-secondary/90 backdrop-blur-sm">
+                                            {table.getHeaderGroups().map((headerGroup) => (
+                                                <TableRow
+                                                    key={headerGroup.id}
+                                                    className="border-b border-border hover:bg-transparent"
+                                                >
+                                                    {headerGroup.headers.map((header) => (
+                                                        <TableHead
+                                                            key={header.id}
+                                                            className="px-4 py-3 font-semibold text-foreground uppercase text-xs"
+                                                        >
+                                                            {header.isPlaceholder
+                                                                ? null
+                                                                : flexRender(
+                                                                    header.column.columnDef.header,
+                                                                    header.getContext()
+                                                                )}
+                                                        </TableHead>
+                                                    ))}
+                                                </TableRow>
+                                            ))}
+                                        </TableHeader>
+                                        <TableBody>
+                                            {table.getRowModel().rows?.length ? (
+                                                table.getRowModel().rows.map((row) => (
+                                                    <TableRow
+                                                        key={row.id}
+                                                        data-state={row.getIsSelected() && "selected"}
+                                                        className="hover:bg-secondary/30 transition-colors border-b border-border"
+                                                    >
+                                                        {row.getVisibleCells().map((cell) => (
+                                                            <TableCell key={cell.id} className="py-3 px-4">
+                                                                {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                                            </TableCell>
+                                                        ))}
+                                                    </TableRow>
+                                                ))
+                                            ) : (
+                                                <TableRow>
+                                                    <TableCell colSpan={columns.length} className="h-24 text-center">
+                                                        No se encontraron productos.
+                                                    </TableCell>
+                                                </TableRow>
+                                            )}
+                                        </TableBody>
+                                    </Table>
+                                </div>
+
+                                {isFetching && (
+                                    <div className="absolute inset-0 flex items-center justify-center z-10">
+                                    </div>
+                                )}
+
                                 <div className="p-2 border-t bg-background">
-                                    <Pagination currentPage={page} totalPages={totalPages} />
+                                    <Pagination
+                                        currentPage={queryStates.page}
+                                        totalPages={totalPages}
+                                        onPageChange={(page) => setQueryStates({ page })}
+                                        onLimitChange={(limit) => setQueryStates({ limit, page: 1 })}
+                                        currentLimit={queryStates.limit}
+                                    />
                                 </div>
                             </>
                         )}

@@ -1,19 +1,21 @@
 import { UsersFilters } from "@/server/application/repositories/users.repository.interface";
 import { createContext } from "@/server/lib/api-handler";
 import { PageableRequest } from "@/server/shared/common/pagination";
+import { parsePagination } from "@/server/shared/utils/pagination-parser";
 
 export const GET = createContext(
   (container) => container.getAllUsersController,
   async (req): Promise<PageableRequest<UsersFilters>> => {
-    const { searchParams } = req.nextUrl;
+    const { page, limit } = parsePagination(req);
+    const { search, sort, role, status } = Object.fromEntries(req.nextUrl.searchParams.entries());
     return {
-      page: Number(searchParams.get("page")) || 1,
-      limit: Number(searchParams.get("limit")) || 10,
+      page,
+      limit,
       filters: {
-        search: searchParams.get("search") || undefined,
-        sort: searchParams.get("sort") || undefined,
-        role: searchParams.get("role") || undefined,
-        status: searchParams.get("status") || undefined
+        search: search || undefined,
+        sort: sort || undefined,
+        role: role || undefined,
+        status: status || undefined,
       },
     };
   },

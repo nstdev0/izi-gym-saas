@@ -1,28 +1,25 @@
 import { fetchClient } from "@/lib/api-client";
 import { CreateProductSchema, UpdateProductSchema } from "@/server/application/dtos/products.dto";
 import { Product } from "@/server/domain/entities/Product";
-import { PageableResponse } from "@/server/shared/common/pagination";
-
-export interface ProductPaginationParams {
-    page?: number;
-    limit?: number;
-    search?: string;
-    sort?: string;
-    status?: string;
-    type?: string;
-    [key: string]: any;
-}
+import { PageableRequest, PageableResponse } from "@/server/shared/common/pagination";
+import { ProductsFilters } from "@/server/domain/types/products";
 
 export class ProductsService {
     private static readonly BASE_PATH = "/api/products";
 
-    static async getAll(params: ProductPaginationParams = {}) {
+    static async getAll(params: PageableRequest<ProductsFilters>) {
         const searchParams = new URLSearchParams();
-        Object.entries(params).forEach(([key, value]) => {
-            if (value !== undefined && value !== null) {
-                searchParams.append(key, String(value));
-            }
-        });
+
+        if (params.page) searchParams.append("page", String(params.page));
+        if (params.limit) searchParams.append("limit", String(params.limit));
+
+        if (params.filters) {
+            Object.entries(params.filters).forEach(([key, value]) => {
+                if (value !== undefined && value !== null && value !== "") {
+                    searchParams.append(key, String(value));
+                }
+            });
+        }
 
         const queryString = searchParams.toString();
         const endpoint = queryString ? `${this.BASE_PATH}?${queryString}` : this.BASE_PATH;

@@ -3,8 +3,10 @@ import { OrganizationsService, OrganizationPaginationParams } from "@/lib/servic
 import { organizationKeys } from "@/lib/react-query/query-keys";
 import { toast } from "sonner";
 import { CreateOrganizationSchema, UpdateOrganizationSchema } from "@/server/application/dtos/organizations.dto";
+import { PageableRequest } from "@/server/shared/common/pagination";
+import { OrganizationsFilters } from "@/server/application/repositories/organizations.repository.interface";
 
-export const useOrganizationsList = (params: OrganizationPaginationParams) => {
+export const useOrganizationsList = (params: PageableRequest<OrganizationsFilters>) => {
     return useQuery({
         queryKey: organizationKeys.list(params),
         queryFn: () => OrganizationsService.getAll(params),

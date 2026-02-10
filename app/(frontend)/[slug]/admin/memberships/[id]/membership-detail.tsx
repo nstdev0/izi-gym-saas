@@ -3,6 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, DollarSign, User, FileText, Clock } from "lucide-react";
+import { formatCurrency, formatDate } from "@/lib/utils";
 
 interface MembershipDetailProps {
     membership: {
@@ -33,21 +34,6 @@ const statusLabels: Record<string, string> = {
     EXPIRED: "Vencida",
     CANCELLED: "Cancelada",
 };
-
-function formatDate(date: Date | string): string {
-    return new Date(date).toLocaleDateString("es-PE", {
-        day: "2-digit",
-        month: "long",
-        year: "numeric",
-    });
-}
-
-export function formatCurrency(amount: number): string {
-    return new Intl.NumberFormat("es-PE", {
-        style: "currency",
-        currency: "PEN",
-    }).format(amount);
-}
 
 function getDaysRemaining(endDate: Date | string): number {
     const end = new Date(endDate);

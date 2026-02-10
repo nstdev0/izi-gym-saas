@@ -1,10 +1,21 @@
+import { ControllerExecutor } from "@/server/lib/api-handler";
 import { GetProductByIdUseCase } from "@/server/application/use-cases/products/get-product-by-id.use-case";
+import { Product } from "@/server/domain/entities/Product";
+import { BadRequestError, NotFoundError } from "@/server/domain/errors/common";
 
-export class GetProductByIdController {
-  constructor(private readonly useCase: GetProductByIdUseCase) {}
+export class GetProductByIdController implements ControllerExecutor<void, Product | null> {
+  constructor(private readonly useCase: GetProductByIdUseCase) { }
 
-  async execute(id: string) {
+  async execute(_input: void, id?: string) {
+    if (!id) {
+      throw new BadRequestError("No se proporcionó un id");
+    }
     const product = await this.useCase.execute(id);
+
+    if (!product) {
+      throw new NotFoundError("Producto no encontrado");
+    }
+
     return product;
   }
 }

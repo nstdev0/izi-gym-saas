@@ -1,32 +1,18 @@
 import { createContext } from "@/server/lib/api-handler";
+import { UpdateProductSchema } from "@/server/application/dtos/products.dto";
 
 export const GET = createContext(
   (container) => container.getProductByIdController,
-  async (req, params) => {
-    const p = await params;
-    const id = Array.isArray(p?.id) ? p?.id[0] : p?.id;
-    if (!id) throw new Error("ID requerido");
-    return id;
-  },
 );
 
 export const PATCH = createContext(
   (container) => container.updateProductController,
-  async (req, params) => {
-    const p = await params;
-    const id = Array.isArray(p?.id) ? p?.id[0] : p?.id;
-    if (!id) throw new Error("ID requerido");
+  async (req) => {
     const body = await req.json();
-    return { id, data: body };
+    return UpdateProductSchema.parse(body);
   },
 );
 
 export const DELETE = createContext(
   (container) => container.deleteProductController,
-  async (req, params) => {
-    const p = await params;
-    const id = (Array.isArray(p?.id) ? p?.id[0] : p?.id) as string;
-    if (!id) throw new Error("ID requerido");
-    return id;
-  },
 );

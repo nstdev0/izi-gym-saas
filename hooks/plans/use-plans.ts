@@ -1,10 +1,12 @@
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
-import { PlansService, PlanPaginationParams } from "@/lib/services/plans.service";
+import { PlansService } from "@/lib/services/plans.service";
 import { planKeys } from "@/lib/react-query/query-keys";
 import { toast } from "sonner";
 import { CreatePlanInput, UpdatePlanInput } from "@/server/application/dtos/plans.dto";
+import { PageableRequest } from "@/server/shared/common/pagination";
+import { PlansFilters } from "@/server/domain/types/plans";
 
-export const usePlansList = (params: PlanPaginationParams) => {
+export const usePlansList = (params: PageableRequest<PlansFilters>) => {
     return useQuery({
         queryKey: planKeys.list(params),
         queryFn: () => PlansService.getAll(params),

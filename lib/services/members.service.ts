@@ -1,26 +1,25 @@
 import { fetchClient } from "@/lib/api-client";
 import { CreateMemberInput, UpdateMemberInput } from "@/server/application/dtos/members.dto";
+import { MembersFilters } from "@/server/application/repositories/members.repository.interface";
 import { Member } from "@/server/domain/entities/Member";
-import { PageableResponse } from "@/server/shared/common/pagination";
-
-export interface PaginationParams {
-    page?: number;
-    limit?: number;
-    search?: string;
-    sort?: string | null;
-    status?: string | null;
-}
+import { PageableRequest, PageableResponse } from "@/server/shared/common/pagination";
 
 export class MembersService {
     private static readonly BASE_PATH = "/api/members";
 
-    static async getAll(params: PaginationParams = {}) {
+    static async getAll(params: PageableRequest<MembersFilters>) {
         const searchParams = new URLSearchParams();
-        Object.entries(params).forEach(([key, value]) => {
-            if (value !== undefined && value !== null) {
-                searchParams.append(key, String(value));
-            }
-        });
+
+        if (params.page) searchParams.append("page", String(params.page));
+        if (params.limit) searchParams.append("limit", String(params.limit));
+
+        if (params.filters) {
+            Object.entries(params.filters).forEach(([key, value]) => {
+                if (value !== undefined && value !== null && value !== "") {
+                    searchParams.append(key, String(value));
+                }
+            });
+        }
 
         const queryString = searchParams.toString();
         const endpoint = queryString ? `${this.BASE_PATH}?${queryString}` : this.BASE_PATH;

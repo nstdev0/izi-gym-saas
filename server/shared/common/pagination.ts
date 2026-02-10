@@ -1,12 +1,12 @@
-export interface FindAllOptions<TWhere = unknown, TOrderBy = unknown> {
+export interface FindAllOptions {
   skip?: number;
   take?: number;
-  where?: TWhere;
-  orderBy?: TOrderBy;
+  where?: Record<string, unknown>;
+  orderBy?: Record<string, unknown>;
   include?: unknown;
 }
 
-export interface PageableRequest<TFilters = unknown> {
+export interface PageableRequest<TFilters> {
   page: number;
   limit: number;
   filters?: TFilters;

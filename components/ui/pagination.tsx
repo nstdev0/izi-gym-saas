@@ -31,7 +31,7 @@ export function Pagination({
       <div className="flex items-center gap-2">
         <span className="text-sm text-muted-foreground">Filas por página</span>
         <Select value={currentLimit.toString()} onValueChange={(val) => onLimitChange(Number(val))}>
-          <SelectTrigger className="h-8 w-[70px]">
+          <SelectTrigger className="h-8">
             <SelectValue />
           </SelectTrigger>
           <SelectContent side="top">

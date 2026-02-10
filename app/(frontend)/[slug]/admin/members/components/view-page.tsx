@@ -5,7 +5,15 @@ import { Card } from "@/components/ui/card";
 import { Suspense } from "react";
 import { SearchInput } from "@/components/ui/search-input";
 import { Pagination } from "@/components/ui/pagination";
-import { MembersTable } from "./members-table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { flexRender } from "@tanstack/react-table";
 import Loading from "../loading";
 import { FilterConfiguration } from "@/components/ui/smart-filters";
 import { useParams } from "next/navigation";
@@ -21,9 +29,6 @@ import { useQueryStates } from "nuqs";
 import {
   useReactTable,
   getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
   VisibilityState,
 } from "@tanstack/react-table";
 import { columns } from "./members-columns";
@@ -35,16 +40,24 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ChevronDown } from "lucide-react";
 import { useState } from "react";
+import { cn } from "@/lib/utils";
 
 export default function MembersViewPage() {
   const params = useParams();
   const slug = params.slug as string;
 
-  const [filters, setFilters] = useQueryStates(membersParsers, {
-    shallow: false
+  const [queryStates, setQueryStates] = useQueryStates(membersParsers, {
+    shallow: true,
+    history: "push"
   });
 
-  const { data: paginatedMembers, isLoading } = useMembersList(filters);
+  const { page, limit, ...restFilters } = queryStates;
+
+  const { data: paginatedMembers, isLoading, isFetching } = useMembersList({
+    page,
+    limit,
+    filters: restFilters
+  });
 
   const filtersConfig: FilterConfiguration<Member> = {
     sort: [
@@ -82,17 +95,26 @@ export default function MembersViewPage() {
     data: members,
     columns,
     getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
+    manualPagination: true,
+    manualSorting: true,
+    manualFiltering: true,
+    rowCount: totalRecords,
     state: {
       columnVisibility,
+      sorting: queryStates.sort ? [{
+        id: queryStates.sort.split('-')[0],
+        desc: queryStates.sort.split('-')[1] === 'desc'
+      }] : [],
+      pagination: {
+        pageIndex: queryStates.page - 1,
+        pageSize: queryStates.limit,
+      }
     },
   });
 
   const handleFilterChange = (key: string, value: string | null) => {
-    setFilters({
+    setQueryStates({
       [key]: value,
       page: 1,
     });
@@ -134,8 +156,8 @@ export default function MembersViewPage() {
           <div className="flex flex-col sm:flex-row gap-2">
             <SearchInput
               placeholder="Buscar por nombres, email..."
-              value={filters.search || ""}
-              onChange={(value) => setFilters({ search: value, page: 1 })}
+              value={queryStates.search || ""}
+              onChange={(value) => setQueryStates({ search: value, page: 1 })}
             />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -165,23 +187,79 @@ export default function MembersViewPage() {
             </DropdownMenu>
             <SmartFilters
               config={filtersConfig}
-              activeValues={{ sort: filters.sort, status: filters.status }}
+              activeValues={{ sort: queryStates.sort, status: queryStates.status }}
               onFilterChange={handleFilterChange}
             />
           </div>
-          <Card className="flex-1 overflow-hidden flex flex-col min-h-0">
+          <Card className="flex-1 overflow-hidden flex flex-col min-h-0 relative">
             {isLoading ? (
               <div className="p-4 flex justify-center items-center h-full">Cargando...</div>
             ) : (
               <>
-                <MembersTable table={table} />
+                <div className={cn("flex-1 overflow-auto transition-opacity duration-200", isFetching ? "opacity-50 pointer-events-none" : "opacity-100")}>
+                  <Table>
+                    <TableHeader className="sticky top-0 z-10 bg-secondary/90 backdrop-blur-sm">
+                      {table.getHeaderGroups().map((headerGroup) => (
+                        <TableRow
+                          key={headerGroup.id}
+                          className="border-b border-border hover:bg-transparent"
+                        >
+                          {headerGroup.headers.map((header) => {
+                            return (
+                              <TableHead
+                                key={header.id}
+                                className="px-4 py-3 font-semibold text-foreground uppercase text-xs"
+                              >
+                                {header.isPlaceholder
+                                  ? null
+                                  : flexRender(
+                                    header.column.columnDef.header,
+                                    header.getContext(),
+                                  )}
+                              </TableHead>
+                            );
+                          })}
+                        </TableRow>
+                      ))}
+                    </TableHeader>
+                    <TableBody>
+                      {table.getRowModel().rows?.length ? (
+                        table.getRowModel().rows.map((row) => (
+                          <TableRow
+                            key={row.id}
+                            data-state={row.getIsSelected() && "selected"}
+                            className="hover:bg-secondary/30 transition-colors border-b border-border"
+                          >
+                            {row.getVisibleCells().map((cell) => (
+                              <TableCell key={cell.id} className="px-4 py-3">
+                                {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                              </TableCell>
+                            ))}
+                          </TableRow>
+                        ))
+                      ) : (
+                        <TableRow>
+                          <TableCell colSpan={columns.length} className="h-24 text-center">
+                            No results.
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+
+                {isFetching && (
+                  <div className="absolute inset-0 flex items-center justify-center z-10">
+                  </div>
+                )}
+
                 <div className="p-2 border-t bg-background">
                   <Pagination
-                    currentPage={filters.page}
+                    currentPage={queryStates.page}
                     totalPages={totalPages}
-                    onPageChange={(page) => setFilters({ page })}
-                    onLimitChange={(limit) => setFilters({ limit, page: 1 })}
-                    currentLimit={filters.limit}
+                    onPageChange={(page) => setQueryStates({ page })}
+                    onLimitChange={(limit) => setQueryStates({ limit, page: 1 })}
+                    currentLimit={queryStates.limit}
                   />
                 </div>
               </>

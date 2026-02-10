@@ -1,27 +1,25 @@
 import { fetchClient } from "@/lib/api-client";
 import { CreateUserInput, UpdateUserInput } from "@/server/application/dtos/users.dto";
 import { User } from "@/server/domain/entities/User";
-import { PageableResponse } from "@/server/shared/common/pagination";
-
-export interface UserPaginationParams {
-    page?: number;
-    limit?: number;
-    search?: string;
-    sort?: string;
-    status?: string;
-    [key: string]: any;
-}
+import { PageableRequest, PageableResponse } from "@/server/shared/common/pagination";
+import { UsersFilters } from "@/server/domain/types/users";
 
 export class UsersService {
     private static readonly BASE_PATH = "/api/users";
 
-    static async getAll(params: UserPaginationParams = {}) {
+    static async getAll(params: PageableRequest<UsersFilters>) {
         const searchParams = new URLSearchParams();
-        Object.entries(params).forEach(([key, value]) => {
-            if (value !== undefined && value !== null) {
-                searchParams.append(key, String(value));
-            }
-        });
+
+        if (params.page) searchParams.append("page", String(params.page));
+        if (params.limit) searchParams.append("limit", String(params.limit));
+
+        if (params.filters) {
+            Object.entries(params.filters).forEach(([key, value]) => {
+                if (value !== undefined && value !== null && value !== "") {
+                    searchParams.append(key, String(value));
+                }
+            });
+        }
 
         const queryString = searchParams.toString();
         const endpoint = queryString ? `${this.BASE_PATH}?${queryString}` : this.BASE_PATH;

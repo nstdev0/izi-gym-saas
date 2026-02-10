@@ -20,6 +20,7 @@ import { useParams } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { useDeletePlan } from "@/hooks/plans/use-plans";
 import { useState } from "react";
+import { formatCurrency } from "@/lib/utils";
 
 const PlanNameCell = ({ plan }: { plan: Plan }) => {
     const params = useParams();
@@ -62,11 +63,11 @@ const PlanActions = ({ plan }: { plan: Plan }) => {
                     <Eye className="w-4 h-4" />
                 </Button>
             </Link>
-            <Link href={`/${slug}/admin/plans/${plan.id}/edit`}>
+            {/* <Link href={`/${slug}/admin/plans/${plan.id}/edit`}>
                 <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                     <Edit className="w-4 h-4" />
                 </Button>
-            </Link>
+            </Link> */}
             <AlertDialog open={open} onOpenChange={setOpen}>
                 <AlertDialogTrigger asChild>
                     <Button
@@ -120,7 +121,7 @@ export const columns: ColumnDef<Plan>[] = [
         header: "Precio",
         cell: ({ row }) => {
             const price = row.getValue("price") as number;
-            return <div className="font-medium">${price.toLocaleString("es-CO")}</div>;
+            return <div className="font-medium">${formatCurrency(price)}</div>;
         },
     },
     {
