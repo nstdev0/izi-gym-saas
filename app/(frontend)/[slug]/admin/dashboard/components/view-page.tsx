@@ -7,8 +7,6 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
     Users,
-    TrendingUp,
-    TrendingDown,
     CreditCard,
     DollarSign,
     Calendar as CalendarIcon,
@@ -30,11 +28,11 @@ import {
     PopoverTrigger,
 } from "@/components/ui/popover";
 import { DateRange } from "react-day-picker";
-import { format, subDays, startOfMonth, endOfMonth, subMonths, startOfWeek, endOfWeek, startOfYear, endOfYear, subYears } from "date-fns";
+import { format, subDays, startOfMonth, endOfMonth, subMonths, startOfWeek, endOfWeek, subYears, differenceInDays, startOfYear, endOfYear, addMonths, setMonth } from "date-fns";
 import { es } from "date-fns/locale";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import { useDashboardMetrics, useHistoricStartDate } from "@/hooks/dashboard/use-dashboard";
+import { useDashboardMetrics } from "@/hooks/dashboard/use-dashboard";
 import StatCard from "./stat-card";
 import getPlanBadgeVariant from "../utils/get-plan-badge-variant";
 import { makeQueryClient } from "@/lib/react-query/client-config";
@@ -68,6 +66,14 @@ export default function DashboardViewPage() {
     const loading = isLoading;
     const [selectedPreset, setSelectedPreset] = useState<string | undefined>("thisMonth")
 
+    const getAvailableGroupings = (from: Date, to: Date) => {
+        const days = differenceInDays(to, from);
+        const options: ('day' | 'month' | 'year')[] = ['day'];
+        if (days >= 60) options.push('month');
+        if (days >= 365) options.push('year');
+        return options;
+    };
+
     const handlePresetSelect = async (preset: string) => {
         const now = new Date();
         let newDate: DateRange | undefined;
@@ -97,20 +103,58 @@ export default function DashboardViewPage() {
                 const lastMonth = subMonths(now, 1);
                 newDate = { from: startOfMonth(lastMonth), to: endOfMonth(lastMonth) };
                 break;
+            case "thisSemester":
+                // Obtenemos el mes actual (0-11)
+                const currentMonth = now.getMonth();
+
+                if (currentMonth < 6) {
+                    // Estamos en el primer semestre (Ene - Jun)
+                    newDate = {
+                        from: startOfYear(now),
+                        to: endOfMonth(setMonth(now, 5)) // Junio es el mes 5
+                    };
+                } else {
+                    // Estamos en el segundo semestre (Jul - Dic)
+                    newDate = {
+                        from: startOfMonth(setMonth(now, 6)), // Julio es el mes 6
+                        to: endOfYear(now)
+                    };
+                }
+                setGrouping("month")
+                break;
+
+            case "lastSemester":
+                const currentMonthLast = now.getMonth();
+
+                if (currentMonthLast < 6) {
+                    // Si estamos en el S1 (Ene-Jun), el anterior fue el S2 del AÑO PASADO (Jul-Dic)
+                    const lastYear = subYears(now, 1);
+                    newDate = {
+                        from: startOfMonth(setMonth(lastYear, 6)), // Julio del año pasado
+                        to: endOfYear(lastYear) // Diciembre del año pasado
+                    };
+                } else {
+                    // Si estamos en el S2 (Jul-Dic), el anterior fue el S1 de ESTE AÑO (Ene-Jun)
+                    newDate = {
+                        from: startOfYear(now),
+                        to: endOfMonth(setMonth(now, 5)) // Junio de este año
+                    };
+                }
+                setGrouping("month")
+                break;
             case "allTime":
                 try {
-                    // ✅ AQUÍ ESTÁ LA MAGIA:
-                    // ensureQueryData busca en caché primero. Si no existe, hace el fetch.
                     const historicDate = await queryClient.ensureQueryData({
                         queryKey: historicStartDateKeys.historicStartDate(),
                         queryFn: () => DashboardService.getHistoricStartDate(),
-                        staleTime: Infinity, // Este dato nunca caduca (la fecha de creación no cambia)
+                        staleTime: Infinity,
                     });
+
+                    setGrouping("month")
 
                     if (historicDate) {
                         newDate = { from: new Date(historicDate), to: now };
                     } else {
-                        // Fallback por si la API falla o devuelve null
                         newDate = { from: subYears(now, 5), to: now };
                     }
                 } catch (error) {
@@ -120,35 +164,29 @@ export default function DashboardViewPage() {
                 break;
         }
 
-        if (newDate) {
+        if (newDate && newDate.from && newDate.to) {
             setDate(newDate);
             setSelectedPreset(preset);
+
+            const available = getAvailableGroupings(newDate.from, newDate.to);
+            if (!available.includes(grouping)) {
+                setGrouping('day');
+            }
         }
     };
 
     const handleGroupingChange = (value: 'day' | 'month' | 'year') => {
         setGrouping(value);
-        const now = new Date();
-        if (value === 'day') {
-            setDate({ from: startOfMonth(now), to: endOfMonth(now) });
-            setSelectedPreset("thisMonth");
-        } else if (value === 'month') {
-            setDate({ from: startOfYear(now), to: endOfYear(now) });
-            setSelectedPreset(undefined);
-        } else if (value === 'year') {
-            setDate({ from: subYears(now, 9), to: endOfYear(now) });
-            setSelectedPreset(undefined);
-        }
     };
 
     return (
         <DashboardLayout
-            breadcrumbs={[{ label: "Admin" }, { label: "Dashboard" }]}
+            breadcrumbs={[{ label: "Admin" }, { label: "Panel" }]}
         >
             <div className="flex flex-col space-y-4 sm:space-y-6 overflow-auto pb-4 scrollbar-hide">
                 <PageHeader
-                    title="Dashboard"
-                    description="Resumen general de tu gimnasio"
+                    title="Panel"
+                    description={`Resumen general de ${slug}`}
                     actions={
                         <Popover>
                             <PopoverTrigger asChild>
@@ -187,6 +225,12 @@ export default function DashboardViewPage() {
                                         onSelect={(range) => {
                                             setDate(range);
                                             setSelectedPreset(undefined);
+                                            if (range?.from && range?.to) {
+                                                const available = getAvailableGroupings(range.from, range.to);
+                                                if (!available.includes(grouping)) {
+                                                    setGrouping('day');
+                                                }
+                                            }
                                         }}
                                     />
                                     <div className="p-3 border-t sm:border-t-0 sm:border-l space-y-1 min-w-[140px]">
@@ -211,6 +255,12 @@ export default function DashboardViewPage() {
                                             </Button>
                                             <Button variant={selectedPreset === "lastMonth" ? "secondary" : "ghost"} className={cn("w-full justify-start text-xs font-normal", selectedPreset === "lastMonth" && "font-semibold")} onClick={() => handlePresetSelect("lastMonth")}>
                                                 Mes pasado
+                                            </Button>
+                                            <Button variant={selectedPreset === "thisSemester" ? "secondary" : "ghost"} className={cn("w-full justify-start text-xs font-normal", selectedPreset === "thisSemester" && "font-semibold")} onClick={() => handlePresetSelect("thisSemester")}>
+                                                Este semestre
+                                            </Button>
+                                            <Button variant={selectedPreset === "lastSemester" ? "secondary" : "ghost"} className={cn("w-full justify-start text-xs font-normal", selectedPreset === "lastSemester" && "font-semibold")} onClick={() => handlePresetSelect("lastSemester")}>
+                                                Semestre pasado
                                             </Button>
                                             <Button variant={selectedPreset === "allTime" ? "secondary" : "ghost"} className={cn("w-full justify-start text-xs font-normal", selectedPreset === "allTime" && "font-semibold")} onClick={() => handlePresetSelect("allTime")}>
                                                 Máximo histórico
@@ -292,8 +342,12 @@ export default function DashboardViewPage() {
                                 </SelectTrigger>
                                 <SelectContent align="end">
                                     <SelectItem value="day">Por Día</SelectItem>
-                                    <SelectItem value="month">Por Mes</SelectItem>
-                                    <SelectItem value="year">Por Año</SelectItem>
+                                    {date?.from && date?.to && differenceInDays(date.to, date.from) >= 60 && (
+                                        <SelectItem value="month">Por Mes</SelectItem>
+                                    )}
+                                    {date?.from && date?.to && differenceInDays(date.to, date.from) >= 365 && (
+                                        <SelectItem value="year">Por Año</SelectItem>
+                                    )}
                                 </SelectContent>
                             </Select>
                         </CardHeader>

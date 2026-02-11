@@ -18,9 +18,9 @@ export class PrismaDashboardRepository implements IDashboardRepository {
             select: { settings: true }
         });
 
-        // Default to PEN if not set
+        // Default to USD if not set
         const settings = (organization?.settings as any) || {};
-        const currency = settings.general?.currency || "PEN";
+        const currency = settings.general?.currency || "USD";
 
         // --- 1. REVENUE (Ingresos) ---
         // Logic: Sum pricePaid of Membership. Filter: organizationId AND createdAt in range.
