@@ -15,6 +15,9 @@ import {
     ArrowRight,
     Dumbbell,
     Loader2,
+    ShoppingBag,
+    ShoppingBasket,
+    CreditCardIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -196,6 +199,7 @@ export default function DashboardViewPage() {
                                     size="sm"
                                     className={cn(
                                         "w-auto justify-start text-left font-normal",
+                                        "fixed top-16 sm:top-30 right-6 z-50 shadow-2xl bg-background",
                                         !date && "text-muted-foreground"
                                     )}
                                 >
@@ -286,19 +290,19 @@ export default function DashboardViewPage() {
                             <Link href={`/${slug}/admin/members`}>
                                 <Button variant="outline" className="w-full h-auto py-4 flex flex-col gap-2 hover:border-primary hover:text-primary transition-colors">
                                     <Users className="h-5 w-5" />
-                                    <span className="text-xs sm:text-sm">Ver Miembros</span>
+                                    <span className="text-xs sm:text-sm">Registrar asistencia</span>
                                 </Button>
                             </Link>
                             <Link href={`/${slug}/admin/memberships`}>
                                 <Button variant="outline" className="w-full h-auto py-4 flex flex-col gap-2 hover:border-primary hover:text-primary transition-colors">
                                     <CreditCard className="h-5 w-5" />
-                                    <span className="text-xs sm:text-sm">Membresías</span>
+                                    <span className="text-xs sm:text-sm">Venta rápida</span>
                                 </Button>
                             </Link>
                             <Link href={`/${slug}/admin/products`}>
                                 <Button variant="outline" className="w-full h-auto py-4 flex flex-col gap-2 hover:border-primary hover:text-primary transition-colors">
                                     <Dumbbell className="h-5 w-5" />
-                                    <span className="text-xs sm:text-sm">Productos</span>
+                                    <span className="text-xs sm:text-sm">Renovar membresía</span>
                                 </Button>
                             </Link>
                         </div>
@@ -448,7 +452,7 @@ export default function DashboardViewPage() {
                                     })}
                                     {metrics?.salesByPlan.length === 0 && (
                                         <p className="text-sm text-muted-foreground text-center py-8">
-                                            No hay datos de planes.
+                                            No hay datos registrados para la fecha seleccionada.
                                         </p>
                                     )}
                                 </div>

@@ -24,6 +24,7 @@ model Organization {
   products           Product[]
   subscription       Subscription?
   users              User[]
+  attendances        Attendance[]
 }
 
 model OrganizationPlan {
@@ -74,26 +75,28 @@ model User {
 }
 
 model Member {
-  id             String       @id @default(cuid())
+  id             String    @id @default(cuid())
   firstName      String
   lastName       String
   email          String?
   phone          String?
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
   docNumber      String
-  birthDate      DateTime?    @db.Date
+  birthDate      DateTime? @db.Date
   docType        DocType
   gender         Gender?
   organizationId String
-  isActive       Boolean      @default(true)
+  isActive       Boolean   @default(true)
   height         Float?
   image          String?
   imc            Float?
   weight         Float?
   deletedAt      DateTime?
-  organization   Organization @relation(fields: [organizationId], references: [id])
-  memberships    Membership[]
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+  memberships  Membership[]
+  attendances  Attendance[]
 
   @@unique([docType, docNumber, organizationId])
   @@unique([email, organizationId])
@@ -166,6 +169,21 @@ model SystemConfig {
   globalAnnouncement String?
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
+}
+
+model Attendance {
+  id             String       @id @default(cuid())
+  date           DateTime     @default(now())
+  memberId       String
+  organizationId String
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  member         Member       @relation(fields: [memberId], references: [id])
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  @@index([organizationId])
+  @@index([memberId])
+  @@index([date])
 }
 
 enum SubscriptionStatus {

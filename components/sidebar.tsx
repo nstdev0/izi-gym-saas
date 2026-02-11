@@ -79,6 +79,14 @@ export function Sidebar({
         pathname.startsWith(`/${safeSlug}/admin/dashboard/`),
     },
     {
+      label: "Asistencias",
+      icon: Users,
+      href: `/${safeSlug}/admin/attendance`,
+      active:
+        pathname === `/${safeSlug}/admin/attendance` ||
+        pathname.startsWith(`/${safeSlug}/admin/attendance/`),
+    },
+    {
       label: "Miembros",
       icon: Users,
       href: `/${safeSlug}/admin/members`,
