@@ -85,11 +85,29 @@ export class MembersRepository
     return (await this.model.update({
       where: { id },
       data: {
-        isActive: false,
+        status: "INACTIVE",
         deletedAt: new Date(),
-        // Importante: Liberar constraints únicos para permitir re-registro
         email: member.email ? `${member.email}_deleted_${Date.now()}` : null,
         docNumber: `${member.docNumber}_deleted_${Date.now()}`,
+        oldEmail: member.email,
+        oldDocNumber: member.docNumber,
+      },
+    })) as unknown as Member;
+  }
+
+  async restore(id: string): Promise<Member> {
+    const member = await this.model.findUnique({ where: { id } });
+    if (!member) throw new Error("Member not found");
+
+    return (await this.model.update({
+      where: { id },
+      data: {
+        status: "ACTIVE",
+        deletedAt: null,
+        email: member.oldEmail,
+        docNumber: member.oldDocNumber,
+        oldEmail: null,
+        oldDocNumber: null,
       },
     })) as unknown as Member;
   }
@@ -99,7 +117,7 @@ export class MembersRepository
     filters: MembersFilters,
   ): Promise<[Prisma.MemberWhereInput, Prisma.MemberOrderByWithRelationInput]> {
     const ALLOWED_SORT_FIELDS = ["createdAt", "firstName", "lastName", "gender"] as const
-    const ALLOWED_STATUS = ["active", "inactive"]
+    const ALLOWED_STATUS = ["ACTIVE", "INACTIVE"]
 
     const conditions: Prisma.MemberWhereInput[] = []
 
@@ -122,11 +140,11 @@ export class MembersRepository
     }
 
     if (filters.status && filters.status !== "all") {
-      const statusInput = filters.status.toLowerCase();
+      const statusInput = filters.status.toUpperCase();
       const isValidStatus = (ALLOWED_STATUS as readonly string[]).includes(statusInput);
 
       if (isValidStatus) {
-        if (statusInput === "active") {
+        if (statusInput === "ACTIVE") {
           conditions.push({ memberships: { some: { status: "ACTIVE" } } });
         } else {
           conditions.push({

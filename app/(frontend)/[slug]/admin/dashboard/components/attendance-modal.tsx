@@ -14,6 +14,7 @@ import { Html5Qrcode } from "html5-qrcode";
 import { toast } from "sonner";
 import { AttendanceService } from "@/lib/services/attendance.service";
 import { useQueryClient } from "@tanstack/react-query";
+import { attendanceKeys, dashboardKeys } from "@/lib/react-query/query-keys";
 import { useMemberByQrCode } from "@/hooks/members/use-members";
 import { Badge } from "@/components/ui/badge";
 
@@ -137,8 +138,7 @@ function AttendanceForm({ onClose }: AttendanceFormProps) {
             });
 
             toast.success("Asistencia registrada correctamente");
-            queryClient.invalidateQueries({ queryKey: ["dashboard-metrics"] });
-            queryClient.invalidateQueries({ queryKey: ["attendances"] });
+            queryClient.invalidateQueries({ queryKey: attendanceKeys.lists() });
             onClose();
 
         } catch (error) {

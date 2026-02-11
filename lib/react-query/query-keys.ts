@@ -12,11 +12,15 @@ export const attendanceKeys = {
     all: ['attendance'] as const,
     lists: () => [...attendanceKeys.all, 'list'] as const,
     list: (filters: PageableRequest<AttendanceFilters>) => [...attendanceKeys.lists(), removeEmptyParams(filters)] as const,
+    details: () => [...attendanceKeys.all, 'detail'] as const,
+    detail: (id: string) => [...attendanceKeys.details(), id] as const,
 };
 
 export const dashboardKeys = {
     all: ['dashboard'] as const,
     metrics: (params: Record<string, unknown>) => [...dashboardKeys.all, 'metrics', removeEmptyParams(params)] as const,
+    lists: () => [...dashboardKeys.all, 'lists'] as const,
+    list: (filters: PageableRequest<AttendanceFilters>) => [...dashboardKeys.lists(), removeEmptyParams(filters)] as const,
 };
 
 export const historicStartDateKeys = {

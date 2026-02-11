@@ -1,5 +1,6 @@
 import { fetchClient } from "@/lib/api-client";
 import { AttendanceFilters, AttendanceWithMember } from "@/server/application/repositories/attendance.repository.interface";
+import { UpdateAttendanceInput } from "@/server/application/dtos/attendance.dto";
 import { PageableRequest, PageableResponse } from "@/server/shared/common/pagination";
 
 export interface RegisterAttendanceInput {
@@ -37,4 +38,22 @@ export class AttendanceService {
             body: JSON.stringify(data),
         });
     }
+
+    static async getById(id: string) {
+        return fetchClient<AttendanceWithMember>(`${this.BASE_PATH}/${id}`);
+    }
+
+    static async update(id: string, data: UpdateAttendanceInput) {
+        return fetchClient<AttendanceWithMember>(`${this.BASE_PATH}/${id}`, {
+            method: "PATCH",
+            body: JSON.stringify(data),
+        });
+    }
+
+    static async delete(id: string) {
+        return fetchClient<void>(`${this.BASE_PATH}/${id}`, {
+            method: "DELETE",
+        });
+    }
 }
+

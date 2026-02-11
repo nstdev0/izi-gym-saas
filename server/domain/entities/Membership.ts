@@ -13,14 +13,15 @@ export class Membership extends BaseEntity {
     organizationId: string,
     createdAt: Date,
     updatedAt: Date,
+    status: MembershipStatus,
     public startDate: Date,
     public endDate: Date,
-    public status: MembershipStatus,
     public pricePaid: number,
     public memberId: string,
     public planId: string,
+    public deletedAt?: Date | null,
   ) {
-    super(id, organizationId, createdAt, updatedAt);
+    super(id, organizationId, createdAt, updatedAt, status, deletedAt);
   }
 
   isActiveNow(): boolean {

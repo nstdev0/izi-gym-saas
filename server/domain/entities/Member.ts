@@ -1,4 +1,4 @@
-import { BaseEntity } from "./_base";
+import { BaseEntity, EntityStatus } from "./_base";
 import { Membership } from "./Membership";
 
 export enum Gender {
@@ -20,6 +20,8 @@ export class Member extends BaseEntity {
     organizationId: string,
     createdAt: Date,
     updatedAt: Date,
+    status: EntityStatus,
+    deletedAt: Date | null,
     public firstName: string,
     public lastName: string,
     public docType: DocType,
@@ -35,8 +37,10 @@ export class Member extends BaseEntity {
     public imc?: number | null,
     public image?: string | null,
     public memberships?: Membership[],
+    public oldEmail?: string | null,
+    public oldDocNumber?: string | null,
   ) {
-    super(id, organizationId, createdAt, updatedAt);
+    super(id, organizationId, createdAt, updatedAt, status, deletedAt);
   }
 
   get fullName(): string {

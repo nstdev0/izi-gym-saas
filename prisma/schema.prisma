@@ -75,27 +75,31 @@ model User {
 }
 
 model Member {
-  id             String    @id @default(cuid())
-  qr             String    @unique
+  id             String       @id @default(cuid())
+  qr             String       @unique
   firstName      String
   lastName       String
   email          String?
   phone          String?
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
   docNumber      String
-  birthDate      DateTime? @db.Date
+  birthDate      DateTime?    @db.Date
   docType        DocType
   gender         Gender?
   organizationId String
-  isActive       Boolean   @default(true)
+  status         EntityStatus @default(ACTIVE)
   height         Float?
   image          String?
   imc            Float?
   weight         Float?
 
+  oldEmail     String?
+  oldDocNumber String?
+
   attendances Attendance[]
 
+  isActive  Boolean   @default(true)
   deletedAt DateTime?
 
   organization Organization @relation(fields: [organizationId], references: [id])
@@ -114,12 +118,17 @@ model Plan {
   price          Decimal      @db.Decimal(10, 2)
   durationDays   Int
   organizationId String
-  isActive       Boolean      @default(true)
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
-  image          String?
-  memberships    Membership[]
-  organization   Organization @relation("GymPlans", fields: [organizationId], references: [id])
+  status         EntityStatus @default(ACTIVE)
+
+  image        String?
+  memberships  Membership[]
+  organization Organization @relation("GymPlans", fields: [organizationId], references: [id])
+
+  isActive  Boolean   @default(true)
+  deletedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([organizationId])
 }
@@ -155,12 +164,16 @@ model Product {
   stock          Int          @default(0)
   minStock       Int          @default(5)
   type           ProductType
-  isActive       Boolean      @default(true)
+  status         EntityStatus @default(ACTIVE)
   organizationId String
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
   images         String[]
   organization   Organization @relation(fields: [organizationId], references: [id])
+
+  isActive  Boolean   @default(true)
+  deletedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([sku, organizationId])
   @@index([organizationId])
@@ -180,10 +193,14 @@ model Attendance {
   method         AttendanceMethod @default(QR)
   memberId       String
   organizationId String
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
   member         Member           @relation(fields: [memberId], references: [id])
   organization   Organization     @relation(fields: [organizationId], references: [id])
+
+  isActive  Boolean   @default(true)
+  deletedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([organizationId])
   @@index([memberId])
@@ -236,4 +253,9 @@ enum MembershipStatus {
 enum AttendanceMethod {
   QR
   MANUAL
+}
+
+enum EntityStatus {
+  ACTIVE
+  INACTIVE
 }

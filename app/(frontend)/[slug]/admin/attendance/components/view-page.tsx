@@ -39,7 +39,7 @@ import { ChevronDown, Plus } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import Link from "next/link";
+import { AttendanceModal } from "../../dashboard/components/attendance-modal";
 
 export default function AttendanceViewPage() {
     const params = useParams();
@@ -116,12 +116,12 @@ export default function AttendanceViewPage() {
                     title="Registro de Asistencias"
                     description="Historial de check-ins de todos los miembros"
                     actions={
-                        <Link href={`/${slug}/admin/attendance/new`}>
+                        <AttendanceModal>
                             <Button size="sm" className="gap-2">
                                 <Plus className="w-4 h-4" />
                                 Agregar Asistencia
                             </Button>
-                        </Link>
+                        </AttendanceModal>
                     }
                 />
                 <div className="flex flex-col h-full space-y-4 overflow-hidden">

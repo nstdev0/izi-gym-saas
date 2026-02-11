@@ -1,4 +1,4 @@
-import { BaseEntity } from "./_base";
+import { BaseEntity, EntityStatus } from "./_base";
 
 export class User extends BaseEntity {
   constructor(
@@ -6,6 +6,8 @@ export class User extends BaseEntity {
     organizationId: string,
     createdAt: Date,
     updatedAt: Date,
+    status: EntityStatus,
+    deletedAt: Date | null,
     public firstName: string | null,
     public lastName: string | null,
     public email: string,
@@ -13,6 +15,6 @@ export class User extends BaseEntity {
     public isActive: boolean,
     public image: string | null,
   ) {
-    super(id, organizationId, createdAt, updatedAt);
+    super(id, organizationId, createdAt, updatedAt, status, deletedAt);
   }
 }

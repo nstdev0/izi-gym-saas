@@ -1,4 +1,4 @@
-import { BaseEntity } from "./_base";
+import { BaseEntity, EntityStatus } from "./_base";
 
 export class OrganizationPlan extends BaseEntity {
     constructor(
@@ -6,11 +6,13 @@ export class OrganizationPlan extends BaseEntity {
         organizationId: string, // actually this might be system level, so maybe empty or null? In prisma it's global.
         createdAt: Date,
         updatedAt: Date,
+        status: EntityStatus,
+        deletedAt: Date | null,
         public name: string,
         public slug: string,
         public price: number, // Decimal in prisma, number in domain
         public limits: any,
     ) {
-        super(id, organizationId, createdAt, updatedAt);
+        super(id, organizationId, createdAt, updatedAt, status, deletedAt);
     }
 }

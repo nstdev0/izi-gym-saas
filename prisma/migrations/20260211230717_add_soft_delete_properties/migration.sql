@@ -1,0 +1,20 @@
+-- CreateEnum
+CREATE TYPE "EntityStatus" AS ENUM ('ACTIVE', 'INACTIVE');
+
+-- AlterTable
+ALTER TABLE "Attendance" ADD COLUMN     "deletedAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
+ADD COLUMN     "isActive" BOOLEAN NOT NULL DEFAULT true;
+
+-- AlterTable
+ALTER TABLE "Member" ADD COLUMN     "oldDocNumber" TEXT,
+ADD COLUMN     "oldEmail" TEXT,
+ADD COLUMN     "status" "EntityStatus" NOT NULL DEFAULT 'ACTIVE',
+ALTER COLUMN "deletedAt" SET DEFAULT CURRENT_TIMESTAMP;
+
+-- AlterTable
+ALTER TABLE "Plan" ADD COLUMN     "deletedAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
+ADD COLUMN     "status" "EntityStatus" NOT NULL DEFAULT 'ACTIVE';
+
+-- AlterTable
+ALTER TABLE "Product" ADD COLUMN     "deletedAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
+ADD COLUMN     "status" "EntityStatus" NOT NULL DEFAULT 'ACTIVE';

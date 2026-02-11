@@ -26,11 +26,13 @@ import { CreateMemberUseCase } from "@use-cases/members/create-member.use-case";
 import { GetMemberByIdUseCase } from "@/server/application/use-cases/members/get-member-by-id.use-case";
 import { UpdateMemberUseCase } from "@/server/application/use-cases/members/update-member.use-case";
 import { DeleteMemberUseCase } from "@/server/application/use-cases/members/delete-member.use-case";
+import { RestoreMemberUseCase } from "@/server/application/use-cases/members/restore-member.use-case";
 import { GetAllMembersController } from "@controllers/members/get-all-members.controller";
 import { CreateMemberController } from "@controllers/members/create-member.controller";
 import { GetMemberByIdController } from "@/server/interface-adapters/controllers/members/get-member-by-id.controller";
 import { UpdateMemberController } from "@/server/interface-adapters/controllers/members/update-member.controller";
 import { DeleteMemberController } from "@/server/interface-adapters/controllers/members/delete-member.controller";
+import { RestoreMemberController } from "@/server/interface-adapters/controllers/members/restore-member.controller";
 
 // --- Imports: Plans ---
 import { PlansRepository } from "../infrastructure/persistence/repositories/plans.repository";
@@ -97,7 +99,13 @@ import { AttendanceRepository } from "../infrastructure/persistence/repositories
 import { RegisterAttendanceUseCase } from "../application/use-cases/attendance/register-attendance.use-case";
 import { RegisterAttendanceController } from "../interface-adapters/controllers/attendance/register-attendance.controller";
 import { GetAllAttendancesUseCase } from "../application/use-cases/attendance/get-all-attendances.use-case";
+import { GetAttendanceByIdUseCase } from "../application/use-cases/attendance/get-attendance-by-id.use-case";
+import { UpdateAttendanceUseCase } from "../application/use-cases/attendance/update-attendance.use-case";
+import { DeleteAttendanceUseCase } from "../application/use-cases/attendance/delete-attendance.use-case";
 import { GetAllAttendancesController } from "../interface-adapters/controllers/attendance/get-all-attendances.controller";
+import { GetAttendanceByIdController } from "../interface-adapters/controllers/attendance/get-attendance-by-id.controller";
+import { UpdateAttendanceController } from "../interface-adapters/controllers/attendance/update-attendance.controller";
+import { DeleteAttendanceController } from "../interface-adapters/controllers/attendance/delete-attendance.controller";
 
 // --- Imports: System ---
 import { SystemRepository } from "../infrastructure/persistence/repositories/system.repository";
@@ -181,7 +189,9 @@ export const getContainer = cache(async () => {
   const createMemberUseCase = new CreateMemberUseCase(membersRepository);
   const getMemberByIdUseCase = new GetMemberByIdUseCase(membersRepository);
   const updateMemberUseCase = new UpdateMemberUseCase(membersRepository);
+
   const deleteMemberUseCase = new DeleteMemberUseCase(membersRepository);
+  const restoreMemberUseCase = new RestoreMemberUseCase(membersRepository);
   const getMemberByQrCodeUseCase = new GetMemberByQrCodeUseCase(membersRepository);
   // Controllers
   const getAllMembersController = new GetAllMembersController(
@@ -198,6 +208,9 @@ export const getContainer = cache(async () => {
   );
   const deleteMemberController = new DeleteMemberController(
     deleteMemberUseCase,
+  );
+  const restoreMemberController = new RestoreMemberController(
+    restoreMemberUseCase,
   );
   const getMemberByQrCodeController = new GetMemberByQrCodeController(
     getMemberByQrCodeUseCase,
@@ -319,9 +332,15 @@ export const getContainer = cache(async () => {
   // Use Cases
   const registerAttendanceUseCase = new RegisterAttendanceUseCase(attendanceRepository, membersRepository);
   const getAllAttendancesUseCase = new GetAllAttendancesUseCase(attendanceRepository);
+  const getAttendanceByIdUseCase = new GetAttendanceByIdUseCase(attendanceRepository);
+  const updateAttendanceUseCase = new UpdateAttendanceUseCase(attendanceRepository);
+  const deleteAttendanceUseCase = new DeleteAttendanceUseCase(attendanceRepository);
   // Controllers
   const registerAttendanceController = new RegisterAttendanceController(registerAttendanceUseCase);
   const getAllAttendancesController = new GetAllAttendancesController(getAllAttendancesUseCase);
+  const getAttendanceByIdController = new GetAttendanceByIdController(getAttendanceByIdUseCase);
+  const updateAttendanceController = new UpdateAttendanceController(updateAttendanceUseCase);
+  const deleteAttendanceController = new DeleteAttendanceController(deleteAttendanceUseCase);
 
   // ===========================================================================
   // 8. SYSTEM (GOD MODE)
@@ -376,6 +395,7 @@ export const getContainer = cache(async () => {
     getMemberByIdController,
     updateMemberController,
     deleteMemberController,
+    restoreMemberController,
     getMemberByQrCodeController,
     // Plans
     getAllPlansController,
@@ -408,6 +428,9 @@ export const getContainer = cache(async () => {
     // Attendance
     registerAttendanceController,
     getAllAttendancesController,
+    getAttendanceByIdController,
+    updateAttendanceController,
+    deleteAttendanceController,
 
     // System
     getSystemStatsController,

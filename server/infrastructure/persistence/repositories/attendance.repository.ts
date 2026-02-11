@@ -3,7 +3,7 @@ import {
     AttendanceFilters,
     AttendanceWithMember,
 } from "@/server/application/repositories/attendance.repository.interface";
-import { RegisterAttendanceInput } from "@/server/application/dtos/attendance.dto";
+import { RegisterAttendanceInput, UpdateAttendanceInput } from "@/server/application/dtos/attendance.dto";
 import { Attendance, Prisma, PrismaClient } from "@/generated/prisma/client";
 import {
     PageableRequest,
@@ -79,6 +79,50 @@ export class AttendanceRepository implements IAttendanceRepository {
                 organizationId: this.organizationId as string,
             },
         });
+    }
+
+    async findById(id: string): Promise<AttendanceWithMember | null> {
+        const result = await this.prisma.attendance.findFirst({
+            where: {
+                id,
+                organizationId: this.organizationId,
+            },
+            include: {
+                member: {
+                    select: {
+                        id: true,
+                        firstName: true,
+                        lastName: true,
+                        image: true,
+                    },
+                },
+            },
+        });
+        return result as unknown as AttendanceWithMember | null;
+    }
+
+    async delete(id: string): Promise<void> {
+        await this.prisma.attendance.delete({
+            where: { id },
+        });
+    }
+
+    async update(id: string, data: UpdateAttendanceInput): Promise<AttendanceWithMember> {
+        const result = await this.prisma.attendance.update({
+            where: { id },
+            data,
+            include: {
+                member: {
+                    select: {
+                        id: true,
+                        firstName: true,
+                        lastName: true,
+                        image: true,
+                    },
+                },
+            },
+        });
+        return result as unknown as AttendanceWithMember;
     }
 
     protected async buildPrismaClauses(

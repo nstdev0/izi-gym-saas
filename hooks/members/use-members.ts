@@ -112,9 +112,6 @@ export const useDeleteMember = () => {
 
             return { previousMembers };
         },
-        onSuccess: () => {
-            toast.success("Miembro eliminado exitosamente");
-        },
         onError: (error, _variables, context) => {
             if (context?.previousMembers) {
                 context.previousMembers.forEach(([key, data]) => {
@@ -126,5 +123,22 @@ export const useDeleteMember = () => {
         onSettled: () => {
             queryClient.invalidateQueries({ queryKey: memberKeys.lists() });
         },
+    });
+};
+
+export const useRestoreMember = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async (id: string) => {
+            return await MembersService.restore(id);
+        },
+        onSuccess: () => {
+            toast.success("Miembro restaurado correctamente");
+            queryClient.invalidateQueries({ queryKey: memberKeys.lists() });
+        },
+        onError: () => {
+            toast.error("No se pudo restaurar el miembro");
+        }
     });
 };

@@ -7,3 +7,11 @@ export const RegisterAttendanceSchema = z.object({
 });
 
 export type RegisterAttendanceInput = z.infer<typeof RegisterAttendanceSchema>;
+
+export const UpdateAttendanceSchema = z.object({
+    date: z.coerce.date(),
+    method: z.enum(["QR", "MANUAL"]),
+}).partial();
+
+export type UpdateAttendanceInput = z.infer<typeof UpdateAttendanceSchema>;
+

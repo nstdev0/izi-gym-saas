@@ -18,5 +18,6 @@ export interface IMembersRepository extends IBaseRepository<
   MembersFilters
 > {
   validateUnique(args: Partial<Member>): Promise<Member | null>;
+  restore(id: string): Promise<Member>;
   findByIdWithMemberships(id: string): Promise<Member | null>;
 }

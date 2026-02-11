@@ -18,7 +18,8 @@ import {
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import Image from "next/image";
-import { useDeleteMember } from "@/hooks/members/use-members";
+import { useDeleteMember, useRestoreMember } from "@/hooks/members/use-members";
+import { toast } from "sonner";
 import { useState } from "react";
 
 // Component for the Member Name cell to correctly use hooks
@@ -82,12 +83,23 @@ const MemberActions = ({ member }: { member: Member }) => {
   const params = useParams();
   const slug = params.slug as string;
   const { mutate: deleteMember, isPending } = useDeleteMember();
+  const { mutate: restoreMember } = useRestoreMember();
   const [open, setOpen] = useState(false);
 
   const handleDelete = () => {
     deleteMember(member.id, {
       onSuccess: () => {
         setOpen(false);
+        toast.success("Miembro eliminado", {
+          description: "El miembro ha sido eliminado.",
+          action: {
+            label: "Deshacer",
+            onClick: () => {
+              restoreMember(member.id);
+            },
+          },
+          duration: 5000,
+        });
       },
     });
   };

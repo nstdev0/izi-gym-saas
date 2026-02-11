@@ -43,15 +43,21 @@ export class MembersService {
     }
 
     static async update(id: string, data: UpdateMemberInput) {
-        return fetchClient<Member>(`${this.BASE_PATH}/${id}`, {
+        return fetchClient<Member>(`${this.BASE_PATH}/id/${id}`, {
             method: "PATCH",
             body: JSON.stringify(data),
         });
     }
 
     static async delete(id: string) {
-        return fetchClient<void>(`${this.BASE_PATH}/${id}`, {
+        return fetchClient<void>(`${this.BASE_PATH}/id/${id}`, {
             method: "DELETE",
+        });
+    }
+
+    static async restore(id: string) {
+        return fetchClient<Member>(`${this.BASE_PATH}/id/${id}/restore`, {
+            method: "POST",
         });
     }
 }

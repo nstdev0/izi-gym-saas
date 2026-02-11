@@ -1,4 +1,4 @@
-import { BaseEntity } from "./_base";
+import { BaseEntity, EntityStatus } from "./_base";
 
 export enum ProductType {
   CONSUMABLE = "CONSUMABLE",
@@ -13,6 +13,8 @@ export class Product extends BaseEntity {
     organizationId: string,
     createdAt: Date,
     updatedAt: Date,
+    status: EntityStatus,
+    deletedAt: Date | null,
     public sku: string | null,
     public name: string,
     public description: string | null,
@@ -21,9 +23,8 @@ export class Product extends BaseEntity {
     public stock: number,
     public minStock: number,
     public type: ProductType,
-    public isActive: boolean,
   ) {
-    super(id, organizationId, createdAt, updatedAt);
+    super(id, organizationId, createdAt, updatedAt, status, deletedAt);
   }
 
   get isLowStock(): boolean {
