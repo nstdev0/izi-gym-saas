@@ -89,6 +89,8 @@ import { ClerkAuthService } from "../infrastructure/services/clerk-auth.service"
 import { PrismaDashboardRepository } from "../infrastructure/persistence/repositories/dashboard.repository";
 import { GetDashboardMetricsUseCase } from "../application/use-cases/dashboard/get-dashboard-metrics.use-case";
 import { GetDashboardMetricsController } from "../interface-adapters/controllers/dashboard/get-dashboard-metrics.controller";
+import { GetHistoricStartDateUseCase } from "../application/use-cases/dashboard/get-historic-start-date.use-case";
+import { GetHistoricStartDateController } from "../interface-adapters/controllers/dashboard/get-historic-start-date.controller";
 
 // --- Imports: System ---
 import { SystemRepository } from "../infrastructure/persistence/repositories/system.repository";
@@ -291,8 +293,10 @@ export const getContainer = cache(async () => {
   const dashboardRepository = new PrismaDashboardRepository(prisma, tenantId);
   // Use Case
   const getDashboardMetricsUseCase = new GetDashboardMetricsUseCase(dashboardRepository);
+  const getHistoricStartDateUseCase = new GetHistoricStartDateUseCase(dashboardRepository);
   // Controller
   const getDashboardMetricsController = new GetDashboardMetricsController(getDashboardMetricsUseCase);
+  const getHistoricStartDateController = new GetHistoricStartDateController(getHistoricStartDateUseCase);
 
   // ===========================================================================
   // 8. SYSTEM (GOD MODE)
@@ -373,6 +377,7 @@ export const getContainer = cache(async () => {
     deleteUserController,
     // Dashboard
     getDashboardMetricsController,
+    getHistoricStartDateController,
     // System
     getSystemStatsController,
     getAllOrganizationsSystemController,

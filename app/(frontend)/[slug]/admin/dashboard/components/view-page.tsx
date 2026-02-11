@@ -34,85 +34,16 @@ import { format, subDays, startOfMonth, endOfMonth, subMonths, startOfWeek, endO
 import { es } from "date-fns/locale";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import { useDashboardMetrics } from "@/hooks/dashboard/use-dashboard";
-
-// ==============================================
-// COMPONENTS
-// ==============================================
-
-interface StatCardProps {
-    title: string;
-    value: string | number;
-    change: number;
-    icon: React.ElementType;
-    prefix?: string;
-    isLoading?: boolean;
-}
-
-function StatCard({ title, value, change, icon: Icon, prefix = "", isLoading }: StatCardProps) {
-    const isPositive = change >= 0;
-
-    return (
-        <Card className="relative overflow-hidden">
-            <CardContent className="p-4 sm:p-6">
-                <div className="flex items-center justify-between">
-                    <div className="space-y-1">
-                        <p className="text-xs sm:text-sm font-medium text-muted-foreground">
-                            {title}
-                        </p>
-                        {isLoading ? (
-                            <div className="h-8 w-24 bg-muted animate-pulse rounded" />
-                        ) : (
-                            <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground">
-                                {prefix}{typeof value === 'number' ? value.toLocaleString() : value}
-                            </p>
-                        )}
-                        <div className="flex items-center gap-1">
-                            {isLoading ? (
-                                <div className="h-4 w-16 bg-muted animate-pulse rounded" />
-                            ) : (
-                                <>
-                                    {isPositive ? (
-                                        <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-green-500" />
-                                    ) : (
-                                        <TrendingDown className="h-3 w-3 sm:h-4 sm:w-4 text-red-500" />
-                                    )}
-                                    <span
-                                        className={`text-xs sm:text-sm font-medium ${isPositive ? "text-green-500" : "text-red-500"
-                                            }`}
-                                    >
-                                        {isPositive ? "+" : ""}{change.toFixed(1)}%
-                                    </span>
-                                    <span className="text-xs text-muted-foreground">vs periodo anterior</span>
-                                </>
-                            )}
-                        </div>
-                    </div>
-                    <div className="rounded-full bg-primary/10 p-2 sm:p-3">
-                        <Icon className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
-                    </div>
-                </div>
-            </CardContent>
-        </Card>
-    );
-}
-
-function getPlanBadgeVariant(plan: string): "default" | "secondary" | "destructive" | "outline" {
-    switch (plan.toLowerCase()) {
-        case "premium":
-            return "default";
-        case "elite":
-            return "destructive";
-        default:
-            return "secondary";
-    }
-}
-
-// ==============================================
-// MAIN VIEW COMPONENT
-// ==============================================
+import { useDashboardMetrics, useHistoricStartDate } from "@/hooks/dashboard/use-dashboard";
+import StatCard from "./stat-card";
+import getPlanBadgeVariant from "../utils/get-plan-badge-variant";
+import { makeQueryClient } from "@/lib/react-query/client-config";
+import { historicStartDateKeys } from "@/lib/react-query/query-keys";
+import { DashboardService } from "@/lib/services/dashboard.service";
 
 export default function DashboardViewPage() {
+    const queryClient = makeQueryClient()
+
     const params = useParams();
     const slug = params.slug as string;
 
@@ -135,8 +66,9 @@ export default function DashboardViewPage() {
     // However, for the very first load or if we want to show spinners, we can use isLoading.
     // The previous implementation showed skeletons on loading.
     const loading = isLoading;
+    const [selectedPreset, setSelectedPreset] = useState<string | undefined>("thisMonth")
 
-    const handlePresetSelect = (preset: string) => {
+    const handlePresetSelect = async (preset: string) => {
         const now = new Date();
         let newDate: DateRange | undefined;
 
@@ -165,10 +97,32 @@ export default function DashboardViewPage() {
                 const lastMonth = subMonths(now, 1);
                 newDate = { from: startOfMonth(lastMonth), to: endOfMonth(lastMonth) };
                 break;
+            case "allTime":
+                try {
+                    // ✅ AQUÍ ESTÁ LA MAGIA:
+                    // ensureQueryData busca en caché primero. Si no existe, hace el fetch.
+                    const historicDate = await queryClient.ensureQueryData({
+                        queryKey: historicStartDateKeys.historicStartDate(),
+                        queryFn: () => DashboardService.getHistoricStartDate(),
+                        staleTime: Infinity, // Este dato nunca caduca (la fecha de creación no cambia)
+                    });
+
+                    if (historicDate) {
+                        newDate = { from: new Date(historicDate), to: now };
+                    } else {
+                        // Fallback por si la API falla o devuelve null
+                        newDate = { from: subYears(now, 5), to: now };
+                    }
+                } catch (error) {
+                    console.error("Error fetching historic date", error);
+                    newDate = { from: subYears(now, 5), to: now };
+                }
+                break;
         }
 
         if (newDate) {
             setDate(newDate);
+            setSelectedPreset(preset);
         }
     };
 
@@ -177,10 +131,13 @@ export default function DashboardViewPage() {
         const now = new Date();
         if (value === 'day') {
             setDate({ from: startOfMonth(now), to: endOfMonth(now) });
+            setSelectedPreset("thisMonth");
         } else if (value === 'month') {
             setDate({ from: startOfYear(now), to: endOfYear(now) });
+            setSelectedPreset(undefined);
         } else if (value === 'year') {
             setDate({ from: subYears(now, 9), to: endOfYear(now) });
+            setSelectedPreset(undefined);
         }
     };
 
@@ -219,38 +176,44 @@ export default function DashboardViewPage() {
                                     )}
                                 </Button>
                             </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0" align="end">
+                            <PopoverContent className="w-[250px] sm:w-[400px] p-0" align="end">
                                 <div className="flex flex-col sm:flex-row">
                                     <Calendar
                                         autoFocus
                                         mode="range"
                                         defaultMonth={date?.from}
                                         selected={date}
-                                        onSelect={setDate}
                                         numberOfMonths={1}
+                                        onSelect={(range) => {
+                                            setDate(range);
+                                            setSelectedPreset(undefined);
+                                        }}
                                     />
                                     <div className="p-3 border-t sm:border-t-0 sm:border-l space-y-1 min-w-[140px]">
-                                        <div className="space-y-1">
-                                            <Button variant="ghost" className="w-full justify-start text-xs font-normal" onClick={() => handlePresetSelect("today")}>
+                                        <div id="date-presets" className="space-y-1">
+                                            <Button variant={selectedPreset === "today" ? "secondary" : "ghost"} className={cn("w-full justify-start text-xs font-normal", selectedPreset === "today" && "font-semibold")} onClick={() => handlePresetSelect("today")}>
                                                 Hoy
                                             </Button>
-                                            <Button variant="ghost" className="w-full justify-start text-xs font-normal" onClick={() => handlePresetSelect("yesterday")}>
+                                            <Button variant={selectedPreset === "yesterday" ? "secondary" : "ghost"} className={cn("w-full justify-start text-xs font-normal", selectedPreset === "yesterday" && "font-semibold")} onClick={() => handlePresetSelect("yesterday")}>
                                                 Ayer
                                             </Button>
-                                            <Button variant="ghost" className="w-full justify-start text-xs font-normal" onClick={() => handlePresetSelect("thisWeek")}>
+                                            <Button variant={selectedPreset === "thisWeek" ? "secondary" : "ghost"} className={cn("w-full justify-start text-xs font-normal", selectedPreset === "thisWeek" && "font-semibold")} onClick={() => handlePresetSelect("thisWeek")}>
                                                 Esta semana
                                             </Button>
-                                            <Button variant="ghost" className="w-full justify-start text-xs font-normal" onClick={() => handlePresetSelect("lastWeek")}>
+                                            <Button variant={selectedPreset === "lastWeek" ? "secondary" : "ghost"} className={cn("w-full justify-start text-xs font-normal", selectedPreset === "lastWeek" && "font-semibold")} onClick={() => handlePresetSelect("lastWeek")}>
                                                 Semana pasada
                                             </Button>
-                                            <Button variant="ghost" className="w-full justify-start text-xs font-normal" onClick={() => handlePresetSelect("last7days")}>
+                                            <Button variant={selectedPreset === "last7days" ? "secondary" : "ghost"} className={cn("w-full justify-start text-xs font-normal", selectedPreset === "last7days" && "font-semibold")} onClick={() => handlePresetSelect("last7days")}>
                                                 Últimos 7 días
                                             </Button>
-                                            <Button variant="ghost" className="w-full justify-start text-xs font-normal" onClick={() => handlePresetSelect("thisMonth")}>
+                                            <Button variant={selectedPreset === "thisMonth" ? "secondary" : "ghost"} className={cn("w-full justify-start text-xs font-normal", selectedPreset === "thisMonth" && "font-semibold")} onClick={() => handlePresetSelect("thisMonth")}>
                                                 Este mes
                                             </Button>
-                                            <Button variant="ghost" className="w-full justify-start text-xs font-normal" onClick={() => handlePresetSelect("lastMonth")}>
+                                            <Button variant={selectedPreset === "lastMonth" ? "secondary" : "ghost"} className={cn("w-full justify-start text-xs font-normal", selectedPreset === "lastMonth" && "font-semibold")} onClick={() => handlePresetSelect("lastMonth")}>
                                                 Mes pasado
+                                            </Button>
+                                            <Button variant={selectedPreset === "allTime" ? "secondary" : "ghost"} className={cn("w-full justify-start text-xs font-normal", selectedPreset === "allTime" && "font-semibold")} onClick={() => handlePresetSelect("allTime")}>
+                                                Máximo histórico
                                             </Button>
                                         </div>
                                     </div>
@@ -467,11 +430,11 @@ export default function DashboardViewPage() {
                                                     </AvatarFallback>
                                                 </Avatar>
                                                 <div className="min-w-0">
-                                                    <p className="text-sm font-medium text-foreground truncate">
+                                                    <Link href={`/${slug}/admin/members/${member.id}`} className="text-sm font-medium text-foreground hover:text-primary transition-colors truncate">
                                                         {member.name}
-                                                    </p>
+                                                    </Link>
                                                     <p className="text-xs text-muted-foreground truncate">
-                                                        {member.daysUntil === 0 ? "Vence hoy" : `Vence en ${member.daysUntil} días`}
+                                                        {member.daysUntil === 0 ? `Vence hoy` : `Vence en ${member.daysUntil} días`}
                                                     </p>
                                                 </div>
                                             </div>

@@ -14,6 +14,7 @@ import {
   UserCog,
   Building2,
   ShieldAlert,
+  HelpCircle,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -70,7 +71,7 @@ export function Sidebar({
 
   const orgRoutes: RouteProps[] = [
     {
-      label: "Dashboard",
+      label: "Panel",
       icon: LayoutDashboard,
       href: `/${safeSlug}/admin/dashboard`,
       active:
@@ -132,6 +133,13 @@ export function Sidebar({
       active: pathname.startsWith("/system"),
       color: "text-sky-500",
     }] : []),
+    {
+      label: "Ayuda",
+      icon: HelpCircle,
+      href: "/help",
+      active: pathname.startsWith("/help"),
+      color: "text-red-400",
+    }
   ];
 
   const systemRoutes: RouteProps[] = [

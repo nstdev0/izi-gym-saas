@@ -68,3 +68,8 @@ export const systemKeys = {
     revenue: () => [...systemKeys.all, 'revenue'] as const,
     config: () => [...systemKeys.all, 'config'] as const,
 };
+
+export const historicStartDateKeys = {
+    all: ['historic-start-date'] as const,
+    historicStartDate: () => [...historicStartDateKeys.all, 'historic-start-date'] as const,
+};

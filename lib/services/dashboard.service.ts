@@ -16,4 +16,8 @@ export const DashboardService = {
 
         return fetchClient<DashboardMetrics>(`/api/dashboard?${queryParams.toString()}`);
     },
+
+    getHistoricStartDate: async (): Promise<Date> => {
+        return fetchClient<Date>(`/api/dashboard/historic-start-date`);
+    },
 };

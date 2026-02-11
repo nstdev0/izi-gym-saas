@@ -300,4 +300,16 @@ export class PrismaDashboardRepository implements IDashboardRepository {
         }
         return ((current - previous) / previous) * 100;
     }
+
+    async getHistoricStartDate(): Promise<Date | null> {
+        const startDay = await this.prisma.organization.findFirst({
+            where: {
+                id: this.tenantId
+            },
+            select: {
+                createdAt: true
+            }
+        });
+        return startDay?.createdAt || null;
+    }
 }
