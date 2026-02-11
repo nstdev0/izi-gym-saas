@@ -1,11 +1,28 @@
 import { removeEmptyParams } from "@/lib/utils";
 import { MembersFilters } from "@/server/application/repositories/members.repository.interface";
+import { AttendanceFilters } from "@/server/application/repositories/attendance.repository.interface";
 import { MembershipsFilters } from "@/server/domain/types/memberships";
 import { OrganizationsFilters } from "@/server/domain/types/organizations";
 import { PlansFilters } from "@/server/domain/types/plans";
 import { ProductsFilters } from "@/server/domain/types/products";
 import { UsersFilters } from "@/server/domain/types/users";
 import { PageableRequest } from "@/server/shared/common/pagination";
+
+export const attendanceKeys = {
+    all: ['attendance'] as const,
+    lists: () => [...attendanceKeys.all, 'list'] as const,
+    list: (filters: PageableRequest<AttendanceFilters>) => [...attendanceKeys.lists(), removeEmptyParams(filters)] as const,
+};
+
+export const dashboardKeys = {
+    all: ['dashboard'] as const,
+    metrics: (params: Record<string, unknown>) => [...dashboardKeys.all, 'metrics', removeEmptyParams(params)] as const,
+};
+
+export const historicStartDateKeys = {
+    all: ['historic-start-date'] as const,
+    historicStartDate: () => [...historicStartDateKeys.all, 'historic-start-date'] as const,
+};
 
 export const memberKeys = {
     all: ['members'] as const,
@@ -23,30 +40,6 @@ export const membershipKeys = {
     detail: (id: string) => [...membershipKeys.details(), id] as const,
 };
 
-export const planKeys = {
-    all: ['plans'] as const,
-    lists: () => [...planKeys.all, 'list'] as const,
-    list: (filters: PageableRequest<PlansFilters>) => [...planKeys.lists(), removeEmptyParams(filters)] as const,
-    details: () => [...planKeys.all, 'detail'] as const,
-    detail: (id: string) => [...planKeys.details(), id] as const,
-};
-
-export const userKeys = {
-    all: ['users'] as const,
-    lists: () => [...userKeys.all, 'list'] as const,
-    list: (filters: PageableRequest<UsersFilters>) => [...userKeys.lists(), removeEmptyParams(filters)] as const,
-    details: () => [...userKeys.all, 'detail'] as const,
-    detail: (id: string) => [...userKeys.details(), id] as const,
-};
-
-export const productKeys = {
-    all: ['products'] as const,
-    lists: () => [...productKeys.all, 'list'] as const,
-    list: (filters: PageableRequest<ProductsFilters>) => [...productKeys.lists(), removeEmptyParams(filters)] as const,
-    details: () => [...productKeys.all, 'detail'] as const,
-    detail: (id: string) => [...productKeys.details(), id] as const,
-};
-
 export const organizationKeys = {
     all: ['organizations'] as const,
     lists: () => [...organizationKeys.all, 'list'] as const,
@@ -55,9 +48,20 @@ export const organizationKeys = {
     detail: (id: string) => [...organizationKeys.details(), id] as const,
 };
 
-export const dashboardKeys = {
-    all: ['dashboard'] as const,
-    metrics: (params: Record<string, unknown>) => [...dashboardKeys.all, 'metrics', removeEmptyParams(params)] as const,
+export const planKeys = {
+    all: ['plans'] as const,
+    lists: () => [...planKeys.all, 'list'] as const,
+    list: (filters: PageableRequest<PlansFilters>) => [...planKeys.lists(), removeEmptyParams(filters)] as const,
+    details: () => [...planKeys.all, 'detail'] as const,
+    detail: (id: string) => [...planKeys.details(), id] as const,
+};
+
+export const productKeys = {
+    all: ['products'] as const,
+    lists: () => [...productKeys.all, 'list'] as const,
+    list: (filters: PageableRequest<ProductsFilters>) => [...productKeys.lists(), removeEmptyParams(filters)] as const,
+    details: () => [...productKeys.all, 'detail'] as const,
+    detail: (id: string) => [...productKeys.details(), id] as const,
 };
 
 export const systemKeys = {
@@ -69,7 +73,10 @@ export const systemKeys = {
     config: () => [...systemKeys.all, 'config'] as const,
 };
 
-export const historicStartDateKeys = {
-    all: ['historic-start-date'] as const,
-    historicStartDate: () => [...historicStartDateKeys.all, 'historic-start-date'] as const,
+export const userKeys = {
+    all: ['users'] as const,
+    lists: () => [...userKeys.all, 'list'] as const,
+    list: (filters: PageableRequest<UsersFilters>) => [...userKeys.lists(), removeEmptyParams(filters)] as const,
+    details: () => [...userKeys.all, 'detail'] as const,
+    detail: (id: string) => [...userKeys.details(), id] as const,
 };

@@ -25,6 +25,7 @@ export class Member extends BaseEntity {
     public docType: DocType,
     public docNumber: string,
     public isActive: boolean,
+    public qr: string,
     public email?: string | null,
     public phone?: string | null,
     public birthDate?: Date | null,

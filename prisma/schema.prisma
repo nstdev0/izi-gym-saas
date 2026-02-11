@@ -76,6 +76,7 @@ model User {
 
 model Member {
   id             String    @id @default(cuid())
+  qr             String    @unique
   firstName      String
   lastName       String
   email          String?
@@ -92,11 +93,13 @@ model Member {
   image          String?
   imc            Float?
   weight         Float?
-  deletedAt      DateTime?
+
+  attendances Attendance[]
+
+  deletedAt DateTime?
 
   organization Organization @relation(fields: [organizationId], references: [id])
   memberships  Membership[]
-  attendances  Attendance[]
 
   @@unique([docType, docNumber, organizationId])
   @@unique([email, organizationId])
@@ -172,14 +175,15 @@ model SystemConfig {
 }
 
 model Attendance {
-  id             String       @id @default(cuid())
-  date           DateTime     @default(now())
+  id             String           @id @default(cuid())
+  date           DateTime         @default(now())
+  method         AttendanceMethod @default(QR)
   memberId       String
   organizationId String
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
-  member         Member       @relation(fields: [memberId], references: [id])
-  organization   Organization @relation(fields: [organizationId], references: [id])
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  member         Member           @relation(fields: [memberId], references: [id])
+  organization   Organization     @relation(fields: [organizationId], references: [id])
 
   @@index([organizationId])
   @@index([memberId])
@@ -227,4 +231,9 @@ enum MembershipStatus {
   EXPIRED
   PENDING
   CANCELLED
+}
+
+enum AttendanceMethod {
+  QR
+  MANUAL
 }

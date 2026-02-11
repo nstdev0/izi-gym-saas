@@ -58,28 +58,26 @@ export default function SmartFilters<T>({
     return (
         <div className="flex flex-wrap items-center gap-2">
             {/* SORT */}
-            {config.sort && config.sort.length > 0 && (
-                <Select
-                    value={activeValues.sort || undefined}
-                    onValueChange={(val) => onFilterChange("sort", val)}
-                >
-                    <SelectTrigger className="w-auto min-w-[140px] h-9">
-                        <div className="flex items-center gap-2">
-                            <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
-                            <SelectValue placeholder="Ordenar" />
-                        </div>
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="createdAt-desc">Más recientes</SelectItem>
-                        <SelectItem value="createdAt-asc">Más antiguos</SelectItem>
-                        {config.sort.map((opt) => (
-                            <SelectItem key={opt.value} value={opt.value}>
-                                {opt.label}
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
-            )}
+            <Select
+                value={activeValues.sort || undefined}
+                onValueChange={(val) => onFilterChange("sort", val)}
+            >
+                <SelectTrigger className="w-auto min-w-[140px] h-9">
+                    <div className="flex items-center gap-2">
+                        <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
+                        <SelectValue placeholder="Ordenar" />
+                    </div>
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="createdAt-desc">Recientes</SelectItem>
+                    <SelectItem value="createdAt-asc">Antiguos</SelectItem>
+                    {config.sort?.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>
+                            {opt.label}
+                        </SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
 
             {/* FILTROS DINÁMICOS */}
             {config.filters?.map((filterConfig) => {
@@ -90,7 +88,6 @@ export default function SmartFilters<T>({
                         key={filterConfig.key}
                         value={currentValue}
                         onValueChange={(val) => {
-                            // Si selecciona "all", enviamos null para limpiar el parametro URL
                             const valueToSend = val === "all" ? null : val;
                             onFilterChange(filterConfig.key, valueToSend);
                         }}
@@ -102,7 +99,8 @@ export default function SmartFilters<T>({
                             </div>
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="all">Todos ({filterConfig.label})</SelectItem>
+                            <SelectItem value="all">Todos ({filterConfig.label})
+                            </SelectItem>
                             {filterConfig.options.map((option) => (
                                 <SelectItem key={option.value} value={option.value}>
                                     {option.label}

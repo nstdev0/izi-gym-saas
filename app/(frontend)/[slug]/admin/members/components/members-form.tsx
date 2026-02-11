@@ -22,11 +22,12 @@ import { Member } from "@/server/domain/entities/Member";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { AvatarUploader } from "@/components/avatar-uploader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import QRCode from "react-qr-code";
 
 type MemberFormProps = {
   initialData?: Member;
   isEdit?: boolean;
-  redirectUrl?: string; // Mantener por compatibilidad, pero el submit manejará la redirección/refresh
+  redirectUrl?: string;
 };
 
 export default function MemberForm({
@@ -35,6 +36,7 @@ export default function MemberForm({
   redirectUrl,
 }: MemberFormProps) {
   const router = useRouter();
+
 
   // 1. Configuración del Formulario
   const form = useForm<z.infer<typeof CreateMemberSchema>>({
@@ -53,6 +55,7 @@ export default function MemberForm({
       weight: initialData?.weight ?? undefined,
       imc: initialData?.imc ?? undefined,
       image: initialData?.image || "",
+      qr: initialData?.qr || "",
     },
   });
 
@@ -71,10 +74,9 @@ export default function MemberForm({
 
   const onSubmit = (values: z.infer<typeof CreateMemberSchema>) => {
     const onSuccess = () => {
-      toast.success(isEdit ? "Miembro actualizado exitosamente" : "Miembro creado exitosamente");
       router.refresh();
       if (redirectUrl) {
-        // Opcional: Redirigir si se requiere
+        router.push(redirectUrl);
       }
     };
 
@@ -128,159 +130,184 @@ export default function MemberForm({
   const currentDocNumberPlaceholder = getDocNumberPlaceholder(selectedDocType);
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit, onInvalid)} className="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <form onSubmit={form.handleSubmit(onSubmit, onInvalid)} className="grid grid-cols-1 gap-6">
 
-      {/* CONTENEDOR PRINCIPAL: Avatar + Datos Personales */}
-      <div className="md:col-span-3 space-y-6">
+      {/* NEW CARD: Identity Card (Avatar + QR) */}
+      <Card>
+        <CardHeader>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col md:flex-row items-center justify-around gap-8">
+            {/* Avatar Section */}
+            <div className="flex flex-col items-center">
+              <Controller
+                name="image"
+                control={form.control}
+                render={({ field }) => (
+                  <AvatarUploader
+                    value={field.value ?? undefined}
+                    onChange={(url) => field.onChange(url)}
+                    fileNamePrefix={`${form.getValues("firstName") || "member"}-${form.getValues("lastName") || "avatar"}`}
+                  />
+                )}
+              />
+            </div>
+
+            {/* QR Code Section */}
+            <div className="flex flex-col items-center gap-4">
+              {initialData?.qr ? (
+                <div className="bg-white p-2 rounded-lg border shadow-sm">
+                  <QRCode
+                    value={initialData.qr}
+                    size={150}
+                    style={{ height: "auto", maxWidth: "100%", width: "100%" }}
+                    viewBox={`0 0 256 256`}
+                  />
+                </div>
+              ) : (
+                <div className="w-[150px] h-[150px] bg-muted/20 flex items-center justify-center rounded-lg border border-dashed">
+                  <span className="text-xs text-muted-foreground text-center px-4">
+                    Disponible al crear
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+
+      {/* CONTENEDOR PRINCIPAL: Datos Personales (Layout ajustado) */}
+      <div className="space-y-6">
         <Card>
           <CardHeader>
             <CardTitle>Información Personal</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
-              {/* ZONA AVATAR (Izquierda en desktop) */}
-              <div className="md:col-span-3 flex flex-col items-center">
+            {/* ZONA CAMPOS (Ahora ocupa todo el ancho) */}
+            <div className="grid gap-6">
+              {/* Nombres y Apellidos */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Controller
-                  name="image"
+                  name="firstName"
                   control={form.control}
-                  render={({ field }) => (
-                    <AvatarUploader
-                      value={field.value ?? undefined}
-                      onChange={(url) => field.onChange(url)}
-                      fileNamePrefix={`${form.getValues("firstName") || "member"}-${form.getValues("lastName") || "avatar"}`}
-                    />
+                  render={({ field, fieldState }) => (
+                    <Field data-invalid={fieldState.invalid}>
+                      <FieldLabel required>Nombres</FieldLabel>
+                      <Input {...field} aria-invalid={fieldState.invalid} placeholder="Jon" />
+                      {fieldState.invalid && fieldState.error && <FieldError errors={[fieldState.error]} />}
+                    </Field>
                   )}
                 />
-                <p className="text-sm text-muted-foreground mt-4 text-center">
-                  Sube una foto de perfil para identificar al miembro.
-                </p>
+                <Controller
+                  name="lastName"
+                  control={form.control}
+                  render={({ field, fieldState }) => (
+                    <Field data-invalid={fieldState.invalid}>
+                      <FieldLabel required>Apellidos</FieldLabel>
+                      <Input {...field} aria-invalid={fieldState.invalid} placeholder="Doe" />
+                      {fieldState.invalid && fieldState.error && <FieldError errors={[fieldState.error]} />}
+                    </Field>
+                  )}
+                />
               </div>
 
-              {/* ZONA CAMPOS (Derecha en desktop) */}
-              <div className="md:col-span-9 grid gap-6">
-                {/* Nombres y Apellidos */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Controller
-                    name="firstName"
-                    control={form.control}
-                    render={({ field, fieldState }) => (
-                      <Field data-invalid={fieldState.invalid}>
-                        <FieldLabel required>Nombres</FieldLabel>
-                        <Input {...field} aria-invalid={fieldState.invalid} placeholder="Jon" />
-                        {fieldState.invalid && fieldState.error && <FieldError errors={[fieldState.error]} />}
-                      </Field>
-                    )}
-                  />
-                  <Controller
-                    name="lastName"
-                    control={form.control}
-                    render={({ field, fieldState }) => (
-                      <Field data-invalid={fieldState.invalid}>
-                        <FieldLabel required>Apellidos</FieldLabel>
-                        <Input {...field} aria-invalid={fieldState.invalid} placeholder="Doe" />
-                        {fieldState.invalid && fieldState.error && <FieldError errors={[fieldState.error]} />}
-                      </Field>
-                    )}
-                  />
-                </div>
-
-                {/* Documento e Info Adicional */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="flex gap-2">
-                    <div className="w-1/3">
-                      <Controller
-                        name="docType"
-                        control={form.control}
-                        render={({ field, fieldState }) => (
-                          <Field data-invalid={fieldState.invalid}>
-                            <FieldLabel required>Tipo</FieldLabel>
-                            <Select
-                              onValueChange={(val) => {
-                                field.onChange(val);
-                                form.trigger("docNumber");
-                              }}
-                              defaultValue={field.value}
-                              disabled={isEdit}
-                            >
-                              <SelectTrigger aria-invalid={fieldState.invalid}>
-                                <SelectValue placeholder="Sel." />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="DNI">DNI</SelectItem>
-                                <SelectItem value="CE">CE</SelectItem>
-                                <SelectItem value="PASSPORT">Pasaporte</SelectItem>
-                                <SelectItem value="RUC">RUC</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </Field>
-                        )}
-                      />
-                    </div>
-                    <div className="w-2/3">
-                      <Controller
-                        name="docNumber"
-                        control={form.control}
-                        render={({ field, fieldState }) => (
-                          <Field data-invalid={fieldState.invalid}>
-                            <FieldLabel required>Número Documento</FieldLabel>
-                            <Input
-                              {...field}
-                              maxLength={currentMaxLength}
-                              aria-invalid={fieldState.invalid}
-                              placeholder={currentDocNumberPlaceholder}
-                              disabled={isEdit}
-                            />
-                            {fieldState.invalid && fieldState.error && <FieldError errors={[fieldState.error]} />}
-                          </Field>
-                        )}
-                      />
-                    </div>
+              {/* Documento e Info Adicional */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="flex gap-2">
+                  <div className="w-1/3">
+                    <Controller
+                      name="docType"
+                      control={form.control}
+                      render={({ field, fieldState }) => (
+                        <Field data-invalid={fieldState.invalid}>
+                          <FieldLabel required>Tipo</FieldLabel>
+                          <Select
+                            onValueChange={(val) => {
+                              field.onChange(val);
+                              form.trigger("docNumber");
+                            }}
+                            defaultValue={field.value}
+                            disabled={isEdit}
+                          >
+                            <SelectTrigger aria-invalid={fieldState.invalid}>
+                              <SelectValue placeholder="Sel." />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="DNI">DNI</SelectItem>
+                              <SelectItem value="CE">CE</SelectItem>
+                              <SelectItem value="PASSPORT">Pasaporte</SelectItem>
+                              <SelectItem value="RUC">RUC</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </Field>
+                      )}
+                    />
                   </div>
-
-                  <Controller
-                    name="birthDate"
-                    control={form.control}
-                    render={({ field, fieldState }) => (
-                      <Field data-invalid={fieldState.invalid}>
-                        <FieldLabel optional>Fecha Nacimiento</FieldLabel>
-                        <Input
-                          type="date"
-                          max={new Date().toISOString().split("T")[0]}
-                          aria-invalid={fieldState.invalid}
-                          {...field}
-                          value={field.value ? String(field.value) : ""}
-                        />
-                        {fieldState.invalid && fieldState.error && <FieldError errors={[fieldState.error]} />}
-                      </Field>
-                    )}
-                  />
+                  <div className="w-2/3">
+                    <Controller
+                      name="docNumber"
+                      control={form.control}
+                      render={({ field, fieldState }) => (
+                        <Field data-invalid={fieldState.invalid}>
+                          <FieldLabel required>Número Documento</FieldLabel>
+                          <Input
+                            {...field}
+                            maxLength={currentMaxLength}
+                            aria-invalid={fieldState.invalid}
+                            placeholder={currentDocNumberPlaceholder}
+                            disabled={isEdit}
+                          />
+                          {fieldState.invalid && fieldState.error && <FieldError errors={[fieldState.error]} />}
+                        </Field>
+                      )}
+                    />
+                  </div>
                 </div>
 
-                {/* Contacto (Integrado) */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Controller
-                    name="email"
-                    control={form.control}
-                    render={({ field, fieldState }) => (
-                      <Field data-invalid={fieldState.invalid}>
-                        <FieldLabel optional>Email</FieldLabel>
-                        <Input {...field} value={field.value ?? ""} aria-invalid={fieldState.invalid} placeholder="jon@example.com" />
-                        {fieldState.invalid && fieldState.error && <FieldError errors={[fieldState.error]} />}
-                      </Field>
-                    )}
-                  />
-                  <Controller
-                    name="phone"
-                    control={form.control}
-                    render={({ field, fieldState }) => (
-                      <Field data-invalid={fieldState.invalid}>
-                        <FieldLabel optional>Celular</FieldLabel>
-                        <Input {...field} value={field.value ?? ""} aria-invalid={fieldState.invalid} placeholder="9..." maxLength={9} />
-                        {fieldState.invalid && fieldState.error && <FieldError errors={[fieldState.error]} />}
-                      </Field>
-                    )}
-                  />
-                </div>
+                <Controller
+                  name="birthDate"
+                  control={form.control}
+                  render={({ field, fieldState }) => (
+                    <Field data-invalid={fieldState.invalid}>
+                      <FieldLabel optional>Fecha Nacimiento</FieldLabel>
+                      <Input
+                        type="date"
+                        max={new Date().toISOString().split("T")[0]}
+                        aria-invalid={fieldState.invalid}
+                        {...field}
+                        value={field.value ? String(field.value) : ""}
+                      />
+                      {fieldState.invalid && fieldState.error && <FieldError errors={[fieldState.error]} />}
+                    </Field>
+                  )}
+                />
+              </div>
+
+              {/* Contacto (Integrado) */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Controller
+                  name="email"
+                  control={form.control}
+                  render={({ field, fieldState }) => (
+                    <Field data-invalid={fieldState.invalid}>
+                      <FieldLabel optional>Email</FieldLabel>
+                      <Input {...field} value={field.value ?? ""} aria-invalid={fieldState.invalid} placeholder="jon@example.com" />
+                      {fieldState.invalid && fieldState.error && <FieldError errors={[fieldState.error]} />}
+                    </Field>
+                  )}
+                />
+                <Controller
+                  name="phone"
+                  control={form.control}
+                  render={({ field, fieldState }) => (
+                    <Field data-invalid={fieldState.invalid}>
+                      <FieldLabel optional>Celular</FieldLabel>
+                      <Input {...field} value={field.value ?? ""} aria-invalid={fieldState.invalid} placeholder="9..." maxLength={9} />
+                      {fieldState.invalid && fieldState.error && <FieldError errors={[fieldState.error]} />}
+                    </Field>
+                  )}
+                />
               </div>
             </div>
           </CardContent>

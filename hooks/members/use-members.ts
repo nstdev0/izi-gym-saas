@@ -22,6 +22,14 @@ export const useMemberDetail = (id: string, enabled = true) => {
     });
 };
 
+export const useMemberByQrCode = (qrCode: string, enabled = true) => {
+    return useQuery({
+        queryKey: memberKeys.detail(qrCode),
+        queryFn: () => MembersService.getByQrCode(qrCode),
+        enabled: !!qrCode && qrCode.length > 0,
+    });
+};
+
 export const useCreateMember = () => {
     const queryClient = useQueryClient();
     return useMutation({

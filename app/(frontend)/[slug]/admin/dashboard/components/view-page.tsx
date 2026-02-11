@@ -15,9 +15,7 @@ import {
     ArrowRight,
     Dumbbell,
     Loader2,
-    ShoppingBag,
-    ShoppingBasket,
-    CreditCardIcon,
+    UserCheck,
 } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -40,6 +38,7 @@ import StatCard from "./stat-card";
 import getPlanBadgeVariant from "../utils/get-plan-badge-variant";
 import { makeQueryClient } from "@/lib/react-query/client-config";
 import { historicStartDateKeys } from "@/lib/react-query/query-keys";
+import { AttendanceModal } from "./attendance-modal";
 import { DashboardService } from "@/lib/services/dashboard.service";
 
 export default function DashboardViewPage() {
@@ -287,12 +286,12 @@ export default function DashboardViewPage() {
                                     <span className="text-xs sm:text-sm">Nuevo Miembro</span>
                                 </Button>
                             </Link>
-                            <Link href={`/${slug}/admin/members`}>
+                            <AttendanceModal>
                                 <Button variant="outline" className="w-full h-auto py-4 flex flex-col gap-2 hover:border-primary hover:text-primary transition-colors">
-                                    <Users className="h-5 w-5" />
+                                    <UserCheck className="h-5 w-5" />
                                     <span className="text-xs sm:text-sm">Registrar asistencia</span>
                                 </Button>
-                            </Link>
+                            </AttendanceModal>
                             <Link href={`/${slug}/admin/memberships`}>
                                 <Button variant="outline" className="w-full h-auto py-4 flex flex-col gap-2 hover:border-primary hover:text-primary transition-colors">
                                     <CreditCard className="h-5 w-5" />

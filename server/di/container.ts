@@ -92,6 +92,13 @@ import { GetDashboardMetricsController } from "../interface-adapters/controllers
 import { GetHistoricStartDateUseCase } from "../application/use-cases/dashboard/get-historic-start-date.use-case";
 import { GetHistoricStartDateController } from "../interface-adapters/controllers/dashboard/get-historic-start-date.controller";
 
+// --- Imports: Attendance ---
+import { AttendanceRepository } from "../infrastructure/persistence/repositories/attendance.repository";
+import { RegisterAttendanceUseCase } from "../application/use-cases/attendance/register-attendance.use-case";
+import { RegisterAttendanceController } from "../interface-adapters/controllers/attendance/register-attendance.controller";
+import { GetAllAttendancesUseCase } from "../application/use-cases/attendance/get-all-attendances.use-case";
+import { GetAllAttendancesController } from "../interface-adapters/controllers/attendance/get-all-attendances.controller";
+
 // --- Imports: System ---
 import { SystemRepository } from "../infrastructure/persistence/repositories/system.repository";
 import { SystemGetSystemStatsUseCase } from "../application/use-cases/system/system-get-system-stats.use-case";
@@ -114,6 +121,8 @@ import { SystemUpdatePlanController } from "../interface-adapters/controllers/sy
 import { SystemUpdatePlanUseCase } from "../application/use-cases/system/system-update-plan.use-case";
 import { SystemCreatePlanUseCase } from "../application/use-cases/system/system-create-plan.use-case";
 import { SystemGetPlansUseCase } from "../application/use-cases/system/system-get-plans.use-case";
+import { GetMemberByQrCodeController } from "../interface-adapters/controllers/members/get-member-by-qr-code.controller";
+import { GetMemberByQrCodeUseCase } from "../application/use-cases/members/get-member-by-qr.use-case";
 
 
 // Factory function "memoizada" por request
@@ -173,6 +182,7 @@ export const getContainer = cache(async () => {
   const getMemberByIdUseCase = new GetMemberByIdUseCase(membersRepository);
   const updateMemberUseCase = new UpdateMemberUseCase(membersRepository);
   const deleteMemberUseCase = new DeleteMemberUseCase(membersRepository);
+  const getMemberByQrCodeUseCase = new GetMemberByQrCodeUseCase(membersRepository);
   // Controllers
   const getAllMembersController = new GetAllMembersController(
     getAllMembersUseCase,
@@ -188,6 +198,9 @@ export const getContainer = cache(async () => {
   );
   const deleteMemberController = new DeleteMemberController(
     deleteMemberUseCase,
+  );
+  const getMemberByQrCodeController = new GetMemberByQrCodeController(
+    getMemberByQrCodeUseCase,
   );
 
   // ===========================================================================
@@ -299,6 +312,18 @@ export const getContainer = cache(async () => {
   const getHistoricStartDateController = new GetHistoricStartDateController(getHistoricStartDateUseCase);
 
   // ===========================================================================
+  // 9. ATTENDANCE
+  // ===========================================================================
+  // Repo
+  const attendanceRepository = new AttendanceRepository(prisma, tenantId);
+  // Use Cases
+  const registerAttendanceUseCase = new RegisterAttendanceUseCase(attendanceRepository, membersRepository);
+  const getAllAttendancesUseCase = new GetAllAttendancesUseCase(attendanceRepository);
+  // Controllers
+  const registerAttendanceController = new RegisterAttendanceController(registerAttendanceUseCase);
+  const getAllAttendancesController = new GetAllAttendancesController(getAllAttendancesUseCase);
+
+  // ===========================================================================
   // 8. SYSTEM (GOD MODE)
   // ===========================================================================
   // Repo
@@ -351,6 +376,7 @@ export const getContainer = cache(async () => {
     getMemberByIdController,
     updateMemberController,
     deleteMemberController,
+    getMemberByQrCodeController,
     // Plans
     getAllPlansController,
     createPlanController,
@@ -378,6 +404,11 @@ export const getContainer = cache(async () => {
     // Dashboard
     getDashboardMetricsController,
     getHistoricStartDateController,
+
+    // Attendance
+    registerAttendanceController,
+    getAllAttendancesController,
+
     // System
     getSystemStatsController,
     getAllOrganizationsSystemController,

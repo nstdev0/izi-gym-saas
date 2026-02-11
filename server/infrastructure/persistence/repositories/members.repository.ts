@@ -113,7 +113,8 @@ export class MembersRepository
               { firstName: { contains: term, mode: "insensitive" } },
               { lastName: { contains: term, mode: "insensitive" } },
               { email: { contains: term, mode: "insensitive" } },
-              { phone: { contains: term, mode: "insensitive" } }
+              { phone: { contains: term, mode: "insensitive" } },
+              { docNumber: { contains: term, mode: "insensitive" } }
             ],
           })
         })
@@ -191,6 +192,12 @@ export class MembersRepository
           select: { status: true },
         },
       },
+    }) as unknown as Promise<Member | null>;
+  }
+
+  async findByQrCode(qrCode: string): Promise<Member | null> {
+    return this.model.findUnique({
+      where: { qr: qrCode },
     }) as unknown as Promise<Member | null>;
   }
 }

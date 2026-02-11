@@ -15,6 +15,7 @@ import {
   Building2,
   ShieldAlert,
   HelpCircle,
+  CalendarCheck,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -80,7 +81,7 @@ export function Sidebar({
     },
     {
       label: "Asistencias",
-      icon: Users,
+      icon: CalendarCheck,
       href: `/${safeSlug}/admin/attendance`,
       active:
         pathname === `/${safeSlug}/admin/attendance` ||

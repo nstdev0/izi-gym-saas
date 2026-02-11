@@ -28,7 +28,11 @@ export class MembersService {
     }
 
     static async getById(id: string) {
-        return fetchClient<Member>(`${this.BASE_PATH}/${id}`);
+        return fetchClient<Member>(`${this.BASE_PATH}/id/${id}`);
+    }
+
+    static async getByQrCode(qrCode: string) {
+        return fetchClient<Member>(`${this.BASE_PATH}/qr/${qrCode}`);
     }
 
     static async create(data: CreateMemberInput) {

@@ -3,6 +3,7 @@ import { IMembersRepository } from "../../repositories/members.repository.interf
 import { CreateMemberInput } from "../../dtos/members.dto";
 import { ConflictError } from "@/server/domain/errors/common";
 import { IMCCalculator } from "@/server/application/services/imc-calculator.service";
+import { generateMemberQrToken } from "@/server/shared/utils/token-generator";
 
 export class CreateMemberUseCase {
   constructor(private readonly repository: IMembersRepository) { }
@@ -23,6 +24,9 @@ export class CreateMemberUseCase {
       const imc = IMCCalculator.calculate(input.weight, input.height);
       if (imc) input.imc = imc;
     }
+
+    const qrToken = generateMemberQrToken();
+    input.qr = qrToken;
 
     return await this.repository.create(input);
   }

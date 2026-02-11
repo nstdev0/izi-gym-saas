@@ -81,6 +81,7 @@ const MemberBaseSchema = z.object({
   imc: optionalImc,
   image: optionalUrl,
   isActive: z.boolean().default(true),
+  qr: z.string(),
 });
 
 // --- 2. LOGICA DE REFINAMIENTO (Separada) ---
