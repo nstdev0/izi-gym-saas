@@ -3,7 +3,6 @@ import { makeQueryClient } from "@/lib/react-query/client-config";
 import { productKeys } from "@/lib/react-query/query-keys";
 import { ProductsService } from "@/lib/services/products.service";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
-import ProductsViewPage from "../components/view-page";
 import { ProductsForm } from "../components/products-form";
 
 export const metadata: Metadata = {

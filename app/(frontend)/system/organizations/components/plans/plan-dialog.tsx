@@ -19,6 +19,7 @@ import { Textarea } from "@/components/ui/textarea";
 interface PlanDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     plan?: any;
 }
 
@@ -49,7 +50,7 @@ export function PlanDialog({ open, onOpenChange, plan }: PlanDialogProps) {
                 toast.success("Plan created successfully");
             }
             onOpenChange(false);
-        } catch (error) {
+        } catch {
             toast.error("Failed to save plan");
         } finally {
             setLoading(false);

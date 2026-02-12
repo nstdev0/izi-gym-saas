@@ -4,7 +4,10 @@ export interface CreatePlanInput {
   price: number;
   durationDays: number;
   isActive?: boolean;
+  limits?: PlanLimits;
 }
+
+export type PlanLimits = Record<string, unknown>;
 
 export type UpdatePlanInput = Partial<CreatePlanInput>;
 

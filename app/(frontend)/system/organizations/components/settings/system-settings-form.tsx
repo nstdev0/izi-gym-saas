@@ -48,7 +48,7 @@ export function SystemSettingsForm({ initialData, onSubmit: externalSubmit, isSu
         try {
             await SystemService.updateSystemConfig(data);
             toast.success("System settings updated");
-        } catch (error) {
+        } catch {
             toast.error("Failed to update settings");
         } finally {
             setInternalLoading(false);

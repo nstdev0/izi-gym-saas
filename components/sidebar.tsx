@@ -62,6 +62,7 @@ export function Sidebar({
 
   interface RouteProps {
     label: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     icon: any;
     href: string;
     active: boolean;

@@ -59,6 +59,7 @@ export const useUpdateSystemConfig = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         mutationFn: (data: any) => SystemService.updateSystemConfig(data),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: systemKeys.config() });

@@ -49,3 +49,8 @@ next-env.d.ts
 
 # scripts
 /scripts/
+
+# lint
+.eslintcache
+lint_final.log
+lint.log

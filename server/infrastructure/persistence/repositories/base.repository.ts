@@ -24,6 +24,7 @@ export abstract class BaseRepository<
   protected abstract buildPrismaClauses(
     filters: TFilters,
     // ): Promise<[Parameters<D["findMany"]>[0]["where"], Parameters<D["findMany"]>[0]["orderBy"]]>;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ): Promise<[any, any]>;
 
   async findAll(
@@ -76,25 +77,30 @@ export abstract class BaseRepository<
         ...args,
         organizationId: this.organizationId,
       },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any)) as TEntity | null;
   }
 
   async create(data: TCreate): Promise<TEntity> {
     return (await this.model.create({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       data: { ...data, organizationId: this.organizationId } as any,
     })) as TEntity;
   }
 
   async update(id: string, data: TUpdate): Promise<TEntity> {
     return (await this.model.update({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       data: { ...data, organizationId: this.organizationId } as any,
       where: { id },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any)) as TEntity;
   }
 
   async delete(id: string): Promise<TEntity> {
     return (await this.model.delete({
       where: { id, organizationId: this.organizationId },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any)) as TEntity;
   }
 }

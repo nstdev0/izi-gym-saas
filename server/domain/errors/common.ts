@@ -5,6 +5,7 @@ export class ValidationError extends AppError {
   readonly statusCode = 400;
   readonly code = "VALIDATION_ERROR";
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   constructor(message: string = "Datos inválidos", details?: any) {
     super(message, details);
   }
@@ -15,6 +16,7 @@ export class BadRequestError extends AppError {
   readonly statusCode = 400;
   readonly code = "BAD_REQUEST";
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   constructor(message: string, details?: any) {
     super(message, details);
   }
@@ -55,6 +57,7 @@ export class ConflictError extends AppError {
   readonly statusCode = 409;
   readonly code = "CONFLICT";
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   constructor(message: string, details?: any) {
     super(message, details);
   }

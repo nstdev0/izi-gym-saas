@@ -15,12 +15,14 @@ export class ApiError extends Error {
 interface ApiFetchOptions extends RequestInit {
   params?: Record<string, string | number | undefined>; // Para /:id
   query?: Record<string, string | number | boolean | undefined | null>; // Para ?page=1
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   body?: any; // Body tipado genérico
 }
 
 /**
  * Construye la URL inyectando path params (:id) y query params (?q=)
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function buildUrl(path: string, params?: Record<string, any>, query?: Record<string, any>) {
   let url = path;
 

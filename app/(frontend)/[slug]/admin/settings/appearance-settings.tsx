@@ -19,6 +19,7 @@ export function AppearanceSettings() {
             <CardContent>
                 <RadioGroup
                     defaultValue={font}
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     onValueChange={(value) => setFont(value as any)}
                     className="grid grid-cols-1 md:grid-cols-3 gap-4"
                 >

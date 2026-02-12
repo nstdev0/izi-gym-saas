@@ -1,10 +1,11 @@
+import { CreatePlanInput } from "@/server/domain/types/plans";
 import { SystemCreatePlanUseCase } from "@/server/application/use-cases/system/system-create-plan.use-case";
 import { ControllerExecutor } from "@/server/lib/api-handler";
 
-export class SystemCreatePlanController implements ControllerExecutor<any, void> {
+export class SystemCreatePlanController implements ControllerExecutor<CreatePlanInput, void> {
     constructor(private useCase: SystemCreatePlanUseCase) { }
 
-    async execute(data: any): Promise<void> {
+    async execute(data: CreatePlanInput): Promise<void> {
         return this.useCase.execute(data);
     }
 }

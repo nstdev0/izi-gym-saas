@@ -4,11 +4,11 @@ import { AttendanceWithMember } from "@/server/application/repositories/attendan
 import { UpdateAttendanceInput } from "@/server/application/dtos/attendance.dto";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Users, QrCode, Hand, CalendarDays, Trash2, Loader2, Save } from "lucide-react";
+import { Users, QrCode, Hand, CalendarDays, Loader2, Save } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter, useParams } from "next/navigation";
-import { useDeleteAttendance, useUpdateAttendance } from "@/hooks/attendance/use-attendance";
+import { useParams } from "next/navigation";
+import { useUpdateAttendance } from "@/hooks/attendance/use-attendance";
 import { useState } from "react";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -22,12 +22,9 @@ interface AttendanceFormProps {
 }
 
 export function AttendanceForm({ data }: AttendanceFormProps) {
-    const router = useRouter();
     const params = useParams();
     const slug = params.slug as string;
-
     const { mutate: updateAttendance, isPending: isUpdating } = useUpdateAttendance();
-    const { mutate: deleteAttendance, isPending: isDeleting } = useDeleteAttendance();
 
     // Editable state initialized from data
     const [date, setDate] = useState<Date>(new Date(data.date));
@@ -50,13 +47,7 @@ export function AttendanceForm({ data }: AttendanceFormProps) {
         updateAttendance({ id: data.id, data: updateData });
     };
 
-    const handleDelete = () => {
-        deleteAttendance(data.id, {
-            onSuccess: () => {
-                router.push(`/${slug}/admin/attendance`);
-            },
-        });
-    };
+
 
     const member = data.member;
 

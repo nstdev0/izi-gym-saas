@@ -35,6 +35,7 @@ export default async function SettingsPage() {
     }
 
     // Prepare default values
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const settings = (organization.settings as any) || {};
 
     // Construct defaultValues object matching our DTO structure

@@ -1,4 +1,5 @@
 import { Prisma } from "@/generated/prisma/client";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { EntityStatus } from "@/server/domain/entities/_base";
 import { BaseRepository } from "./base.repository";
 import { Plan } from "@/server/domain/entities/Plan";

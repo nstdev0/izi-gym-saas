@@ -14,7 +14,7 @@ import { Html5Qrcode } from "html5-qrcode";
 import { toast } from "sonner";
 import { AttendanceService } from "@/lib/services/attendance.service";
 import { useQueryClient } from "@tanstack/react-query";
-import { attendanceKeys, dashboardKeys } from "@/lib/react-query/query-keys";
+import { attendanceKeys } from "@/lib/react-query/query-keys";
 import { useMemberByQrCode } from "@/hooks/members/use-members";
 import { Badge } from "@/components/ui/badge";
 
@@ -117,13 +117,13 @@ function AttendanceForm({ onClose }: AttendanceFormProps) {
 
     const cleanupScanner = async () => {
         if (scannerRef.current) {
-            try { if (scannerRef.current.isScanning) await scannerRef.current.stop(); scannerRef.current.clear(); } catch (e) { }
+            try { if (scannerRef.current.isScanning) await scannerRef.current.stop(); scannerRef.current.clear(); } catch { }
             scannerRef.current = null;
         }
     };
 
     const handleScanSuccess = async (decodedText: string) => {
-        try { new Audio(BEEP_AUDIO).play().catch(() => { }); } catch (e) { }
+        try { new Audio(BEEP_AUDIO).play().catch(() => { }); } catch { }
         setScannedQr(decodedText);
     };
 

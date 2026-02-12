@@ -1,11 +1,12 @@
 import { prisma } from "@/server/infrastructure/persistence/prisma";
 import { ISystemRepository } from "@/server/application/repositories/system.repository.interface";
-import { SystemStats } from "@/server/domain/types/system";
+import { SystemStats, RevenueStats, SystemConfig } from "@/server/domain/types/system";
 import { Organization } from "@/server/domain/entities/Organization";
 import { OrganizationPlan } from "@/server/domain/entities/OrganizationPlan";
 
 import { PageableRequest, PageableResponse } from "@/server/shared/common/pagination";
 import { OrganizationsFilters } from "@/server/domain/types/organizations";
+import { CreatePlanInput, UpdatePlanInput } from "@/server/domain/types/plans";
 import { Prisma } from "@/generated/prisma/client";
 import { EntityStatus } from "@/server/domain/entities/_base";
 
@@ -172,7 +173,7 @@ export class SystemRepository implements ISystemRepository {
         ));
     }
 
-    async getRevenueStats(): Promise<any> {
+    async getRevenueStats(): Promise<RevenueStats[]> {
         // Group by month for the last 6 months
         // Since we don't have a payments table, we'll estimate based on created subscriptions
         const sixMonthsAgo = new Date();
@@ -201,7 +202,7 @@ export class SystemRepository implements ISystemRepository {
         return Object.entries(revenueByMonth).map(([name, total]) => ({ name, total }));
     }
 
-    async getSystemConfig(): Promise<any> {
+    async getSystemConfig(): Promise<SystemConfig> {
         let config = await prisma.systemConfig.findFirst();
         if (!config) {
             config = await prisma.systemConfig.create({
@@ -211,7 +212,7 @@ export class SystemRepository implements ISystemRepository {
         return config;
     }
 
-    async updateSystemConfig(data: any): Promise<void> {
+    async updateSystemConfig(data: Partial<SystemConfig>): Promise<void> {
         const config = await this.getSystemConfig();
         await prisma.systemConfig.update({
             where: { id: config.id },
@@ -219,13 +220,26 @@ export class SystemRepository implements ISystemRepository {
         });
     }
 
-    async getPlans(): Promise<any[]> {
-        return prisma.organizationPlan.findMany({
+    async getPlans(): Promise<OrganizationPlan[]> {
+        const plans = await prisma.organizationPlan.findMany({
             orderBy: { price: 'asc' }
         });
+
+        return plans.map(p => new OrganizationPlan(
+            p.id,
+            p.id, // using id as orgId/placeholder since it's a global plan
+            p.createdAt,
+            p.updatedAt,
+            EntityStatus.ACTIVE,
+            null,
+            p.name,
+            p.slug,
+            Number(p.price),
+            p.limits
+        ));
     }
 
-    async createPlan(data: any): Promise<void> {
+    async createPlan(data: CreatePlanInput): Promise<void> {
         await prisma.organizationPlan.create({
             data: {
                 ...data,
@@ -235,11 +249,10 @@ export class SystemRepository implements ISystemRepository {
         });
     }
 
-    async updatePlan(id: string, data: any): Promise<void> {
-        const { id: _, ...updateData } = data;
+    async updatePlan(id: string, data: UpdatePlanInput): Promise<void> {
         await prisma.organizationPlan.update({
             where: { id },
-            data: updateData
+            data // data is strictly typed now and doesn't contain id
         });
     }
 

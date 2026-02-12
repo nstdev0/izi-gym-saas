@@ -47,10 +47,12 @@ export const useUpdateMembership = () => {
             const previousMemberships = queryClient.getQueriesData({ queryKey: membershipKeys.lists() });
             const previousDetail = queryClient.getQueryData(membershipKeys.detail(id));
 
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             queryClient.setQueriesData({ queryKey: membershipKeys.lists() }, (old: any) => {
                 if (!old) return old;
                 return {
                     ...old,
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     records: old.records.map((membership: any) =>
                         membership.id === id ? { ...membership, ...data } : membership
                     ),
@@ -58,6 +60,7 @@ export const useUpdateMembership = () => {
             });
 
             if (previousDetail) {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 queryClient.setQueryData(membershipKeys.detail(id), (old: any) => ({ ...old, ...data }));
             }
 
@@ -93,10 +96,12 @@ export const useDeleteMembership = () => {
 
             const previousMemberships = queryClient.getQueriesData({ queryKey: membershipKeys.lists() });
 
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             queryClient.setQueriesData({ queryKey: membershipKeys.lists() }, (old: any) => {
                 if (!old) return old;
                 return {
                     ...old,
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     records: old.records.filter((membership: any) => membership.id !== id),
                     totalRecords: old.totalRecords - 1,
                 };

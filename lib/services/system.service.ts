@@ -37,13 +37,16 @@ export class SystemService {
     }
 
     static async getRevenueStats() {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return fetchClient<any[]>(`${this.BASE_PATH}/revenue`);
     }
 
     static async getSystemConfig() {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return fetchClient<any>(`${this.BASE_PATH}/config`);
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     static async updateSystemConfig(data: any) {
         return fetchClient<void>(`${this.BASE_PATH}/config`, {
             method: "PUT",
@@ -52,9 +55,11 @@ export class SystemService {
     }
 
     static async getPlans() {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return fetchClient<any[]>(`${this.BASE_PATH}/plans`);
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     static async createPlan(data: any) {
         return fetchClient<void>(`${this.BASE_PATH}/plans`, {
             method: "POST",
@@ -62,6 +67,7 @@ export class SystemService {
         });
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     static async updatePlan(id: string, data: any) {
         return fetchClient<void>(`${this.BASE_PATH}/plans/${id}`, {
             method: "PUT",

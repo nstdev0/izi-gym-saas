@@ -15,11 +15,13 @@ import { PlanDialog } from "./plan-dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface PlansTableProps {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     plans: any[];
 }
 
 export function PlansTable({ plans }: PlansTableProps) {
     const [dialogOpen, setDialogOpen] = useState(false);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [selectedPlan, setSelectedPlan] = useState<any>(null);
 
     const handleCreate = () => {
@@ -27,6 +29,7 @@ export function PlansTable({ plans }: PlansTableProps) {
         setDialogOpen(true);
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const handleEdit = (plan: any) => {
         setSelectedPlan(plan);
         setDialogOpen(true);

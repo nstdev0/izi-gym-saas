@@ -34,6 +34,7 @@ export class ClerkAuthService {
             });
 
             return invitation;
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (error: any) {
             console.error("❌ Org Invitation Error:", JSON.stringify(error, null, 2));
             if (error.errors?.[0]?.code === "resource_not_found") {

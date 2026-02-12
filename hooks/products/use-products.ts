@@ -1,10 +1,11 @@
-import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, keepPreviousData, QueryKey } from "@tanstack/react-query";
 import { ProductsService } from "@/lib/services/products.service";
 import { productKeys } from "@/lib/react-query/query-keys";
 import { toast } from "sonner";
 import { CreateProductSchema, UpdateProductSchema } from "@/server/application/dtos/products.dto";
-import { PageableRequest } from "@/server/shared/common/pagination";
+import { PageableRequest, PageableResponse } from "@/server/shared/common/pagination";
 import { ProductsFilters } from "@/server/domain/types/products";
+import { Product } from "@/server/domain/entities/Product";
 
 export const useProductsList = (params: PageableRequest<ProductsFilters>) => {
     return useQuery({
@@ -36,29 +37,37 @@ export const useCreateProduct = () => {
     });
 };
 
+interface ProductsContext {
+    previousProducts: [QueryKey, PageableResponse<Product> | undefined][];
+    previousDetail: Product | undefined;
+}
+
 export const useUpdateProduct = () => {
     const queryClient = useQueryClient();
-    return useMutation({
+    return useMutation<Product, Error, { id: string; data: UpdateProductSchema }, ProductsContext>({
         mutationFn: ({ id, data }: { id: string; data: UpdateProductSchema }) => ProductsService.update(id, data),
         onMutate: async ({ id, data }) => {
             await queryClient.cancelQueries({ queryKey: productKeys.lists() });
             await queryClient.cancelQueries({ queryKey: productKeys.detail(id) });
 
-            const previousProducts = queryClient.getQueriesData({ queryKey: productKeys.lists() });
-            const previousDetail = queryClient.getQueryData(productKeys.detail(id));
+            const previousProducts = queryClient.getQueriesData<PageableResponse<Product>>({ queryKey: productKeys.lists() });
+            const previousDetail = queryClient.getQueryData<Product>(productKeys.detail(id));
 
-            queryClient.setQueriesData({ queryKey: productKeys.lists() }, (old: any) => {
+            queryClient.setQueriesData<PageableResponse<Product>>({ queryKey: productKeys.lists() }, (old) => {
                 if (!old) return old;
                 return {
                     ...old,
-                    records: old.records.map((product: any) =>
-                        product.id === id ? { ...product, ...data } : product
+                    records: old.records.map((product) =>
+                        product.id === id ? { ...product, ...data } as Product : product
                     ),
                 };
             });
 
             if (previousDetail) {
-                queryClient.setQueryData(productKeys.detail(id), (old: any) => ({ ...old, ...data }));
+                queryClient.setQueryData<Product>(productKeys.detail(id), (old) => {
+                    if (!old) return old;
+                    return { ...old, ...data } as Product;
+                });
             }
 
             return { previousProducts, previousDetail };
@@ -66,7 +75,7 @@ export const useUpdateProduct = () => {
         onSuccess: () => {
             toast.success("Producto actualizado exitosamente");
         },
-        onError: (error, variables, context) => {
+        onError: (_error, variables, context) => {
             if (context?.previousProducts) {
                 context.previousProducts.forEach(([key, data]) => {
                     queryClient.setQueryData(key, data);
@@ -75,7 +84,7 @@ export const useUpdateProduct = () => {
             if (context?.previousDetail) {
                 queryClient.setQueryData(productKeys.detail(variables.id), context.previousDetail);
             }
-            toast.error(error.message || "Error al actualizar producto (cambios revertidos)");
+            toast.error("Error al actualizar producto (cambios revertidos)");
         },
         onSettled: (_data, _error, variables) => {
             queryClient.invalidateQueries({ queryKey: productKeys.lists() });
@@ -84,20 +93,24 @@ export const useUpdateProduct = () => {
     });
 };
 
+interface DeleteProductContext {
+    previousProducts: [QueryKey, PageableResponse<Product> | undefined][];
+}
+
 export const useDeleteProduct = () => {
     const queryClient = useQueryClient();
-    return useMutation({
+    return useMutation<void, Error, string, DeleteProductContext>({
         mutationFn: (id: string) => ProductsService.delete(id),
         onMutate: async (id) => {
             await queryClient.cancelQueries({ queryKey: productKeys.lists() });
 
-            const previousProducts = queryClient.getQueriesData({ queryKey: productKeys.lists() });
+            const previousProducts = queryClient.getQueriesData<PageableResponse<Product>>({ queryKey: productKeys.lists() });
 
-            queryClient.setQueriesData({ queryKey: productKeys.lists() }, (old: any) => {
+            queryClient.setQueriesData<PageableResponse<Product>>({ queryKey: productKeys.lists() }, (old) => {
                 if (!old) return old;
                 return {
                     ...old,
-                    records: old.records.filter((product: any) => product.id !== id),
+                    records: old.records.filter((product) => product.id !== id),
                     totalRecords: old.totalRecords - 1,
                 };
             });
@@ -107,16 +120,17 @@ export const useDeleteProduct = () => {
         onSuccess: () => {
             toast.success("Producto eliminado exitosamente");
         },
-        onError: (error, _variables, context) => {
+        onError: (_error, _variables, context) => {
             if (context?.previousProducts) {
                 context.previousProducts.forEach(([key, data]) => {
                     queryClient.setQueryData(key, data);
                 });
             }
-            toast.error(error.message || "Error al eliminar producto (cambios revertidos)");
+            toast.error("Error al eliminar producto (cambios revertidos)");
         },
         onSettled: () => {
             queryClient.invalidateQueries({ queryKey: productKeys.lists() });
         },
     });
 };
+

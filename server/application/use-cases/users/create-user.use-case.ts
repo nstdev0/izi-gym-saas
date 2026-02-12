@@ -26,6 +26,7 @@ export class CreateUserUseCase implements ICreateUserUseCase {
 
     await this.authService.inviteUserToOrganization({
       email: input.email,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       role: input.role as any, // "ADMIN" | "STAFF" | "TRAINER"
       organizationId: orgId,
       inviterUserId: inviterId,

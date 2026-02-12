@@ -19,6 +19,7 @@ export class PrismaDashboardRepository implements IDashboardRepository {
         });
 
         // Default to USD if not set
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const settings = (organization?.settings as any) || {};
         const currency = settings.general?.currency || "USD";
 

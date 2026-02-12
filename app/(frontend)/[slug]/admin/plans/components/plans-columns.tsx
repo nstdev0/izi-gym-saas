@@ -2,7 +2,7 @@
 
 import { ColumnDef } from "@tanstack/react-table";
 import { Plan } from "@/server/domain/entities/Plan";
-import { Edit, Trash2, Eye, CheckCircle, XCircle } from "lucide-react";
+import { Trash2, Eye, CheckCircle, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
     AlertDialog,

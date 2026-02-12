@@ -1,6 +1,7 @@
 export interface SerializedError {
   message: string;
   code: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   details?: any;
   stack?: string;
 }
@@ -9,8 +10,10 @@ export abstract class AppError extends Error {
   abstract readonly statusCode: number;
   abstract readonly code: string;
   readonly isOperational: boolean = true;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   readonly details?: any;
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   constructor(message: string, details?: any) {
     super(message);
     this.details = details;

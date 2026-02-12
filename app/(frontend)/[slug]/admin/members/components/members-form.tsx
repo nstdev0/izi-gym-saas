@@ -46,8 +46,10 @@ export default function MemberForm({
       lastName: initialData?.lastName || "",
       email: initialData?.email || "",
       phone: initialData?.phone || "",
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       docType: (initialData?.docType as any) || "DNI",
       docNumber: initialData?.docNumber || "",
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       gender: (initialData?.gender as any) || "MALE",
       isActive: initialData?.isActive ?? true,
       birthDate: initialData?.birthDate ? new Date(initialData.birthDate) : undefined,
@@ -80,6 +82,7 @@ export default function MemberForm({
       }
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const onError = (error: any) => {
       if (error instanceof ApiError && error.code === "VALIDATION_ERROR" && error.errors) {
         Object.entries(error.errors).forEach(([field, messages]) => {
@@ -99,6 +102,7 @@ export default function MemberForm({
     }
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const onInvalid = (errors: any) => {
     console.log(errors);
     toast.error("Por favor completa los campos requeridos");

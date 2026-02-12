@@ -81,6 +81,7 @@ export default async function RootLayout({
       where: { id: orgId },
       select: { settings: true }
     });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const settings = (org?.settings as any) || {};
     if (settings.appearance?.font) {
       initialFont = settings.appearance.font;

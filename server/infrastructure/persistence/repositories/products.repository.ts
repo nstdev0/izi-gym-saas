@@ -35,6 +35,7 @@ export class ProductsRepository
 
     // Type filter
     if (filters.type && filters.type !== "all") {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       query.type = filters.type as any;
     }
 

@@ -47,10 +47,12 @@ export const useUpdateUser = () => {
             const previousUsers = queryClient.getQueriesData({ queryKey: userKeys.lists() });
             const previousDetail = queryClient.getQueryData(userKeys.detail(id));
 
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             queryClient.setQueriesData({ queryKey: userKeys.lists() }, (old: any) => {
                 if (!old) return old;
                 return {
                     ...old,
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     records: old.records.map((user: any) =>
                         user.id === id ? { ...user, ...data } : user
                     ),
@@ -58,6 +60,7 @@ export const useUpdateUser = () => {
             });
 
             if (previousDetail) {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 queryClient.setQueryData(userKeys.detail(id), (old: any) => ({ ...old, ...data }));
             }
 
@@ -93,10 +96,12 @@ export const useDeleteUser = () => {
 
             const previousUsers = queryClient.getQueriesData({ queryKey: userKeys.lists() });
 
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             queryClient.setQueriesData({ queryKey: userKeys.lists() }, (old: any) => {
                 if (!old) return old;
                 return {
                     ...old,
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     records: old.records.filter((user: any) => user.id !== id),
                     totalRecords: old.totalRecords - 1,
                 };

@@ -4,7 +4,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Product, ProductType } from "@/server/domain/entities/Product";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Edit, Trash2, Eye, Box, Tag } from "lucide-react";
+import { Trash2, Eye, Box, Tag } from "lucide-react";
 import Link from "next/link";
 import { useDeleteProduct } from "@/hooks/products/use-products";
 import { useState } from "react";

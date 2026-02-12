@@ -5,6 +5,7 @@ import { SystemStats } from "@/server/domain/types/system";
 export class SystemGetSystemStatsController implements ControllerExecutor<void, SystemStats> {
     constructor(private readonly getSystemStatsUseCase: ISystemGetSystemStatsUseCase) { }
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async execute(input: void, id?: string | undefined) {
         return this.getSystemStatsUseCase.execute();
     }

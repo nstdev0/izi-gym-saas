@@ -30,7 +30,7 @@ export async function POST(req: Request) {
       "svix-timestamp": svix_timestamp,
       "svix-signature": svix_signature,
     }) as WebhookEvent;
-  } catch (error) {
+  } catch {
     return new Response("Error verificando webhook", { status: 400 });
   }
 
@@ -115,9 +115,9 @@ export async function POST(req: Request) {
             where: { id }
           });
           console.log(`🗑️ Usuario eliminado: ${id}`);
-        } catch (error: any) {
+        } catch (error: unknown) {
           // Ignorar si el usuario no existe (P2025)
-          if (error.code === 'P2025') {
+          if (error && typeof error === 'object' && 'code' in error && (error as { code: string }).code === 'P2025') {
             console.log(`⚠️ Intentando eliminar usuario no existente ${id} (ignorado)`);
           } else {
             throw error;
@@ -259,9 +259,9 @@ export async function POST(req: Request) {
             data: { organizationId: null, isActive: false }
           });
           console.log(`🔓 Usuario desvinculado`);
-        } catch (error: any) {
+        } catch (error: unknown) {
           // Si el usuario no existe, ignoramos el error para evitar reintento infinito de Clerk
-          if (error.code === 'P2025') {
+          if (error && typeof error === 'object' && 'code' in error && (error as { code: string }).code === 'P2025') {
             console.log("⚠️ Usuario no encontrado al desvincular, saltando...");
           } else {
             throw error;
@@ -282,7 +282,7 @@ export async function POST(req: Request) {
             data: { name, slug: slug || undefined, image: image_url || undefined }
           });
           console.log(`🔄 Organización actualizada: ${name}`);
-        } catch (error) {
+        } catch {
           console.log("⚠️ Intento de actualizar organización no existente (ignorado)");
         }
         break;
@@ -292,10 +292,8 @@ export async function POST(req: Request) {
         console.log(`⏭️ Evento no manejado: ${eventType}`);
     }
 
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error("❌ Error procesando webhook:", error);
-    // Retornamos 500 para que Clerk reintente luego si fue un error de DB temporal
+  } catch {
+    console.error("❌ Error procesando webhook");
     return NextResponse.json({ success: false, error: "Fallo interno" }, { status: 500 });
   }
 }

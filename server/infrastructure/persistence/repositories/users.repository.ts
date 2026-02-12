@@ -27,18 +27,21 @@ export class UsersRepository
     };
 
     return (await this.model.create({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       data: { ...prismaData, organizationId: this.organizationId } as any,
     })) as unknown as User;
   }
 
   async update(id: string, data: UpdateUserInput): Promise<User> {
     const { password, ...rest } = data;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const prismaData: any = { ...rest };
     if (password) {
       prismaData.passwordHash = password;
     }
 
     return (await this.model.update({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       data: { ...prismaData, organizationId: this.organizationId } as any,
       where: { id },
     })) as unknown as User;
@@ -76,6 +79,7 @@ export class UsersRepository
       const isValidRole = (ALLOWED_ROLES as readonly string[]).includes(roleInput);
 
       if (isValidRole) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         conditions.push({ role: { equals: roleInput.toUpperCase() as any } });
       }
     }

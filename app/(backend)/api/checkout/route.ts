@@ -5,6 +5,7 @@ import Stripe from "stripe";
 
 // Inicializar Stripe
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     apiVersion: "2026-01-28.clover" as any,
 });
 
@@ -84,6 +85,7 @@ export async function POST(req: Request) {
 
         return NextResponse.json({ url: session.url });
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
         console.error(error);
         return NextResponse.json({ message: error.message || "Error interno" }, { status: 500 });

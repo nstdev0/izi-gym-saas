@@ -42,6 +42,7 @@ export default function UserForm({
         resolver: zodResolver(CreateUserSchema),
         defaultValues: {
             email: initialData?.email || "",
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             role: (initialData?.role as any) || "STAFF",
             isActive: initialData?.isActive ?? true,
             image: initialData?.image || "",

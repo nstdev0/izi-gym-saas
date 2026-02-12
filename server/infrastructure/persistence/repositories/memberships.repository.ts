@@ -60,6 +60,7 @@ export class MembershipsRepository
       const statusInput = filters.status.toUpperCase();
       const isValidStatus = (ALLOWED_STATUS as readonly string[]).includes(statusInput);
       if (isValidStatus) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         conditions.push({ status: statusInput as any });
       }
     }
@@ -151,6 +152,7 @@ export class MembershipsRepository
       where: {
         id: args.id,
         organizationId: this.organizationId,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any,
       include: {
         member: {

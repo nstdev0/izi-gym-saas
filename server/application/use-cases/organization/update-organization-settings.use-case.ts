@@ -18,6 +18,7 @@ export class UpdateOrganizationSettingsUseCase {
             throw new Error("Organization not found");
         }
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const currentSettings = (currentOrg.settings as Record<string, any>) || {};
 
         // Deep merge logic could be complex, but for now we'll do a shallow merge of top-level keys
@@ -28,6 +29,7 @@ export class UpdateOrganizationSettingsUseCase {
         // No, `...currentSettings.general` would throw if currentSettings.general is undefined.
         // Let's make it safer.
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const safeMerge = (current: any, incoming: any) => {
             return { ...current, ...incoming };
         }

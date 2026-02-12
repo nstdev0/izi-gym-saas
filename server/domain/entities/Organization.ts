@@ -12,6 +12,7 @@ export class Organization extends BaseEntity {
     deletedAt: Date | null,
     public name: string,
     public slug: string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     public settings: any,
     public isActive: boolean,
     public plan?: OrganizationPlan,

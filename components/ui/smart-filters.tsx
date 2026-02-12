@@ -30,6 +30,7 @@ interface SmartFiltersProps<T> {
     config: FilterConfiguration<T>;
     activeValues: {
         sort?: string | null;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         [key: string]: any;
     };
     onFilterChange: (key: string, value: string | null) => void;

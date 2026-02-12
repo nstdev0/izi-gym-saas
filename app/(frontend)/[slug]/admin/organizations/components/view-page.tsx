@@ -6,11 +6,9 @@ import { Suspense } from "react";
 import { Organization } from "@/server/domain/entities/Organization";
 import { SearchInput } from "@/components/ui/search-input";
 import { Pagination } from "@/components/ui/pagination";
-// You'll need to create this table component or use a generic one
-// import { OrganizationsTable } from "./organizations-table"; 
 import Loading from "../loading";
 import { FilterConfiguration } from "@/components/ui/smart-filters";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams } from "next/navigation";
 import SmartFilters from "@/components/ui/smart-filters";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";

@@ -8,6 +8,7 @@ import { Organization } from "@/server/domain/entities/Organization";
 export class SystemGetAllOrganizationsController implements ControllerExecutor<PageableRequest<OrganizationsFilters>, PageableResponse<Organization>> {
     constructor(private readonly getAllOrganizationsUseCase: ISystemGetAllOrganizationsUseCase) { }
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async execute(input: PageableRequest<OrganizationsFilters>, id?: string | undefined) {
         const result = await this.getAllOrganizationsUseCase.execute(input);
 

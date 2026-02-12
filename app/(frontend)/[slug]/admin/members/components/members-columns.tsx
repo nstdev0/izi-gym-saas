@@ -2,7 +2,7 @@
 
 import { ColumnDef } from "@tanstack/react-table";
 import { Member } from "@/server/domain/entities/Member";
-import { Users, Mail, Phone, Edit, Trash2, Eye, PlusCircle } from "lucide-react";
+import { Users, Mail, Phone, Trash2, Eye, PlusCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,

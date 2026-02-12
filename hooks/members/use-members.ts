@@ -1,10 +1,11 @@
-import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, keepPreviousData, QueryKey } from "@tanstack/react-query";
 import { MembersService } from "@/lib/services/members.service";
 import { memberKeys } from "@/lib/react-query/query-keys";
 import { toast } from "sonner";
 import { CreateMemberInput, UpdateMemberInput } from "@/server/application/dtos/members.dto";
-import { PageableRequest } from "@/server/shared/common/pagination";
+import { PageableRequest, PageableResponse } from "@/server/shared/common/pagination";
 import { MembersFilters } from "@/server/application/repositories/members.repository.interface";
+import { Member } from "@/server/domain/entities/Member";
 
 export const useMembersList = (params: PageableRequest<MembersFilters>) => {
     return useQuery({
@@ -26,7 +27,7 @@ export const useMemberByQrCode = (qrCode: string, enabled = true) => {
     return useQuery({
         queryKey: memberKeys.detail(qrCode),
         queryFn: () => MembersService.getByQrCode(qrCode),
-        enabled: !!qrCode && qrCode.length > 0,
+        enabled: enabled && !!qrCode && qrCode.length > 0,
     });
 };
 
@@ -44,29 +45,37 @@ export const useCreateMember = () => {
     });
 };
 
+interface MembersContext {
+    previousMembers: [QueryKey, PageableResponse<Member> | undefined][];
+    previousDetail: Member | undefined;
+}
+
 export const useUpdateMember = () => {
     const queryClient = useQueryClient();
-    return useMutation({
+    return useMutation<Member, Error, { id: string; data: UpdateMemberInput }, MembersContext>({
         mutationFn: ({ id, data }: { id: string; data: UpdateMemberInput }) => MembersService.update(id, data),
         onMutate: async ({ id, data }) => {
             await queryClient.cancelQueries({ queryKey: memberKeys.lists() });
             await queryClient.cancelQueries({ queryKey: memberKeys.detail(id) });
 
-            const previousMembers = queryClient.getQueriesData({ queryKey: memberKeys.lists() });
-            const previousDetail = queryClient.getQueryData(memberKeys.detail(id));
+            const previousMembers = queryClient.getQueriesData<PageableResponse<Member>>({ queryKey: memberKeys.lists() });
+            const previousDetail = queryClient.getQueryData<Member>(memberKeys.detail(id));
 
-            queryClient.setQueriesData({ queryKey: memberKeys.lists() }, (old: any) => {
+            queryClient.setQueriesData<PageableResponse<Member>>({ queryKey: memberKeys.lists() }, (old) => {
                 if (!old) return old;
                 return {
                     ...old,
-                    records: old.records.map((member: any) =>
-                        member.id === id ? { ...member, ...data } : member
+                    records: old.records.map((member) =>
+                        member.id === id ? { ...member, ...data } as Member : member
                     ),
                 };
             });
 
             if (previousDetail) {
-                queryClient.setQueryData(memberKeys.detail(id), (old: any) => ({ ...old, ...data }));
+                queryClient.setQueryData<Member>(memberKeys.detail(id), (old) => {
+                    if (!old) return old;
+                    return { ...old, ...data } as Member;
+                });
             }
 
             return { previousMembers, previousDetail };
@@ -74,7 +83,7 @@ export const useUpdateMember = () => {
         onSuccess: () => {
             toast.success("Miembro actualizado exitosamente");
         },
-        onError: (error, variables, context) => {
+        onError: (_error, variables, context) => {
             if (context?.previousMembers) {
                 context.previousMembers.forEach(([key, data]) => {
                     queryClient.setQueryData(key, data);
@@ -83,7 +92,7 @@ export const useUpdateMember = () => {
             if (context?.previousDetail) {
                 queryClient.setQueryData(memberKeys.detail(variables.id), context.previousDetail);
             }
-            toast.error(error.message || "Error al actualizar miembro (cambios revertidos)");
+            toast.error("Error al actualizar miembro (cambios revertidos)");
         },
         onSettled: (_data, _error, variables) => {
             queryClient.invalidateQueries({ queryKey: memberKeys.lists() });
@@ -92,33 +101,37 @@ export const useUpdateMember = () => {
     });
 };
 
+interface DeleteMemberContext {
+    previousMembers: [QueryKey, PageableResponse<Member> | undefined][];
+}
+
 export const useDeleteMember = () => {
     const queryClient = useQueryClient();
-    return useMutation({
+    return useMutation<void, Error, string, DeleteMemberContext>({
         mutationFn: (id: string) => MembersService.delete(id),
         onMutate: async (id) => {
             await queryClient.cancelQueries({ queryKey: memberKeys.lists() });
 
-            const previousMembers = queryClient.getQueriesData({ queryKey: memberKeys.lists() });
+            const previousMembers = queryClient.getQueriesData<PageableResponse<Member>>({ queryKey: memberKeys.lists() });
 
-            queryClient.setQueriesData({ queryKey: memberKeys.lists() }, (old: any) => {
+            queryClient.setQueriesData<PageableResponse<Member>>({ queryKey: memberKeys.lists() }, (old) => {
                 if (!old) return old;
                 return {
                     ...old,
-                    records: old.records.filter((member: any) => member.id !== id),
+                    records: old.records.filter((member) => member.id !== id),
                     totalRecords: old.totalRecords - 1,
                 };
             });
 
             return { previousMembers };
         },
-        onError: (error, _variables, context) => {
+        onError: (_error, _variables, context) => {
             if (context?.previousMembers) {
                 context.previousMembers.forEach(([key, data]) => {
                     queryClient.setQueryData(key, data);
                 });
             }
-            toast.error(error.message || "Error al eliminar miembro (cambios revertidos)");
+            toast.error("Error al eliminar miembro (cambios revertidos)");
         },
         onSettled: () => {
             queryClient.invalidateQueries({ queryKey: memberKeys.lists() });

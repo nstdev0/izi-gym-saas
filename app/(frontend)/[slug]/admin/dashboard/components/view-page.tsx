@@ -29,7 +29,7 @@ import {
     PopoverTrigger,
 } from "@/components/ui/popover";
 import { DateRange } from "react-day-picker";
-import { format, subDays, startOfMonth, endOfMonth, subMonths, startOfWeek, endOfWeek, subYears, differenceInDays, startOfYear, endOfYear, addMonths, setMonth } from "date-fns";
+import { format, subDays, startOfMonth, endOfMonth, subMonths, startOfWeek, endOfWeek, subYears, differenceInDays, startOfYear, endOfYear, setMonth } from "date-fns";
 import { es } from "date-fns/locale";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
@@ -339,7 +339,7 @@ export default function DashboardViewPage() {
                     <Card className="lg:col-span-3">
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-base sm:text-lg font-semibold">Ingresos</CardTitle>
-                            <Select value={grouping} onValueChange={(v: any) => handleGroupingChange(v)}>
+                            <Select value={grouping} onValueChange={(v) => handleGroupingChange(v as "day" | "month" | "year")}>
                                 <SelectTrigger className="w-[120px] h-8 text-xs">
                                     <SelectValue placeholder="Agrupar por" />
                                 </SelectTrigger>

@@ -1,10 +1,11 @@
-import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, keepPreviousData, QueryKey } from "@tanstack/react-query";
 import { PlansService } from "@/lib/services/plans.service";
 import { planKeys } from "@/lib/react-query/query-keys";
 import { toast } from "sonner";
 import { CreatePlanInput, UpdatePlanInput } from "@/server/application/dtos/plans.dto";
-import { PageableRequest } from "@/server/shared/common/pagination";
+import { PageableRequest, PageableResponse } from "@/server/shared/common/pagination";
 import { PlansFilters } from "@/server/domain/types/plans";
+import { Plan } from "@/server/domain/entities/Plan";
 
 export const usePlansList = (params: PageableRequest<PlansFilters>) => {
     return useQuery({
@@ -36,29 +37,37 @@ export const useCreatePlan = () => {
     });
 };
 
+interface PlansContext {
+    previousPlans: [QueryKey, PageableResponse<Plan> | undefined][];
+    previousDetail: Plan | undefined;
+}
+
 export const useUpdatePlan = () => {
     const queryClient = useQueryClient();
-    return useMutation({
+    return useMutation<Plan, Error, { id: string; data: UpdatePlanInput }, PlansContext>({
         mutationFn: ({ id, data }: { id: string; data: UpdatePlanInput }) => PlansService.update(id, data),
         onMutate: async ({ id, data }) => {
             await queryClient.cancelQueries({ queryKey: planKeys.lists() });
             await queryClient.cancelQueries({ queryKey: planKeys.detail(id) });
 
-            const previousPlans = queryClient.getQueriesData({ queryKey: planKeys.lists() });
-            const previousDetail = queryClient.getQueryData(planKeys.detail(id));
+            const previousPlans = queryClient.getQueriesData<PageableResponse<Plan>>({ queryKey: planKeys.lists() });
+            const previousDetail = queryClient.getQueryData<Plan>(planKeys.detail(id));
 
-            queryClient.setQueriesData({ queryKey: planKeys.lists() }, (old: any) => {
+            queryClient.setQueriesData<PageableResponse<Plan>>({ queryKey: planKeys.lists() }, (old) => {
                 if (!old) return old;
                 return {
                     ...old,
-                    records: old.records.map((plan: any) =>
-                        plan.id === id ? { ...plan, ...data } : plan
+                    records: old.records.map((plan) =>
+                        plan.id === id ? { ...plan, ...data } as Plan : plan
                     ),
                 };
             });
 
             if (previousDetail) {
-                queryClient.setQueryData(planKeys.detail(id), (old: any) => ({ ...old, ...data }));
+                queryClient.setQueryData<Plan>(planKeys.detail(id), (old) => {
+                    if (!old) return old;
+                    return { ...old, ...data } as Plan;
+                });
             }
 
             return { previousPlans, previousDetail };
@@ -66,7 +75,7 @@ export const useUpdatePlan = () => {
         onSuccess: () => {
             toast.success("Plan actualizado exitosamente");
         },
-        onError: (error, variables, context) => {
+        onError: (_error, variables, context) => {
             if (context?.previousPlans) {
                 context.previousPlans.forEach(([key, data]) => {
                     queryClient.setQueryData(key, data);
@@ -75,7 +84,7 @@ export const useUpdatePlan = () => {
             if (context?.previousDetail) {
                 queryClient.setQueryData(planKeys.detail(variables.id), context.previousDetail);
             }
-            toast.error(error.message || "Error al actualizar plan (cambios revertidos)");
+            toast.error("Error al actualizar plan (cambios revertidos)");
         },
         onSettled: (_data, _error, variables) => {
             queryClient.invalidateQueries({ queryKey: planKeys.lists() });
@@ -84,20 +93,24 @@ export const useUpdatePlan = () => {
     });
 };
 
+interface DeletePlanContext {
+    previousPlans: [QueryKey, PageableResponse<Plan> | undefined][];
+}
+
 export const useDeletePlan = () => {
     const queryClient = useQueryClient();
-    return useMutation({
+    return useMutation<void, Error, string, DeletePlanContext>({
         mutationFn: (id: string) => PlansService.delete(id),
         onMutate: async (id) => {
             await queryClient.cancelQueries({ queryKey: planKeys.lists() });
 
-            const previousPlans = queryClient.getQueriesData({ queryKey: planKeys.lists() });
+            const previousPlans = queryClient.getQueriesData<PageableResponse<Plan>>({ queryKey: planKeys.lists() });
 
-            queryClient.setQueriesData({ queryKey: planKeys.lists() }, (old: any) => {
+            queryClient.setQueriesData<PageableResponse<Plan>>({ queryKey: planKeys.lists() }, (old) => {
                 if (!old) return old;
                 return {
                     ...old,
-                    records: old.records.filter((plan: any) => plan.id !== id),
+                    records: old.records.filter((plan) => plan.id !== id),
                     totalRecords: old.totalRecords - 1,
                 };
             });
@@ -107,13 +120,13 @@ export const useDeletePlan = () => {
         onSuccess: () => {
             toast.success("Plan eliminado exitosamente");
         },
-        onError: (error, _variables, context) => {
+        onError: (_error, _variables, context) => {
             if (context?.previousPlans) {
                 context.previousPlans.forEach(([key, data]) => {
                     queryClient.setQueryData(key, data);
                 });
             }
-            toast.error(error.message || "Error al eliminar plan (cambios revertidos)");
+            toast.error("Error al eliminar plan (cambios revertidos)");
         },
         onSettled: () => {
             queryClient.invalidateQueries({ queryKey: planKeys.lists() });
