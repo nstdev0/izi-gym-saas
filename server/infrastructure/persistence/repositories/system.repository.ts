@@ -30,9 +30,9 @@ export class SystemRepository implements ISystemRepository {
         ]);
 
         // Calculate MRR from active subscriptions
-        // Assuming plan.price is Decimal
         const mrr = allActiveSubs.reduce((acc, sub) => {
-            return acc + Number(sub.plan.price || 0);
+            // Protección contra nulls y conversión de Decimal
+            return acc + Number(sub.plan?.price || 0);
         }, 0);
 
         return {
@@ -69,10 +69,13 @@ export class SystemRepository implements ISystemRepository {
             }
 
             if (filters.sort) {
-                const [field, direction] = filters.sort.split("-");
-                if ((direction === "asc" || direction === "desc")) {
-                    if (field === "name") orderBy = { name: direction };
-                    if (field === "createdAt") orderBy = { createdAt: direction };
+                const parts = filters.sort.split("-");
+                if (parts.length === 2) {
+                    const [field, direction] = parts;
+                    if ((direction === "asc" || direction === "desc")) {
+                        if (field === "name") orderBy = { name: direction };
+                        if (field === "createdAt") orderBy = { createdAt: direction };
+                    }
                 }
             }
         }
@@ -97,28 +100,28 @@ export class SystemRepository implements ISystemRepository {
 
         const mappedRecords = records.map(org => new Organization(
             org.id,
-            org.id, // self organizationId
+            org.id,
             org.createdAt,
             org.updatedAt,
-            org.isActive ? EntityStatus.ACTIVE : EntityStatus.INACTIVE, // status
+            org.isActive ? EntityStatus.ACTIVE : EntityStatus.INACTIVE,
             null, // deletedAt
             org.name,
             org.slug,
-            org.settings,
+            org.settings as any,
             org.isActive,
             org.plan ? new OrganizationPlan(
                 org.plan.id,
-                org.plan.id, // using id as orgId for now or just ignore
+                org.plan.id,
                 org.plan.createdAt,
                 org.plan.updatedAt,
-                EntityStatus.ACTIVE, // status (defaulting to ACTIVE as plan usually is)
-                null, // deletedAt
+                EntityStatus.ACTIVE,
+                null,
                 org.plan.name,
                 org.plan.slug,
                 Number(org.plan.price),
-                org.plan.limits
+                org.plan.limits as any
             ) : undefined,
-            org.image ? org.image : undefined, // image
+            org.image ? org.image : undefined,
             org._count.members
         ));
 
@@ -161,21 +164,19 @@ export class SystemRepository implements ISystemRepository {
             org.id,
             org.createdAt,
             org.updatedAt,
-            org.isActive ? EntityStatus.ACTIVE : EntityStatus.INACTIVE, // status
-            null, // deletedAt
+            org.isActive ? EntityStatus.ACTIVE : EntityStatus.INACTIVE,
+            null,
             org.name,
             org.slug,
-            org.settings,
+            org.settings as any,
             org.isActive,
-            undefined, // plan
-            undefined, // image
+            undefined,
+            undefined,
             org._count.members
         ));
     }
 
     async getRevenueStats(): Promise<RevenueStats[]> {
-        // Group by month for the last 6 months
-        // Since we don't have a payments table, we'll estimate based on created subscriptions
         const sixMonthsAgo = new Date();
         sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
 
@@ -191,12 +192,13 @@ export class SystemRepository implements ISystemRepository {
             }
         });
 
-        // Group by month
         const revenueByMonth: Record<string, number> = {};
 
         subscriptions.forEach(sub => {
-            const month = sub.createdAt.toLocaleString('default', { month: 'short' });
-            revenueByMonth[month] = (revenueByMonth[month] || 0) + Number(sub.plan.price);
+            if (sub.plan) {
+                const month = sub.createdAt.toLocaleString('default', { month: 'short' });
+                revenueByMonth[month] = (revenueByMonth[month] || 0) + Number(sub.plan.price);
+            }
         });
 
         return Object.entries(revenueByMonth).map(([name, total]) => ({ name, total }));
@@ -227,7 +229,7 @@ export class SystemRepository implements ISystemRepository {
 
         return plans.map(p => new OrganizationPlan(
             p.id,
-            p.id, // using id as orgId/placeholder since it's a global plan
+            p.id,
             p.createdAt,
             p.updatedAt,
             EntityStatus.ACTIVE,
@@ -235,7 +237,7 @@ export class SystemRepository implements ISystemRepository {
             p.name,
             p.slug,
             Number(p.price),
-            p.limits
+            p.limits as any
         ));
     }
 
@@ -244,7 +246,7 @@ export class SystemRepository implements ISystemRepository {
             data: {
                 ...data,
                 slug: data.name.toLowerCase().replace(/\s+/g, '-'),
-                limits: data.limits || {}
+                limits: (data.limits || {}) as any
             }
         });
     }
@@ -252,8 +254,10 @@ export class SystemRepository implements ISystemRepository {
     async updatePlan(id: string, data: UpdatePlanInput): Promise<void> {
         await prisma.organizationPlan.update({
             where: { id },
-            data // data is strictly typed now and doesn't contain id
+            data: {
+                ...data,
+                limits: (data.limits || {}) as any
+            }
         });
     }
-
 }
