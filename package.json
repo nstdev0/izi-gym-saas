@@ -10,6 +10,15 @@
     "lint": "eslint",
     "postinstall": "prisma generate"
   },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@clerk/shared",
+      "@prisma/engines",
+      "esbuild",
+      "prisma",
+      "msgpackr-extract"
+    ]
+  },
   "dependencies": {
     "@base-ui/react": "^1.1.0",
     "@clerk/nextjs": "^6.37.1",
