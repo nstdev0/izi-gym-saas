@@ -7,6 +7,7 @@ import { OrganizationPlan } from "@/server/domain/entities/OrganizationPlan";
 import { PageableRequest, PageableResponse } from "@/server/shared/common/pagination";
 import { OrganizationsFilters } from "@/server/domain/types/organizations";
 import { Prisma } from "@/generated/prisma/client";
+import { EntityStatus } from "@/server/domain/entities/_base";
 
 export class SystemRepository implements ISystemRepository {
 
@@ -98,15 +99,19 @@ export class SystemRepository implements ISystemRepository {
             org.id, // self organizationId
             org.createdAt,
             org.updatedAt,
+            org.isActive ? EntityStatus.ACTIVE : EntityStatus.INACTIVE, // status
+            null, // deletedAt
             org.name,
             org.slug,
-            org.isActive,
             org.settings,
+            org.isActive,
             org.plan ? new OrganizationPlan(
                 org.plan.id,
                 org.plan.id, // using id as orgId for now or just ignore
                 org.plan.createdAt,
                 org.plan.updatedAt,
+                EntityStatus.ACTIVE, // status (defaulting to ACTIVE as plan usually is)
+                null, // deletedAt
                 org.plan.name,
                 org.plan.slug,
                 Number(org.plan.price),
@@ -155,11 +160,13 @@ export class SystemRepository implements ISystemRepository {
             org.id,
             org.createdAt,
             org.updatedAt,
+            org.isActive ? EntityStatus.ACTIVE : EntityStatus.INACTIVE, // status
+            null, // deletedAt
             org.name,
             org.slug,
-            org.isActive,
             org.settings,
-            undefined, // plan (not mapped in this method currently, or should be?)
+            org.isActive,
+            undefined, // plan
             undefined, // image
             org._count.members
         ));

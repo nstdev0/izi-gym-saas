@@ -7,6 +7,7 @@ import {
   UpdateOrganizationInput,
   OrganizationsFilters,
 } from "@/server/domain/types/organizations";
+import { EntityStatus } from "@/server/domain/entities/_base";
 
 export class OrganizationsRepository
   extends BaseRepository<
@@ -157,15 +158,19 @@ export class OrganizationsRepository
     // However, Organization model in Prisma doesn't always strictly map to "organizationId" property of itself unless it's a tenant data.
     // The BaseEntity expects organizationId, but Organization is the tenant itself.
     // We might need to adjust the Entity or pass the ID as organizationId too.
+    const status = newOrg.isActive ? EntityStatus.ACTIVE : EntityStatus.INACTIVE;
+
     return new Organization(
       newOrg.id,
       newOrg.id, // organizationId (is itself)
       newOrg.createdAt,
       newOrg.updatedAt,
+      status, // status
+      null, // deletedAt
       newOrg.name,
       newOrg.slug,
-      newOrg.isActive,
-      newOrg.settings
+      newOrg.settings,
+      newOrg.isActive
     );
   }
 }

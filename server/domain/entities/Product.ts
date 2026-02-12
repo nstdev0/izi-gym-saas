@@ -23,6 +23,8 @@ export class Product extends BaseEntity {
     public stock: number,
     public minStock: number,
     public type: ProductType,
+    public isActive: boolean,
+    public images: string[] = [],
   ) {
     super(id, organizationId, createdAt, updatedAt, status, deletedAt);
   }

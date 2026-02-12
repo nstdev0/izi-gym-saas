@@ -13,6 +13,7 @@ export class Organization extends BaseEntity {
     public name: string,
     public slug: string,
     public settings: any,
+    public isActive: boolean,
     public plan?: OrganizationPlan,
     public image?: string,
     public membersCount: number = 0,

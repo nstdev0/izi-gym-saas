@@ -12,29 +12,28 @@ interface AppearanceContextType {
 const AppearanceContext = createContext<AppearanceContextType | undefined>(undefined);
 
 export function AppearanceProvider({ children, initialFont }: { children: React.ReactNode, initialFont?: FontType }) {
-    const [font, setFontState] = useState<FontType>(initialFont || "inter");
+    const [fontState, setFontState] = useState<FontType>(() => {
+        if (initialFont) return initialFont;
+
+        if (typeof window !== 'undefined') {
+            const saved = localStorage.getItem("gym-dashboard-font") as FontType;
+            if (saved && ["inter", "outfit", "lato"].includes(saved)) {
+                return saved;
+            }
+        }
+        return "inter";
+    });
 
     useEffect(() => {
-        // If initialFont is provided (SSR), trust it.
-        // Otherwise try local storage (client-only fallback)
-        if (!initialFont) {
-            const savedFont = localStorage.getItem("gym-dashboard-font") as FontType;
-            if (savedFont && ["inter", "outfit", "lato"].includes(savedFont)) {
-                setFontState(savedFont);
-                document.documentElement.setAttribute("data-font", savedFont);
-            } else {
-                document.documentElement.setAttribute("data-font", "inter");
-            }
-        } else {
-            // Ensure data attribute is set for SSR hydration
-            document.documentElement.setAttribute("data-font", initialFont);
-        }
-    }, [initialFont]);
+        document.documentElement.setAttribute("data-font", fontState);
+    }, [fontState]);
 
     const setFont = async (newFont: FontType) => {
         setFontState(newFont);
-        localStorage.setItem("gym-dashboard-font", newFont);
-        document.documentElement.setAttribute("data-font", newFont);
+
+        if (typeof window !== 'undefined') {
+            localStorage.setItem("gym-dashboard-font", newFont);
+        }
 
         try {
             await fetch("/api/settings", {
@@ -52,7 +51,7 @@ export function AppearanceProvider({ children, initialFont }: { children: React.
     };
 
     return (
-        <AppearanceContext.Provider value={{ font, setFont }}>
+        <AppearanceContext.Provider value={{ font: fontState, setFont }}>
             {children}
         </AppearanceContext.Provider>
     );

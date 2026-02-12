@@ -104,8 +104,8 @@ export class MembersRepository
       data: {
         status: "ACTIVE",
         deletedAt: null,
-        email: member.oldEmail,
-        docNumber: member.oldDocNumber,
+        email: member.oldEmail ?? member.email,
+        docNumber: member.oldDocNumber ?? member.docNumber,
         oldEmail: null,
         oldDocNumber: null,
       },

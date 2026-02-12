@@ -1,4 +1,5 @@
 import { Prisma } from "@/generated/prisma/client";
+import { EntityStatus } from "@/server/domain/entities/_base";
 import { BaseRepository } from "./base.repository";
 import { Plan } from "@/server/domain/entities/Plan";
 import { IPlansRepository } from "@/server/application/repositories/plans.repository.interface";

@@ -12,6 +12,8 @@ export class Plan extends BaseEntity {
     public description: string | null,
     public price: number,
     public durationDays: number,
+    public isActive: boolean,
+    public image?: string | null,
   ) {
     super(id, organizationId, createdAt, updatedAt, status, deletedAt);
   }
