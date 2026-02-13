@@ -262,12 +262,10 @@ export class OrganizationsRepository
 
     const domainConfig = newOrg.config ? {
       id: newOrg.config.id,
-      // Extraemos valores flat si tu interfaz de Dominio los requiere así
       locale: (newOrg.config.identity as any)?.locale || "es-PE",
       timezone: (newOrg.config.identity as any)?.timezone || "America/Lima",
       currency: (newOrg.config.identity as any)?.currency || "PEN",
 
-      // Casteamos los JSON de Prisma a Record<string, unknown>
       identity: newOrg.config.identity as Record<string, unknown>,
       branding: newOrg.config.branding as Record<string, unknown>,
       billing: newOrg.config.billing as Record<string, unknown>,

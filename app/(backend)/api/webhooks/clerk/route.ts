@@ -30,134 +30,121 @@ export async function POST(req: Request) {
       "svix-timestamp": svix_timestamp,
       "svix-signature": svix_signature,
     }) as WebhookEvent;
-  } catch {
+  } catch (err) {
+    console.error("Error verificando webhook:", err);
     return new Response("Error verificando webhook", { status: 400 });
   }
 
-  // 2. Manejo de Eventos
   const eventType = event.type;
   console.log(`📨 Webhook recibido: ${eventType}`);
 
   try {
-    // PRE-FETCH: Necesitamos el Plan Default disponible para cualquier caso de creación de Org
-    // (Ya sea directo o via condición de carrera en membresía)
+    // PRE-FETCH: Plan Default (con manejo de error si no existe)
     const freePlan = await prisma.organizationPlan.findUnique({
       where: { slug: "free-trial" },
     });
 
     if (!freePlan) {
-      // En producción esto debería ser un error silencioso o fallback, pero para dev es crítico
-      console.error("❌ ERROR: No existe el plan 'free-trial'. Ejecuta el seed.");
-      return new Response("Plan faltante", { status: 500 });
+      // Retornamos 500 para que Clerk reintente más tarde (cuando hayas corrido el seed)
+      console.error("❌ CRÍTICO: Plan 'free-trial' no encontrado. Clerk reintentará.");
+      return new Response("Plan faltante, reintentando...", { status: 500 });
     }
 
     switch (eventType) {
       // ------------------------------------------------------------------
-      // CASO 1: SE CREA O ACTUALIZA EL USUARIO
+      // CASO 1: USUARIO (CREATE / UPDATE)
       // ------------------------------------------------------------------
       case "user.created":
       case "user.updated": {
-        const { id, email_addresses, first_name, last_name, image_url } = event.data;
-        const email = email_addresses[0]?.email_address;
+        // Casting explícito para tener autocompletado seguro
+        const data = event.data;
+        const email = data.email_addresses?.[0]?.email_address;
+        const userId = data.id;
 
-        // --- 🛡️ PROTECCIÓN CONTRA ZOMBIES (Email Conflict) ---
         if (email) {
-          const existingUser = await prisma.user.findUnique({
-            where: { email },
+          // Buscamos cualquier usuario con ese email, ignorando la Org por ahora para detectar el conflicto
+          const existingUser = await prisma.user.findFirst({
+            where: { email: email },
           });
 
-          // Si existe alguien con este email PERO tiene otro ID, es un remanente viejo.
-          // Clerk es la autoridad, así que borramos el local para evitar choque de Unique Constraint.
-          if (existingUser && existingUser.id !== id) {
-            console.log(`🧟 Zombie detectado: Email ${email} está ocupado por ID antiguo ${existingUser.id}. Eliminando...`);
-            // Usamos transacción o delete directo.
-            // Nota: Si este usuario tenía relaciones (Foreign Keys) sin Cascade Delete, esto podría fallar,
-            // pero asumiremos que es un usuario "basura" o que el schema tiene Cascade.
-            await prisma.user.delete({
-              where: { id: existingUser.id }
-            });
+          if (existingUser && existingUser.id !== userId) {
+            console.log(`🧟 Zombie detectado: ${email}. Eliminando ID antiguo ${existingUser.id}...`);
+            await prisma.user.delete({ where: { id: existingUser.id } });
           }
         }
-        // ----------------------------------------------------
 
         await prisma.user.upsert({
-          where: { id },
+          where: { id: userId },
           create: {
-            id,
-            email,
-            firstName: first_name || null,
-            lastName: last_name || null,
-            image: image_url || null,
-            // Default role, will be updated by organizationMembership events
+            id: userId,
+            email: email || "", // Manejar caso raro sin email
+            firstName: data.first_name || null,
+            lastName: data.last_name || null,
+            image: data.image_url || null,
             role: Role.STAFF,
             isActive: true,
           },
           update: {
-            email,
-            firstName: first_name || null,
-            lastName: last_name || null,
-            image: image_url || null,
+            email: email || undefined,
+            firstName: data.first_name || null,
+            lastName: data.last_name || null,
+            image: data.image_url || null,
           }
         });
-        console.log(`👤 Usuario sincronizado: ${email}`);
+        console.log(`👤 Usuario procesado: ${email}`);
         break;
       }
 
       // ------------------------------------------------------------------
-      // CASO 2: SE ELIMINA EL USUARIO
+      // CASO 2: USUARIO ELIMINADO
       // ------------------------------------------------------------------
       case "user.deleted": {
         const { id } = event.data;
         if (!id) break;
 
         try {
-          await prisma.user.delete({
-            where: { id }
-          });
+          await prisma.user.delete({ where: { id } });
           console.log(`🗑️ Usuario eliminado: ${id}`);
-        } catch (error: unknown) {
-          // Ignorar si el usuario no existe (P2025)
-          if (error && typeof error === 'object' && 'code' in error && (error as { code: string }).code === 'P2025') {
-            console.log(`⚠️ Intentando eliminar usuario no existente ${id} (ignorado)`);
-          } else {
-            throw error;
-          }
+        } catch (error: any) {
+          // P2025: Record to delete does not exist.
+          if (error?.code !== 'P2025') throw error;
         }
         break;
       }
 
       // ------------------------------------------------------------------
-      // CASO 3: SE CREA LA ORGANIZACIÓN
+      // CASO 3: ORGANIZACIÓN CREADA
       // ------------------------------------------------------------------
       case "organization.created": {
-        const { id, name, slug, image_url } = event.data;
+        const data = event.data;
 
         await prisma.$transaction(async (tx) => {
+          // Upsert es vital por si membership.created llegó primero
           await tx.organization.upsert({
-            where: { id },
+            where: { id: data.id },
             update: {
-              name,
-              slug: slug || name.toLowerCase().replace(/\s+/g, "-"),
-              image: image_url,
-              // Si ya existe, no cambiamos el plan, solo datos visuales
+              name: data.name,
+              slug: data.slug || data.name.toLowerCase().replace(/\s+/g, "-"),
+              image: data.image_url,
             },
             create: {
-              id,
-              name,
-              slug: slug || name.toLowerCase().replace(/\s+/g, "-"),
-              image: image_url,
-              organizationPlanId: freePlan.id // Usamos el plan recuperado arriba
+              id: data.id,
+              name: data.name,
+              slug: data.slug || data.name.toLowerCase().replace(/\s+/g, "-"),
+              image: data.image_url,
+              organizationPlanId: freePlan.id
             },
           });
 
-          const existingSubscription = await tx.subscription.findUnique({
-            where: { organizationId: id }
+          // Crear suscripción si no existe
+          const sub = await tx.subscription.findUnique({
+            where: { organizationId: data.id }
           });
 
-          if (!existingSubscription) {
+          if (!sub) {
             await tx.subscription.create({
               data: {
-                organizationId: id,
+                organizationId: data.id,
                 organizationPlanId: freePlan.id,
                 status: "TRIALING",
                 currentPeriodEnd: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
@@ -165,50 +152,42 @@ export async function POST(req: Request) {
             });
           }
         });
-
-        console.log(`✅ Organización creada/actualizada: ${name}`);
+        console.log(`✅ Organización procesada: ${data.name}`);
         break;
       }
 
       // ------------------------------------------------------------------
-      // CASO 4: SE CREA LA MEMBRESÍA (SOLUCIÓN A RACE CONDITION)
+      // CASO 4: MEMBRESÍA CREADA (RACE CONDITION HANDLER)
       // ------------------------------------------------------------------
       case "organizationMembership.created": {
-        const { organization, public_user_data, role } = event.data;
+        const data = event.data;
+        const organization = data.organization;
+        const email = data.public_user_data.identifier;
+        const userId = data.public_user_data.user_id;
 
-        const email = public_user_data.identifier;
-
+        // Limpieza de Zombies (igual que en user.created por seguridad)
         if (email) {
-          const existingUser = await prisma.user.findUnique({ where: { email } });
-          if (existingUser && existingUser.id !== public_user_data.user_id) {
-            console.log(`🧟 Zombie detectado en Membresía: Email ${email} ocupado. Eliminando...`);
+          const existingUser = await prisma.user.findFirst({ where: { email } });
+          if (existingUser && existingUser.id !== userId) {
             await prisma.user.delete({ where: { id: existingUser.id } });
           }
         }
 
-        // --- Lógica de Roles ---
+        // Mapeo de Roles
         let appRole: Role = Role.STAFF;
-        if (role === "org:admin") {
-          // Fallback simple: si es admin en Clerk, es Owner o Admin aquí.
-          // Para evitar consultas extra complejas en el webhook, podemos asumir Admin
-          // y que luego cambien a Owner manualmente o afinar esta lógica después.
-          appRole = Role.ADMIN;
-        } else if (role === "org:member") {
-          appRole = Role.STAFF;
-        }
+        if (data.role === "org:admin") appRole = Role.ADMIN; // Asumimos Admin temporalmente
 
-        // --- UPSERT CON CONNECT_OR_CREATE ---
         await prisma.user.upsert({
-          where: { id: public_user_data.user_id },
+          where: { id: userId },
           create: {
-            id: public_user_data.user_id,
-            email: public_user_data.identifier,
-            firstName: public_user_data.first_name || null,
-            lastName: public_user_data.last_name || null,
-            image: public_user_data.image_url || null,
+            id: userId,
+            email: email,
+            firstName: data.public_user_data.first_name || null,
+            lastName: data.public_user_data.last_name || null,
+            image: data.public_user_data.image_url || null,
             role: appRole,
             isActive: true,
-            // AQUÍ ESTÁ LA MAGIA:
+            // ✨ Conexión Race-Condition Proof ✨
             organization: {
               connectOrCreate: {
                 where: { id: organization.id },
@@ -217,18 +196,14 @@ export async function POST(req: Request) {
                   name: organization.name,
                   slug: organization.slug || organization.name,
                   image: organization.image_url,
-                  organizationPlanId: freePlan.id // Necesario si se crea la org aquí
+                  organizationPlanId: freePlan.id
                 }
               }
             }
           },
           update: {
             role: appRole,
-            firstName: public_user_data.first_name || undefined,
-            lastName: public_user_data.last_name || undefined,
-            image: public_user_data.image_url || undefined,
             isActive: true,
-            // Aseguramos la conexión también en el update
             organization: {
               connectOrCreate: {
                 where: { id: organization.id },
@@ -243,57 +218,66 @@ export async function POST(req: Request) {
             }
           }
         });
-
-        console.log(`✅ Usuario vinculado a org ${organization.name} (Race-condition safe)`);
+        console.log(`🔗 Membresía vinculada: ${email} -> ${organization.name}`);
         break;
       }
 
       // ------------------------------------------------------------------
-      // CASO 5: SE ELIMINA LA MEMBRESÍA
+      // CASO 5: MEMBRESÍA ELIMINADA
       // ------------------------------------------------------------------
       case "organizationMembership.deleted": {
-        const { public_user_data } = event.data;
+        const data = event.data;
         try {
           await prisma.user.update({
-            where: { id: public_user_data.user_id },
+            where: { id: data.public_user_data.user_id },
             data: { organizationId: null, isActive: false }
           });
-          console.log(`🔓 Usuario desvinculado`);
-        } catch (error: unknown) {
-          // Si el usuario no existe, ignoramos el error para evitar reintento infinito de Clerk
-          if (error && typeof error === 'object' && 'code' in error && (error as { code: string }).code === 'P2025') {
-            console.log("⚠️ Usuario no encontrado al desvincular, saltando...");
-          } else {
-            throw error;
-          }
+        } catch (error: any) {
+          if (error?.code !== 'P2025') throw error;
         }
         break;
       }
 
       // ------------------------------------------------------------------
-      // CASO 6: SE ACTUALIZA LA ORGANIZACIÓN
+      // CASO 6: ORGANIZACIÓN ACTUALIZADA
       // ------------------------------------------------------------------
       case "organization.updated": {
-        const { id, name, slug, image_url } = event.data;
-        // Solo intentamos actualizar si existe, si no, ignoramos (evitar errores 404 raros)
+        const data = event.data;
         try {
           await prisma.organization.update({
-            where: { id },
-            data: { name, slug: slug || undefined, image: image_url || undefined }
+            where: { id: data.id },
+            data: {
+              name: data.name,
+              slug: data.slug || undefined,
+              image: data.image_url || undefined
+            }
           });
-          console.log(`🔄 Organización actualizada: ${name}`);
-        } catch {
-          console.log("⚠️ Intento de actualizar organización no existente (ignorado)");
+        } catch (error: any) {
+          // Si no existe, no hacemos nada (esperamos al evento created)
+          if (error?.code !== 'P2025') throw error;
         }
         break;
       }
 
-      default:
-        console.log(`⏭️ Evento no manejado: ${eventType}`);
+      case "organization.deleted": {
+        const data = event.data;
+        try {
+          await prisma.organization.delete({
+            where: { id: data.id }
+          });
+        } catch (error: any) {
+          if (error?.code !== 'P2025') throw error;
+        }
+        break;
+      }
+
     }
 
-  } catch {
-    console.error("❌ Error procesando webhook");
-    return NextResponse.json({ success: false, error: "Fallo interno" }, { status: 500 });
+    return NextResponse.json({ success: true }, { status: 200 });
+
+  } catch (error) {
+    console.error("❌ Error procesando webhook:", error);
+    // Retornamos 500 para que Clerk sepa que falló y reintente
+    return NextResponse.json({ success: false, error: "Internal Server Error" }, { status: 500 });
   }
 }
