@@ -1,6 +1,19 @@
 import { BaseEntity, EntityStatus } from "./_base";
-import { OrganizationPlan } from "./OrganizationPlan";
 
+interface OrganizationConfig {
+  id: string
+  locale: string
+  timezone: string
+  currency: string
+  identity: Record<string, unknown>
+  branding: Record<string, unknown>
+  billing: Record<string, unknown>
+  booking: Record<string, unknown>
+  accessControl: Record<string, unknown>
+  notifications: Record<string, unknown>
+  features: Record<string, unknown>
+  staffSettings: Record<string, unknown>
+}
 
 export class Organization extends BaseEntity {
   constructor(
@@ -12,12 +25,10 @@ export class Organization extends BaseEntity {
     deletedAt: Date | null,
     public name: string,
     public slug: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    public settings: any,
     public isActive: boolean,
-    public plan?: OrganizationPlan,
     public image?: string,
-    public membersCount: number = 0,
+    public config?: OrganizationConfig,
+    public organizationPlanId?: string,
   ) {
     super(id, organizationId, createdAt, updatedAt, status, deletedAt);
   }

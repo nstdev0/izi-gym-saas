@@ -7,146 +7,166 @@ datasource db {
   provider = "postgresql"
 }
 
-model Organization {
-  id                 String           @id @default(cuid())
-  name               String
-  slug               String           @unique
-  isActive           Boolean          @default(true)
-  createdAt          DateTime         @default(now())
-  updatedAt          DateTime         @updatedAt
-  image              String?
-  organizationPlanId String
-  settings           Json?
-  members            Member[]
-  memberships        Membership[]
-  plan               OrganizationPlan @relation(fields: [organizationPlanId], references: [id])
-  plans              Plan[]           @relation("GymPlans")
-  products           Product[]
-  subscription       Subscription?
-  users              User[]
-  attendances        Attendance[]
-}
+// --------------------------------------
+// MODELS
+// --------------------------------------
 
-model OrganizationPlan {
-  id            String         @id @default(cuid())
-  name          String         @unique
-  slug          String         @unique
-  description   String?
-  image         String?
-  price         Decimal        @default(0) @db.Decimal(10, 2)
-  currency      String         @default("USD")
-  limits        Json
-  stripePriceId String?
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  organizations Organization[]
-  subscriptions Subscription[]
-}
+model Attendance {
+  id     String           @id @default(cuid())
+  date   DateTime         @default(now())
+  method AttendanceMethod @default(QR)
 
-model Subscription {
-  id                   String             @id @default(cuid())
-  organizationId       String             @unique
-  organizationPlanId   String
-  stripeCustomerId     String?
-  stripeSubscriptionId String?            @unique
-  status               SubscriptionStatus
-  currentPeriodEnd     DateTime
-  createdAt            DateTime           @default(now())
-  updatedAt            DateTime           @updatedAt
-  organization         Organization       @relation(fields: [organizationId], references: [id])
-  plan                 OrganizationPlan   @relation(fields: [organizationPlanId], references: [id])
-}
+  memberId String
+  member   Member @relation(fields: [memberId], references: [id])
 
-model User {
-  id             String        @id @default(cuid())
-  email          String        @unique
-  passwordHash   String?
-  role           Role          @default(STAFF)
-  organizationId String?
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
-  image          String?
-  isActive       Boolean       @default(true)
-  firstName      String?
-  lastName       String?
-  organization   Organization? @relation(fields: [organizationId], references: [id])
-
-  @@index([organizationId])
-}
-
-model Member {
-  id             String       @id @default(cuid())
-  qr             String       @unique
-  firstName      String
-  lastName       String
-  email          String?
-  phone          String?
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
-  docNumber      String
-  birthDate      DateTime?    @db.Date
-  docType        DocType
-  gender         Gender?
   organizationId String
-  status         EntityStatus @default(ACTIVE)
-  height         Float?
-  image          String?
-  imc            Float?
-  weight         Float?
-
-  oldEmail     String?
-  oldDocNumber String?
-
-  attendances Attendance[]
+  organization   Organization @relation(fields: [organizationId], references: [id])
 
   isActive  Boolean   @default(true)
   deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
-  organization Organization @relation(fields: [organizationId], references: [id])
-  memberships  Membership[]
+  @@index([organizationId])
+  @@index([memberId])
+  @@index([date])
+}
 
+model Invoice {
+  id String @id @default(cuid())
+
+  // Numeración
+  prefix     String?
+  number     Int
+  fullNumber String
+
+  // Relaciones
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  memberId String
+  member   Member @relation(fields: [memberId], references: [id])
+
+  // Financiero
+  currency  String  @default("PEN")
+  subtotal  Decimal @db.Decimal(10, 2)
+  taxRate   Decimal @default(0) @db.Decimal(5, 2)
+  taxAmount Decimal @db.Decimal(10, 2)
+  discount  Decimal @default(0) @db.Decimal(10, 2)
+  total     Decimal @db.Decimal(10, 2)
+
+  // Estado
+  status        InvoiceStatus  @default(DRAFT)
+  paymentMethod PaymentMethod?
+
+  issuedAt DateTime  @default(now())
+  dueAt    DateTime  @default(now())
+  paidAt   DateTime?
+  voidedAt DateTime?
+
+  // Notas
+  pdfUrl        String?
+  notes         String?
+  internalNotes String?
+
+  items InvoiceItem[]
+
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  // Unicidad compuesta: El número de factura no se repite dentro del mismo gym
+  @@unique([organizationId, fullNumber])
+  @@index([memberId])
+  @@index([issuedAt])
+  @@index([status])
+}
+
+model InvoiceItem {
+  id String @id @default(cuid())
+
+  invoiceId String
+  invoice   Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  description String
+  quantity    Int     @default(1)
+  unitPrice   Decimal @db.Decimal(10, 2)
+  subtotal    Decimal @db.Decimal(10, 2)
+
+  productId String?
+  product   Product? @relation(fields: [productId], references: [id])
+
+  planId String?
+  plan   Plan?   @relation(fields: [planId], references: [id])
+
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Member {
+  id String @id @default(cuid())
+
+  // CAMBIO: 'qr' ya no es @unique globalmente aquí
+  qr String
+
+  firstName String
+  lastName  String
+  image     String?
+  email     String?
+  phone     String?
+  docNumber String
+  docType   DocType
+  birthDate DateTime? @db.Date
+  gender    Gender?
+  height    Float?
+  weight    Float?
+  imc       Float?
+
+  status EntityStatus @default(ACTIVE)
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  memberships Membership[]
+  attendances Attendance[]
+  invoices    Invoice[]
+
+  isActive  Boolean   @default(true)
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  // REGLAS APLICADAS:
+  // 1. QR único por organización
+  @@unique([qr, organizationId])
+  // 2. Documento único por organización
   @@unique([docType, docNumber, organizationId])
+  // 3. Email único por organización
   @@unique([email, organizationId])
   @@index([organizationId])
   @@index([lastName, firstName])
 }
 
-model Plan {
-  id             String       @id @default(cuid())
-  name           String
-  description    String?
-  price          Decimal      @db.Decimal(10, 2)
-  durationDays   Int
-  organizationId String
-  status         EntityStatus @default(ACTIVE)
-
-  image        String?
-  memberships  Membership[]
-  organization Organization @relation("GymPlans", fields: [organizationId], references: [id])
-
-  isActive  Boolean   @default(true)
-  deletedAt DateTime?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([organizationId])
-}
-
 model Membership {
-  id             String           @id @default(cuid())
-  startDate      DateTime
-  endDate        DateTime
-  status         MembershipStatus @default(PENDING)
-  pricePaid      Decimal          @db.Decimal(10, 2)
-  memberId       String
-  planId         String
+  id        String           @id @default(cuid())
+  startDate DateTime
+  endDate   DateTime
+  status    MembershipStatus @default(PENDING)
+  pricePaid Decimal          @db.Decimal(10, 2)
+
+  memberId String
+  member   Member @relation(fields: [memberId], references: [id])
+
+  planId String
+  plan   Plan   @relation(fields: [planId], references: [id])
+
   organizationId String
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
-  member         Member           @relation(fields: [memberId], references: [id])
-  organization   Organization     @relation(fields: [organizationId], references: [id])
-  plan           Plan             @relation(fields: [planId], references: [id])
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
   @@index([organizationId])
   @@index([memberId])
@@ -154,58 +174,194 @@ model Membership {
   @@index([endDate])
 }
 
-model Product {
-  id             String       @id @default(cuid())
-  sku            String?
-  name           String
-  description    String?
-  price          Decimal      @db.Decimal(10, 2)
-  cost           Decimal      @db.Decimal(10, 2)
-  stock          Int          @default(0)
-  minStock       Int          @default(5)
-  type           ProductType
-  status         EntityStatus @default(ACTIVE)
-  organizationId String
-  images         String[]
-  organization   Organization @relation(fields: [organizationId], references: [id])
+model Organization {
+  id String @id @default(cuid())
+
+  // REGLA APLICADA: Name y Slug únicos globales
+  name  String  @unique
+  slug  String  @unique
+  image String?
+
+  organizationPlanId String
+  plan               OrganizationPlan @relation(fields: [organizationPlanId], references: [id])
+
+  config OrganizationConfig?
+
+  members     Member[]
+  memberships Membership[]
+  plans       Plan[]       @relation("GymPlans")
+  products    Product[]
+  users       User[]
+  attendances Attendance[]
+  invoices    Invoice[]
+
+  subscription Subscription?
 
   isActive  Boolean   @default(true)
   deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model OrganizationConfig {
+  id             String       @id @default(cuid())
+  organizationId String       @unique
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
-  @@unique([sku, organizationId])
+  locale   String @default("es-PE")
+  timezone String @default("America/Lima")
+  currency String @default("PEN")
+
+  identity      Json?
+  branding      Json?
+  billing       Json?
+  booking       Json?
+  accessControl Json?
+  notifications Json?
+  features      Json?
+  staffSettings Json?
+
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model OrganizationPlan {
+  id String @id @default(cuid())
+
+  // REGLA APLICADA: Name y Slug únicos globales
+  name String @unique
+  slug String @unique
+
+  description   String?
+  image         String?
+  price         Decimal @default(0) @db.Decimal(10, 2)
+  currency      String  @default("USD")
+  limits        Json
+  stripePriceId String?
+
+  organizations Organization[]
+  subscriptions Subscription[]
+
+  isActive  Boolean   @default(true)
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Plan {
+  id           String       @id @default(cuid())
+  name         String
+  description  String?
+  price        Decimal      @db.Decimal(10, 2)
+  durationDays Int
+  status       EntityStatus @default(ACTIVE)
+  image        String?
+
+  organizationId String
+  organization   Organization @relation("GymPlans", fields: [organizationId], references: [id])
+
+  memberships  Membership[]
+  invoiceItems InvoiceItem[]
+
+  isActive  Boolean   @default(true)
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
   @@index([organizationId])
+}
+
+model Product {
+  id String @id @default(cuid())
+
+  // CAMBIO: SKU ya no es único globalmente (se maneja abajo en @@unique)
+  sku         String?
+  name        String
+  description String?
+  price       Decimal      @db.Decimal(10, 2)
+  cost        Decimal      @db.Decimal(10, 2)
+  stock       Int          @default(0)
+  minStock    Int          @default(5)
+  type        ProductType
+  status      EntityStatus @default(ACTIVE)
+  images      String[]
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  invoiceItems InvoiceItem[]
+
+  isActive  Boolean   @default(true)
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  // REGLAS APLICADAS:
+  // 1. SKU único por organización
+  @@unique([sku, organizationId])
+  // 2. Name único por organización
+  @@unique([name, organizationId])
+  @@index([organizationId])
+}
+
+model Subscription {
+  id                   String             @id @default(cuid())
+  status               SubscriptionStatus
+  currentPeriodEnd     DateTime
+  stripeCustomerId     String?
+  stripeSubscriptionId String?            @unique
+
+  organizationId String       @unique
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  organizationPlanId String
+  plan               OrganizationPlan @relation(fields: [organizationPlanId], references: [id])
+
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 }
 
 model SystemConfig {
-  id                 String   @id @default(cuid())
-  maintenanceMode    Boolean  @default(false)
+  id                 String  @id @default(cuid())
+  maintenanceMode    Boolean @default(false)
   globalAnnouncement String?
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 }
 
-model Attendance {
-  id             String           @id @default(cuid())
-  date           DateTime         @default(now())
-  method         AttendanceMethod @default(QR)
-  memberId       String
-  organizationId String
-  member         Member           @relation(fields: [memberId], references: [id])
-  organization   Organization     @relation(fields: [organizationId], references: [id])
+model User {
+  id String @id @default(cuid())
+
+  // CAMBIO: Quitamos @unique global del email
+  email String
+
+  passwordHash String?
+  role         Role    @default(STAFF)
+  firstName    String?
+  lastName     String?
+  image        String?
+
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id])
 
   isActive  Boolean   @default(true)
   deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
+  // REGLA APLICADA: Email único por organización
+  // Nota: Esto permite tener el mismo email en diferentes gyms (o sin gym si orgId es null)
+  @@unique([email, organizationId])
   @@index([organizationId])
-  @@index([memberId])
-  @@index([date])
 }
+
+// --------------------------------------
+// ENUMS (Sin cambios)
+// --------------------------------------
 
 enum SubscriptionStatus {
   ACTIVE
@@ -258,4 +414,23 @@ enum AttendanceMethod {
 enum EntityStatus {
   ACTIVE
   INACTIVE
+}
+
+enum InvoiceStatus {
+  DRAFT
+  PENDING
+  PAID
+  VOID
+  OVERDUE
+  REFUNDED
+}
+
+enum PaymentMethod {
+  CASH
+  CREDIT_CARD
+  DEBIT_CARD
+  TRANSFER
+  YAPE
+  PLIN
+  STRIPE
 }

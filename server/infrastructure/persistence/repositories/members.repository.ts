@@ -12,6 +12,8 @@ import {
   PageableResponse,
 } from "@/server/shared/common/pagination";
 
+
+
 export class MembersRepository
   extends BaseRepository<
     Prisma.MemberDelegate,
@@ -21,6 +23,16 @@ export class MembersRepository
     MembersFilters
   >
   implements IMembersRepository {
+
+  private restoreField = (value: string | null | undefined): string | null => {
+    if (!value) return null;
+    return value.replace(/^deletedAt_\d+_/, '');
+  };
+
+  private softDelete = (value: string | null | undefined): string | null => {
+    if (!value) return null;
+    return `deletedAt_${Date.now()}_${value}`;
+  }
 
   async findAll(
     request: PageableRequest<MembersFilters> = { page: 1, limit: 10 },
@@ -85,14 +97,12 @@ export class MembersRepository
     return (await this.model.update({
       where: { id },
       data: {
-        status: "INACTIVE",
+        isActive: false,
         deletedAt: new Date(),
-        email: member.email ? `${member.email}_deleted_${Date.now()}` : null,
-        docNumber: `${member.docNumber}_deleted_${Date.now()}`,
-        oldEmail: member.email,
-        oldDocNumber: member.docNumber,
+        email: this.softDelete(member.email),
+        docNumber: this.softDelete(member.docNumber) || "",
       },
-    })) as unknown as Member;
+    })) as Member;
   }
 
   async restore(id: string): Promise<Member> {
@@ -102,14 +112,12 @@ export class MembersRepository
     return (await this.model.update({
       where: { id },
       data: {
-        status: "ACTIVE",
+        isActive: true,
         deletedAt: null,
-        email: member.oldEmail ?? member.email,
-        docNumber: member.oldDocNumber ?? member.docNumber,
-        oldEmail: null,
-        oldDocNumber: null,
+        email: this.restoreField(member.email),
+        docNumber: this.restoreField(member.docNumber) || "",
       },
-    })) as unknown as Member;
+    })) as Member;
   }
 
 
@@ -215,7 +223,7 @@ export class MembersRepository
 
   async findByQrCode(qrCode: string): Promise<Member | null> {
     return this.model.findUnique({
-      where: { qr: qrCode },
+      where: { qr_organizationId: { qr: qrCode, organizationId: this.organizationId! } },
     }) as unknown as Promise<Member | null>;
   }
 }
