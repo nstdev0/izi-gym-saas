@@ -4,6 +4,7 @@ import { useDebouncedCallback } from "use-debounce";
 import { Search } from "lucide-react";
 import { Input } from "./input";
 import { useEffect, useState } from "react";
+import { cn } from "@/lib/utils";
 
 interface SearchInputProps {
   placeholder: string;
@@ -13,6 +14,7 @@ interface SearchInputProps {
 
 export function SearchInput({ placeholder, value, onChange }: SearchInputProps) {
   const [localValue, setLocalValue] = useState(value);
+  const [isFocused, setIsFocused] = useState(false);
 
   useEffect(() => {
     setLocalValue(value);
@@ -29,13 +31,24 @@ export function SearchInput({ placeholder, value, onChange }: SearchInputProps) 
   };
 
   return (
-    <div className="flex-1 relative">
-      <Search className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
+    <div className={cn("relative group transition-all duration-200")}>
+      <Search
+        className={cn(
+          "absolute left-3 top-2.5 w-4 h-4 transition-colors duration-200",
+          isFocused ? "text-primary" : "text-muted-foreground group-hover:text-foreground/70"
+        )}
+      />
       <Input
         placeholder={placeholder}
-        className="pl-9"
+        className={cn(
+          "pl-9 bg-background/50 border-muted-foreground/20 shadow-sm transition-all duration-200",
+          "focus-visible:ring-1 focus-visible:ring-primary focus-visible:border-primary/50",
+          "hover:border-muted-foreground/40 hover:bg-background"
+        )}
         value={localValue}
         onChange={onInputChange}
+        onFocus={() => setIsFocused(true)}
+        onBlur={() => setIsFocused(false)}
       />
     </div>
   );

@@ -3,6 +3,8 @@
 import { Button } from "./button";
 import { ArrowUpDown, Filter, X } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./select";
+import { cn } from "@/lib/utils";
+import { Badge } from "./badge";
 
 export interface FilterOption {
     label: string,
@@ -34,14 +36,16 @@ interface SmartFiltersProps<T> {
         [key: string]: any;
     };
     onFilterChange: (key: string, value: string | null) => void;
-    defaultSort?: string
+    defaultSort?: string;
+    className?: string;
 }
 
 export default function SmartFilters<T>({
     config,
     activeValues,
     onFilterChange,
-    defaultSort = "createdAt-desc"
+    defaultSort = "createdAt-desc",
+    className
 }: SmartFiltersProps<T>) {
     const handleReset = () => {
         config.filters?.forEach(f => onFilterChange(f.key, null));
@@ -57,21 +61,21 @@ export default function SmartFilters<T>({
     );
 
     return (
-        <div className="flex flex-wrap items-center gap-2">
-            {/* SORT */}
+        <div className={cn("flex flex-wrap items-center gap-2", className)}>
+            {/* SORT - Estilo más sólido/permanente */}
             <Select
                 value={activeValues.sort || undefined}
                 onValueChange={(val) => onFilterChange("sort", val)}
             >
-                <SelectTrigger className="w-auto min-w-[140px] h-9">
+                <SelectTrigger className="w-auto min-w-[130px] h-9 shadow-sm bg-background border-border hover:bg-accent/50 transition-colors">
                     <div className="flex items-center gap-2">
-                        <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
+                        <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground" />
                         <SelectValue placeholder="Ordenar" />
                     </div>
                 </SelectTrigger>
-                <SelectContent>
-                    <SelectItem value="createdAt-desc">Recientes</SelectItem>
-                    <SelectItem value="createdAt-asc">Antiguos</SelectItem>
+                <SelectContent align="start">
+                    <SelectItem value="createdAt-desc">Recientes primero</SelectItem>
+                    <SelectItem value="createdAt-asc">Antiguos primero</SelectItem>
                     {config.sort?.map((opt) => (
                         <SelectItem key={opt.value} value={opt.value}>
                             {opt.label}
@@ -80,31 +84,57 @@ export default function SmartFilters<T>({
                 </SelectContent>
             </Select>
 
+            {/* SEPARADOR VISUAL (Opcional, si hay filtros) */}
+            {config.filters && config.filters.length > 0 && (
+                <div className="h-6 w-px bg-border mx-1 hidden sm:block" />
+            )}
+
             {/* FILTROS DINÁMICOS */}
             {config.filters?.map((filterConfig) => {
-                const currentValue = activeValues[filterConfig.key] || undefined;
+                const currentValue = activeValues[filterConfig.key];
+                const isActive = currentValue && currentValue !== "all";
 
                 return (
                     <Select
                         key={filterConfig.key}
-                        value={currentValue}
+                        value={currentValue || "all"}
                         onValueChange={(val) => {
                             const valueToSend = val === "all" ? null : val;
                             onFilterChange(filterConfig.key, valueToSend);
                         }}
                     >
-                        <SelectTrigger className="w-auto min-w-[140px] h-9 border-dashed">
+                        <SelectTrigger
+                            className={cn(
+                                "w-auto h-9 min-w-[120px] transition-all duration-200",
+                                isActive
+                                    ? "bg-primary/5 border-primary/50 text-primary hover:bg-primary/10"
+                                    : "border-dashed bg-transparent hover:bg-accent/50 hover:border-border text-muted-foreground hover:text-foreground"
+                            )}
+                        >
                             <div className="flex items-center gap-2">
-                                <Filter className="h-3.5 w-3.5 text-muted-foreground" />
-                                <SelectValue placeholder={filterConfig.label} />
+                                <Filter className={cn("h-3.5 w-3.5", isActive ? "text-primary fill-primary/20" : "text-muted-foreground")} />
+                                <span className={cn("text-sm", isActive && "font-medium")}>
+                                    {isActive
+                                        ? filterConfig.options.find(o => o.value === currentValue)?.label
+                                        : filterConfig.label
+                                    }
+                                </span>
+                                {isActive && (
+                                    <Badge variant="secondary" className="ml-1 h-4 w-4 p-0 flex items-center justify-center rounded-full bg-primary/20 text-primary hover:bg-primary/30">
+                                        1
+                                    </Badge>
+                                )}
                             </div>
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="all">Todos ({filterConfig.label})
+                            <SelectItem value="all" className="text-muted-foreground">
+                                Todos
                             </SelectItem>
                             {filterConfig.options.map((option) => (
                                 <SelectItem key={option.value} value={option.value}>
-                                    {option.label}
+                                    <div className="flex items-center gap-2">
+                                        {option.label}
+                                    </div>
                                 </SelectItem>
                             ))}
                         </SelectContent>
@@ -117,7 +147,7 @@ export default function SmartFilters<T>({
                     variant="ghost"
                     size="sm"
                     onClick={handleReset}
-                    className="h-9 px-2 lg:px-3"
+                    className="h-9 px-2 lg:px-3 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors ml-auto sm:ml-0"
                 >
                     <X className="mr-2 h-4 w-4" />
                     Limpiar
