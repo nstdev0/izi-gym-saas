@@ -518,7 +518,9 @@ export default function DashboardViewPage() {
                                                         {member.name}
                                                     </Link>
                                                     <p className="text-xs text-muted-foreground truncate">
-                                                        {member.daysUntil === 0 ? `Vence hoy` : `Vence en ${member.daysUntil} días`}
+                                                        {member.daysUntil === 0 ? `Vence hoy` :
+                                                            member.daysUntil === 1 ? `Vence mañana` :
+                                                                `Vence en ${member.daysUntil} días`}
                                                     </p>
                                                 </div>
                                             </div>
