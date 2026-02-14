@@ -122,7 +122,7 @@ export default function AttendanceViewPage() {
 
                     {/* Stats Cards - Con Profundidad y Bordes Semánticos */}
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <Card className="border-none shadow-md border-l-4 border-l-blue-500 bg-lineal-to-br from-card to-blue-500/5">
+                        <Card className="border-none shadow-md border-l-4 border-l-blue-500 bg-linear-to-br from-card to-blue-500/5">
                             <CardContent className="p-4 flex items-center gap-4">
                                 <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-full text-blue-600 dark:text-blue-400">
                                     <UserCheck className="w-5 h-5" />
@@ -134,7 +134,7 @@ export default function AttendanceViewPage() {
                             </CardContent>
                         </Card>
 
-                        <Card className="border-none shadow-md border-l-4 border-l-green-500 bg-lineal-to-br from-card to-green-500/5">
+                        <Card className="border-none shadow-md border-l-4 border-l-green-500 bg-linear-to-br from-card to-green-500/5">
                             <CardContent className="p-4 flex items-center gap-4">
                                 <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-full text-green-600 dark:text-green-400">
                                     <CalendarCheck className="w-5 h-5" />
