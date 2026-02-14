@@ -246,7 +246,7 @@ export class OrganizationsRepository
       where: { id: this.organizationId },
       data: {
         organizationPlanId: plan.id,
-        // organizationPlan: plan.name, // ELIMINAR: Esto da error en Prisma update
+        organizationPlan: plan.name
       },
       include: {
         config: true,
