@@ -4,7 +4,7 @@ import * as React from "react";
 import {
   CreditCard,
   Settings,
-  Smile,
+  UserPlus,
   Users,
   LayoutDashboard,
   Dumbbell,
@@ -12,6 +12,9 @@ import {
   Sun,
   Moon,
   Laptop,
+  CalendarCheck,
+  UserCog,
+  Plus
 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
@@ -24,6 +27,7 @@ import {
   CommandItem,
   CommandList,
   CommandSeparator,
+  CommandShortcut,
 } from "@/components/ui/command";
 
 export function CommandMenu() {
@@ -55,13 +59,23 @@ export function CommandMenu() {
       <CommandInput placeholder="Escribe un comando o busca..." />
       <CommandList>
         <CommandEmpty>No se encontraron resultados.</CommandEmpty>
+
+        {/* --- ACCIONES RÁPIDAS (Nuevas) --- */}
         <CommandGroup heading="Acciones Rápidas">
+          <CommandItem
+            onSelect={() =>
+              runCommand(() => router.push(`/${slug}/admin/attendance`))
+            }
+          >
+            <CalendarCheck className="mr-2 h-4 w-4" />
+            <span>Registrar Asistencia</span>
+          </CommandItem>
           <CommandItem
             onSelect={() =>
               runCommand(() => router.push(`/${slug}/admin/members/new`))
             }
           >
-            <Smile className="mr-2 h-4 w-4" />
+            <UserPlus className="mr-2 h-4 w-4" />
             <span>Nuevo Miembro</span>
           </CommandItem>
           <CommandItem
@@ -72,11 +86,38 @@ export function CommandMenu() {
             <CreditCard className="mr-2 h-4 w-4" />
             <span>Nueva Membresía</span>
           </CommandItem>
+          <CommandItem
+            onSelect={() =>
+              runCommand(() => router.push(`/${slug}/admin/plans/new`))
+            }
+          >
+            <Dumbbell className="mr-2 h-4 w-4" />
+            <span>Nuevo Plan</span>
+          </CommandItem>
+          <CommandItem
+            onSelect={() =>
+              runCommand(() => router.push(`/${slug}/admin/products/new`))
+            }
+          >
+            <Package className="mr-2 h-4 w-4" />
+            <span>Nuevo Producto</span>
+          </CommandItem>
+          <CommandItem
+            onSelect={() =>
+              runCommand(() => router.push(`/${slug}/admin/users/new`))
+            }
+          >
+            <UserCog className="mr-2 h-4 w-4" />
+            <span>Nuevo Usuario (Staff)</span>
+          </CommandItem>
         </CommandGroup>
+
         <CommandSeparator />
+
+        {/* --- NAVEGACIÓN --- */}
         <CommandGroup heading="Navegación">
           <CommandItem
-            onSelect={() => runCommand(() => router.push(`/${slug}/admin`))}
+            onSelect={() => runCommand(() => router.push(`/${slug}/admin/dashboard`))}
           >
             <LayoutDashboard className="mr-2 h-4 w-4" />
             <span>Dashboard</span>
@@ -88,6 +129,14 @@ export function CommandMenu() {
           >
             <Users className="mr-2 h-4 w-4" />
             <span>Miembros</span>
+          </CommandItem>
+          <CommandItem
+            onSelect={() =>
+              runCommand(() => router.push(`/${slug}/admin/attendance`))
+            }
+          >
+            <CalendarCheck className="mr-2 h-4 w-4" />
+            <span>Asistencias</span>
           </CommandItem>
           <CommandItem
             onSelect={() =>
@@ -115,6 +164,14 @@ export function CommandMenu() {
           </CommandItem>
           <CommandItem
             onSelect={() =>
+              runCommand(() => router.push(`/${slug}/admin/users`))
+            }
+          >
+            <UserCog className="mr-2 h-4 w-4" />
+            <span>Usuarios</span>
+          </CommandItem>
+          <CommandItem
+            onSelect={() =>
               runCommand(() => router.push(`/${slug}/admin/settings`))
             }
           >
@@ -122,7 +179,10 @@ export function CommandMenu() {
             <span>Configuración</span>
           </CommandItem>
         </CommandGroup>
+
         <CommandSeparator />
+
+        {/* --- TEMA --- */}
         <CommandGroup heading="Tema">
           <CommandItem onSelect={() => runCommand(() => setTheme("light"))}>
             <Sun className="mr-2 h-4 w-4" />
