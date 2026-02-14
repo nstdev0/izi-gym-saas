@@ -13,7 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { CreateMemberSchema } from "@/server/application/dtos/members.dto";
-import { Loader2, Save } from "lucide-react";
+import { Loader2, Save, User, FileBadge, Phone, Activity } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { ApiError } from "@/lib/api";
 import { toast } from "sonner";
@@ -36,7 +36,6 @@ export default function MemberForm({
   redirectUrl,
 }: MemberFormProps) {
   const router = useRouter();
-
 
   // 1. Configuración del Formulario
   const form = useForm<z.infer<typeof CreateMemberSchema>>({
@@ -61,25 +60,16 @@ export default function MemberForm({
     },
   });
 
-  // 2. Mutación (Conexión con Backend)
   const { mutate: createMember, isPending: isCreating } = useCreateMember();
   const { mutate: updateMember, isPending: isUpdating } = useUpdateMember();
-
   const isPending = isCreating || isUpdating;
-
-  // Detectar cambios para habilitar/deshabilitar botón de guardar
   const isDirty = form.formState.isDirty;
-
-  // Si estamos en modo edición (hay initialData), el botón solo se habilita si hay cambios (isDirty).
-  // Si estamos en modo creación, el botón siempre está habilitado (salvo isPending).
   const canSubmit = isEdit ? isDirty : true;
 
   const onSubmit = (values: z.infer<typeof CreateMemberSchema>) => {
     const onSuccess = () => {
       router.refresh();
-      if (redirectUrl) {
-        router.push(redirectUrl);
-      }
+      if (redirectUrl) router.push(redirectUrl);
     };
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -130,67 +120,61 @@ export default function MemberForm({
     }
   };
 
-  const currentMaxLength = getMaxLength(selectedDocType);
-  const currentDocNumberPlaceholder = getDocNumberPlaceholder(selectedDocType);
-
   return (
-    <form onSubmit={form.handleSubmit(onSubmit, onInvalid)} className="grid grid-cols-1 gap-6">
+    <form onSubmit={form.handleSubmit(onSubmit, onInvalid)} className="space-y-6">
 
-      {/* NEW CARD: Identity Card (Avatar + QR) */}
+      {/* ====================================================================
+          CARD 1: PERFIL VISUAL + INFORMACIÓN PERSONAL BÁSICA
+          Lado Izquierdo: Imagen y QR
+          Lado Derecho: Nombres, Apellidos, Fecha Nacimiento
+      ==================================================================== */}
       <Card>
         <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <User className="h-5 w-5 text-primary" />
+            Perfil del Miembro
+          </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col md:flex-row items-center justify-around gap-8">
-            {/* Avatar Section */}
-            <div className="flex flex-col items-center">
-              <Controller
-                name="image"
-                control={form.control}
-                render={({ field }) => (
-                  <AvatarUploader
-                    value={field.value ?? undefined}
-                    onChange={(url) => field.onChange(url)}
-                    fileNamePrefix={`${form.getValues("firstName") || "member"}-${form.getValues("lastName") || "avatar"}`}
-                  />
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
+
+            {/* COLUMNA IZQUIERDA (Visuals) - md:col-span-4 */}
+            <div className="md:col-span-4 flex flex-col items-center space-y-6 border-r-0 md:border-r md:pr-6 border-border/50">
+              <div className="flex flex-col items-center space-y-2">
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Fotografía</span>
+                <Controller
+                  name="image"
+                  control={form.control}
+                  render={({ field }) => (
+                    <AvatarUploader
+                      value={field.value ?? undefined}
+                      onChange={(url) => field.onChange(url)}
+                      fileNamePrefix={`${form.getValues("firstName")}-${form.getValues("lastName")}`}
+                    />
+                  )}
+                />
+              </div>
+
+              <div className="flex flex-col items-center space-y-2 w-full">
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Código QR</span>
+                {initialData?.qr ? (
+                  <div className="bg-white p-3 rounded-xl border shadow-sm w-full max-w-[160px] aspect-square flex items-center justify-center">
+                    <QRCode
+                      value={initialData.qr}
+                      style={{ height: "auto", maxWidth: "100%", width: "100%" }}
+                      viewBox={`0 0 256 256`}
+                    />
+                  </div>
+                ) : (
+                  <div className="w-full max-w-[160px] aspect-square bg-muted/30 flex flex-col items-center justify-center rounded-xl border-2 border-dashed text-muted-foreground gap-2">
+                    <span className="text-xs text-center px-2">Se generará al guardar</span>
+                  </div>
                 )}
-              />
+              </div>
             </div>
 
-            {/* QR Code Section */}
-            <div className="flex flex-col items-center gap-4">
-              {initialData?.qr ? (
-                <div className="bg-white p-2 rounded-lg border shadow-sm">
-                  <QRCode
-                    value={initialData.qr}
-                    size={150}
-                    style={{ height: "auto", maxWidth: "100%", width: "100%" }}
-                    viewBox={`0 0 256 256`}
-                  />
-                </div>
-              ) : (
-                <div className="w-[150px] h-[150px] bg-muted/20 flex items-center justify-center rounded-lg border border-dashed">
-                  <span className="text-xs text-muted-foreground text-center px-4">
-                    Disponible al crear
-                  </span>
-                </div>
-              )}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-
-      {/* CONTENEDOR PRINCIPAL: Datos Personales (Layout ajustado) */}
-      <div className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Información Personal</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {/* ZONA CAMPOS (Ahora ocupa todo el ancho) */}
-            <div className="grid gap-6">
-              {/* Nombres y Apellidos */}
+            {/* COLUMNA DERECHA (Datos Personales) - md:col-span-8 */}
+            <div className="md:col-span-8 flex flex-col justify-center space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Controller
                   name="firstName"
@@ -198,7 +182,7 @@ export default function MemberForm({
                   render={({ field, fieldState }) => (
                     <Field data-invalid={fieldState.invalid}>
                       <FieldLabel required>Nombres</FieldLabel>
-                      <Input {...field} aria-invalid={fieldState.invalid} placeholder="Jon" />
+                      <Input {...field} aria-invalid={fieldState.invalid} placeholder="Ej. Juan Carlos" />
                       {fieldState.invalid && fieldState.error && <FieldError errors={[fieldState.error]} />}
                     </Field>
                   )}
@@ -209,119 +193,149 @@ export default function MemberForm({
                   render={({ field, fieldState }) => (
                     <Field data-invalid={fieldState.invalid}>
                       <FieldLabel required>Apellidos</FieldLabel>
-                      <Input {...field} aria-invalid={fieldState.invalid} placeholder="Doe" />
+                      <Input {...field} aria-invalid={fieldState.invalid} placeholder="Ej. Pérez López" />
                       {fieldState.invalid && fieldState.error && <FieldError errors={[fieldState.error]} />}
                     </Field>
                   )}
                 />
               </div>
 
-              {/* Documento e Info Adicional */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="flex gap-2">
-                  <div className="w-1/3">
-                    <Controller
-                      name="docType"
-                      control={form.control}
-                      render={({ field, fieldState }) => (
-                        <Field data-invalid={fieldState.invalid}>
-                          <FieldLabel required>Tipo</FieldLabel>
-                          <Select
-                            onValueChange={(val) => {
-                              field.onChange(val);
-                              form.trigger("docNumber");
-                            }}
-                            defaultValue={field.value}
-                            disabled={isEdit}
-                          >
-                            <SelectTrigger aria-invalid={fieldState.invalid}>
-                              <SelectValue placeholder="Sel." />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="DNI">DNI</SelectItem>
-                              <SelectItem value="CE">CE</SelectItem>
-                              <SelectItem value="PASSPORT">Pasaporte</SelectItem>
-                              <SelectItem value="RUC">RUC</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </Field>
-                      )}
+              <Controller
+                name="birthDate"
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel optional>Fecha de Nacimiento</FieldLabel>
+                    <Input
+                      type="date"
+                      max={new Date().toISOString().split("T")[0]}
+                      aria-invalid={fieldState.invalid}
+                      {...field}
+                      value={field.value ? String(field.value) : ""}
                     />
-                  </div>
-                  <div className="w-2/3">
-                    <Controller
-                      name="docNumber"
-                      control={form.control}
-                      render={({ field, fieldState }) => (
-                        <Field data-invalid={fieldState.invalid}>
-                          <FieldLabel required>Número Documento</FieldLabel>
-                          <Input
-                            {...field}
-                            maxLength={currentMaxLength}
-                            aria-invalid={fieldState.invalid}
-                            placeholder={currentDocNumberPlaceholder}
-                            disabled={isEdit}
-                          />
-                          {fieldState.invalid && fieldState.error && <FieldError errors={[fieldState.error]} />}
-                        </Field>
-                      )}
-                    />
-                  </div>
-                </div>
-
-                <Controller
-                  name="birthDate"
-                  control={form.control}
-                  render={({ field, fieldState }) => (
-                    <Field data-invalid={fieldState.invalid}>
-                      <FieldLabel optional>Fecha Nacimiento</FieldLabel>
-                      <Input
-                        type="date"
-                        max={new Date().toISOString().split("T")[0]}
-                        aria-invalid={fieldState.invalid}
-                        {...field}
-                        value={field.value ? String(field.value) : ""}
-                      />
-                      {fieldState.invalid && fieldState.error && <FieldError errors={[fieldState.error]} />}
-                    </Field>
-                  )}
-                />
-              </div>
-
-              {/* Contacto (Integrado) */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Controller
-                  name="email"
-                  control={form.control}
-                  render={({ field, fieldState }) => (
-                    <Field data-invalid={fieldState.invalid}>
-                      <FieldLabel optional>Email</FieldLabel>
-                      <Input {...field} value={field.value ?? ""} aria-invalid={fieldState.invalid} placeholder="jon@example.com" />
-                      {fieldState.invalid && fieldState.error && <FieldError errors={[fieldState.error]} />}
-                    </Field>
-                  )}
-                />
-                <Controller
-                  name="phone"
-                  control={form.control}
-                  render={({ field, fieldState }) => (
-                    <Field data-invalid={fieldState.invalid}>
-                      <FieldLabel optional>Celular</FieldLabel>
-                      <Input {...field} value={field.value ?? ""} aria-invalid={fieldState.invalid} placeholder="9..." maxLength={9} />
-                      {fieldState.invalid && fieldState.error && <FieldError errors={[fieldState.error]} />}
-                    </Field>
-                  )}
-                />
-              </div>
+                    {fieldState.invalid && fieldState.error && <FieldError errors={[fieldState.error]} />}
+                  </Field>
+                )}
+              />
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </CardContent>
+      </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Datos Físicos</CardTitle>
-          </CardHeader>
-          <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {/* ====================================================================
+          CARD 2: IDENTIFICACIÓN (DNI, DocNumber)
+      ==================================================================== */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <FileBadge className="h-5 w-5 text-primary" />
+            Identificación
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex gap-4">
+            <div className="w-1/3 min-w-[100px]">
+              <Controller
+                name="docType"
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel required>Tipo</FieldLabel>
+                    <Select
+                      onValueChange={(val) => {
+                        field.onChange(val);
+                        form.trigger("docNumber");
+                      }}
+                      defaultValue={field.value}
+                      disabled={isEdit}
+                    >
+                      <SelectTrigger aria-invalid={fieldState.invalid}>
+                        <SelectValue placeholder="Tipo" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="DNI">DNI</SelectItem>
+                        <SelectItem value="CE">CE</SelectItem>
+                        <SelectItem value="PASSPORT">Pasaporte</SelectItem>
+                        <SelectItem value="RUC">RUC</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </Field>
+                )}
+              />
+            </div>
+            <div className="flex-1">
+              <Controller
+                name="docNumber"
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel required>Número de Documento</FieldLabel>
+                    <Input
+                      {...field}
+                      maxLength={getMaxLength(selectedDocType)}
+                      aria-invalid={fieldState.invalid}
+                      placeholder={getDocNumberPlaceholder(selectedDocType)}
+                      disabled={isEdit}
+                    />
+                    {fieldState.invalid && fieldState.error && <FieldError errors={[fieldState.error]} />}
+                  </Field>
+                )}
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* ====================================================================
+          CARD 3: CONTACTO (Email, Celular)
+      ==================================================================== */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Phone className="h-5 w-5 text-primary" />
+            Contacto
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Controller
+              name="email"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel optional>Correo Electrónico</FieldLabel>
+                  <Input {...field} value={field.value ?? ""} aria-invalid={fieldState.invalid} placeholder="cliente@email.com" />
+                  {fieldState.invalid && fieldState.error && <FieldError errors={[fieldState.error]} />}
+                </Field>
+              )}
+            />
+            <Controller
+              name="phone"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel optional>Celular / WhatsApp</FieldLabel>
+                  <Input {...field} value={field.value ?? ""} aria-invalid={fieldState.invalid} placeholder="999 999 999" maxLength={9} />
+                  {fieldState.invalid && fieldState.error && <FieldError errors={[fieldState.error]} />}
+                </Field>
+              )}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* ====================================================================
+          CARD 4: DATOS FÍSICOS (Gender, Height, Weight)
+      ==================================================================== */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Activity className="h-5 w-5 text-primary" />
+            Datos Físicos
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Controller
               name="gender"
               control={form.control}
@@ -379,20 +393,20 @@ export default function MemberForm({
                 </Field>
               )}
             />
-          </CardContent>
-        </Card>
+          </div>
+        </CardContent>
+      </Card>
 
-        <div className="flex justify-end gap-4">
-          {/* Botón Principal */}
-          <Button type="submit" disabled={isPending || !canSubmit}>
-            {isPending ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <Save className="mr-2 h-4 w-4" />
-            )}
-            {isEdit ? "Guardar Cambios" : "Crear Miembro"}
-          </Button>
-        </div>
+      {/* BOTONES DE ACCIÓN */}
+      <div className="flex justify-end gap-4 sticky bottom-4 z-10">
+        <Button type="submit" disabled={isPending || !canSubmit} size="lg">
+          {isPending ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <Save className="mr-2 h-4 w-4" />
+          )}
+          {isEdit ? "Guardar Cambios" : "Crear Miembro"}
+        </Button>
       </div>
     </form>
   );

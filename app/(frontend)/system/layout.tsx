@@ -28,7 +28,7 @@ export default async function SystemLayout({
         <Sidebar mode="system" className="hidden border-r bg-muted/40 md:flex" />
         <div className="flex flex-col h-full overflow-hidden">
           <Header mode="system" />
-          <main className="flex-1 overflow-auto scrollbar-hide p-4 lg:p-8 bg-muted/10 h-full">
+          <main className="flex-1 overflow-y-auto scrollbar-hide p-4 lg:p-8 bg-muted/10 h-full">
             {children}
           </main>
         </div>

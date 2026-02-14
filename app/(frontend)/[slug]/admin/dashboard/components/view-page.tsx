@@ -185,7 +185,7 @@ export default function DashboardViewPage() {
         <DashboardLayout
             breadcrumbs={[{ label: "Admin" }, { label: "Panel" }]}
         >
-            <div className="flex flex-col space-y-4 sm:space-y-6 overflow-auto pb-4 scrollbar-hide">
+            <div className="flex flex-col space-y-4 sm:space-y-6 pb-4 scrollbar-hide">
                 <PageHeader
                     title={`Bienvenido al panel de ${slug} 👋`}
                     description={`Métricas generales del gimnasio`}
