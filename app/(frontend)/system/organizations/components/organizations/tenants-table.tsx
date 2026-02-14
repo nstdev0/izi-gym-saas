@@ -65,7 +65,7 @@ export const columns: ColumnDef<Organization>[] = [
         accessorKey: "plan",
         header: "Plan",
         cell: ({ row }) => {
-            const plan = row.original.plan?.slug;
+            const plan = row.original.organizationPlan;
             const planLabel = plan === "free-trial" ? "Free Trial" : plan === "pro" ? "Pro" : "Sin plan"
             const planColor = plan === "free-trial" ? "bg-gray-100 text-gray-800" : plan === "pro" ? "bg-blue-100 text-blue-800" : "bg-purple-100 text-purple-800";
 
@@ -80,7 +80,7 @@ export const columns: ColumnDef<Organization>[] = [
         accessorKey: "membersCount",
         header: "Members",
         cell: ({ row }) => {
-            const count = row.original.membersCount;
+            const count = row.original.name;
             return (
                 <div className="text-center">
                     <span className="font-medium">{count}</span>

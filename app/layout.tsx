@@ -79,10 +79,10 @@ export default async function RootLayout({
   if (orgId) {
     const org = await prisma.organization.findUnique({
       where: { id: orgId },
-      select: { settings: true }
+      select: { config: true }
     });
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const settings = (org?.settings as any) || {};
+    const settings = (org?.config as any) || {};
     if (settings.appearance?.font) {
       initialFont = settings.appearance.font;
     }

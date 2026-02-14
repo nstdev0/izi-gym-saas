@@ -39,36 +39,29 @@ export async function POST(req: Request) {
   console.log(`📨 Webhook recibido: ${eventType}`);
 
   try {
-    // PRE-FETCH: Plan Default (con manejo de error si no existe)
     const freePlan = await prisma.organizationPlan.findUnique({
       where: { slug: "free-trial" },
     });
 
     if (!freePlan) {
-      // Retornamos 500 para que Clerk reintente más tarde (cuando hayas corrido el seed)
-      console.error("❌ CRÍTICO: Plan 'free-trial' no encontrado. Clerk reintentará.");
-      return new Response("Plan faltante, reintentando...", { status: 500 });
+      console.error("❌ CRÍTICO: Plan 'free-trial' no encontrado.");
+      return new Response("Plan faltante", { status: 500 });
     }
 
     switch (eventType) {
-      // ------------------------------------------------------------------
-      // CASO 1: USUARIO (CREATE / UPDATE)
-      // ------------------------------------------------------------------
       case "user.created":
       case "user.updated": {
-        // Casting explícito para tener autocompletado seguro
         const data = event.data;
         const email = data.email_addresses?.[0]?.email_address;
         const userId = data.id;
 
         if (email) {
-          // Buscamos cualquier usuario con ese email, ignorando la Org por ahora para detectar el conflicto
           const existingUser = await prisma.user.findFirst({
             where: { email: email },
           });
 
           if (existingUser && existingUser.id !== userId) {
-            console.log(`🧟 Zombie detectado: ${email}. Eliminando ID antiguo ${existingUser.id}...`);
+            console.log(`🧟 Zombie detectado: ${email}. Eliminando...`);
             await prisma.user.delete({ where: { id: existingUser.id } });
           }
         }
@@ -77,7 +70,7 @@ export async function POST(req: Request) {
           where: { id: userId },
           create: {
             id: userId,
-            email: email || "", // Manejar caso raro sin email
+            email: email || "",
             firstName: data.first_name || null,
             lastName: data.last_name || null,
             image: data.image_url || null,
@@ -95,48 +88,46 @@ export async function POST(req: Request) {
         break;
       }
 
-      // ------------------------------------------------------------------
-      // CASO 2: USUARIO ELIMINADO
-      // ------------------------------------------------------------------
       case "user.deleted": {
         const { id } = event.data;
         if (!id) break;
-
         try {
           await prisma.user.delete({ where: { id } });
-          console.log(`🗑️ Usuario eliminado: ${id}`);
         } catch (error: any) {
-          // P2025: Record to delete does not exist.
           if (error?.code !== 'P2025') throw error;
         }
         break;
       }
 
       // ------------------------------------------------------------------
-      // CASO 3: ORGANIZACIÓN CREADA
+      // CASO 3: ORGANIZACIÓN CREADA (CORREGIDO)
       // ------------------------------------------------------------------
       case "organization.created": {
         const data = event.data;
 
+        // 🟢 FIX 1: SLUG SEGURO (Esto arregla el error Unique constraint failed)
+        // Agregamos los últimos 4 caracteres del ID para garantizar unicidad
+        const safeSlug = data.slug || `${data.name.toLowerCase().replace(/\s+/g, "-")}-${data.id.slice(-4)}`;
+
         await prisma.$transaction(async (tx) => {
-          // Upsert es vital por si membership.created llegó primero
           await tx.organization.upsert({
             where: { id: data.id },
             update: {
               name: data.name,
-              slug: data.slug || data.name.toLowerCase().replace(/\s+/g, "-"),
+              slug: data.slug || undefined,
               image: data.image_url,
             },
             create: {
               id: data.id,
+              organizationId: data.id,
               name: data.name,
-              slug: data.slug || data.name.toLowerCase().replace(/\s+/g, "-"),
+              slug: safeSlug,
               image: data.image_url,
-              organizationPlanId: freePlan.id
+              organizationPlanId: freePlan.id,
+              organizationPlan: freePlan.name
             },
           });
 
-          // Crear suscripción si no existe
           const sub = await tx.subscription.findUnique({
             where: { organizationId: data.id }
           });
@@ -157,7 +148,7 @@ export async function POST(req: Request) {
       }
 
       // ------------------------------------------------------------------
-      // CASO 4: MEMBRESÍA CREADA (RACE CONDITION HANDLER)
+      // CASO 4: MEMBRESÍA CREADA (CORREGIDO)
       // ------------------------------------------------------------------
       case "organizationMembership.created": {
         const data = event.data;
@@ -165,7 +156,6 @@ export async function POST(req: Request) {
         const email = data.public_user_data.identifier;
         const userId = data.public_user_data.user_id;
 
-        // Limpieza de Zombies (igual que en user.created por seguridad)
         if (email) {
           const existingUser = await prisma.user.findFirst({ where: { email } });
           if (existingUser && existingUser.id !== userId) {
@@ -173,9 +163,12 @@ export async function POST(req: Request) {
           }
         }
 
-        // Mapeo de Roles
         let appRole: Role = Role.STAFF;
-        if (data.role === "org:admin") appRole = Role.ADMIN; // Asumimos Admin temporalmente
+        if (data.role === "org:admin") appRole = Role.ADMIN;
+
+        // 🟢 FIX 1: SLUG SEGURO AQUÍ TAMBIÉN
+        const orgNameSlug = organization.name.toLowerCase().replace(/\s+/g, "-");
+        const orgSafeSlug = organization.slug || `${orgNameSlug}-${organization.id.slice(-4)}`;
 
         await prisma.user.upsert({
           where: { id: userId },
@@ -187,16 +180,17 @@ export async function POST(req: Request) {
             image: data.public_user_data.image_url || null,
             role: appRole,
             isActive: true,
-            // ✨ Conexión Race-Condition Proof ✨
             organization: {
               connectOrCreate: {
                 where: { id: organization.id },
                 create: {
                   id: organization.id,
+                  organizationId: organization.id,
                   name: organization.name,
-                  slug: organization.slug || organization.name,
+                  slug: orgSafeSlug,
                   image: organization.image_url,
-                  organizationPlanId: freePlan.id
+                  organizationPlanId: freePlan.id,
+                  organizationPlan: freePlan.name
                 }
               }
             }
@@ -209,10 +203,12 @@ export async function POST(req: Request) {
                 where: { id: organization.id },
                 create: {
                   id: organization.id,
+                  organizationId: organization.id,
                   name: organization.name,
-                  slug: organization.slug || organization.name,
+                  slug: orgSafeSlug,
                   image: organization.image_url,
-                  organizationPlanId: freePlan.id
+                  organizationPlanId: freePlan.id,
+                  organizationPlan: freePlan.name
                 }
               }
             }
@@ -222,9 +218,6 @@ export async function POST(req: Request) {
         break;
       }
 
-      // ------------------------------------------------------------------
-      // CASO 5: MEMBRESÍA ELIMINADA
-      // ------------------------------------------------------------------
       case "organizationMembership.deleted": {
         const data = event.data;
         try {
@@ -238,9 +231,6 @@ export async function POST(req: Request) {
         break;
       }
 
-      // ------------------------------------------------------------------
-      // CASO 6: ORGANIZACIÓN ACTUALIZADA
-      // ------------------------------------------------------------------
       case "organization.updated": {
         const data = event.data;
         try {
@@ -253,7 +243,6 @@ export async function POST(req: Request) {
             }
           });
         } catch (error: any) {
-          // Si no existe, no hacemos nada (esperamos al evento created)
           if (error?.code !== 'P2025') throw error;
         }
         break;
@@ -261,23 +250,24 @@ export async function POST(req: Request) {
 
       case "organization.deleted": {
         const data = event.data;
-        try {
-          await prisma.organization.delete({
-            where: { id: data.id }
-          });
-        } catch (error: any) {
-          if (error?.code !== 'P2025') throw error;
-        }
+        await prisma.$transaction(async (tx) => {
+          await tx.subscription.deleteMany({ where: { organizationId: data.id } })
+          try {
+            await tx.organization.delete({ where: { id: data.id } });
+            console.log(`🗑️ Organización eliminada: ${data.slug}`);
+          } catch (error: any) {
+            if (error?.code !== 'P2025') throw error;
+            console.log("⚠️ La organización ya había sido eliminada.");
+          }
+        })
         break;
       }
-
     }
 
     return NextResponse.json({ success: true }, { status: 200 });
 
   } catch (error) {
     console.error("❌ Error procesando webhook:", error);
-    // Retornamos 500 para que Clerk sepa que falló y reintente
     return NextResponse.json({ success: false, error: "Internal Server Error" }, { status: 500 });
   }
 }

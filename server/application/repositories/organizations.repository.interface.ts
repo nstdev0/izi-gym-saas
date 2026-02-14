@@ -23,4 +23,5 @@ export interface IOrganizationRepository extends IBaseRepository<
     userId: string,
   ): Promise<Organization>;
   findCurrent(): Promise<Organization | null>;
+  upgradePlan(planSlug: string): Promise<Organization>;
 }

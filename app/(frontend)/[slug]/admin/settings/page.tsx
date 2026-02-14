@@ -18,6 +18,9 @@ import { prisma } from "@/server/infrastructure/persistence/prisma";
 async function getOrganization(orgId: string) {
     return prisma.organization.findUnique({
         where: { id: orgId },
+        include: {
+            config: true
+        }
     });
 }
 
@@ -36,7 +39,7 @@ export default async function SettingsPage() {
 
     // Prepare default values
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const settings = (organization.settings as any) || {};
+    const settings = (organization.config as any) || {};
 
     // Construct defaultValues object matching our DTO structure
     const defaultValues = {

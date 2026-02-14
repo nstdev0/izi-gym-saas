@@ -9,8 +9,6 @@ export class CreateOrganizationUseCase {
     input: CreateOrganizationInput,
     userId: string,
   ): Promise<Organization> {
-    // Aquí podríamos agregar validaciones de dominio adicionales si fuera necesario
-    // Por ahora, delegamos la transacción compleja al repositorio
     return await this.repository.createWithTransaction(input, userId);
   }
 }

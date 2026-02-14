@@ -16,6 +16,10 @@ import {
   ShieldAlert,
   HelpCircle,
   CalendarCheck,
+  ChevronsUpDown,
+  LogOut,
+  User,
+  Crown,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -37,7 +41,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ChevronsUpDown, LogOut, User } from "lucide-react";
+import { useOrganizationDetail } from "@/hooks/organizations/use-organizations";
 
 export function Sidebar({
   className,
@@ -53,16 +57,19 @@ export function Sidebar({
   const pathname = usePathname();
   const { isSidebarCollapsed: contextCollapsed, toggleSidebar } =
     useDashboard();
-  const { organization } = useOrganization();
   const { user } = useUser();
   const { signOut, openUserProfile } = useClerk();
+  const { organization: clerkOrganization } = useOrganization();
+  const { data: organizationDetail } = useOrganizationDetail(
+    clerkOrganization?.id!,
+  );
+  const organizationPlan = organizationDetail?.organizationPlan || "";
 
   // If forceExpanded is true, we treat sidebar as NOT collapsed.
   const isSidebarCollapsed = forceExpanded ? false : contextCollapsed;
 
   interface RouteProps {
     label: string;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     icon: any;
     href: string;
     active: boolean;
@@ -136,20 +143,24 @@ export function Sidebar({
         pathname === `/${safeSlug}/admin/settings` ||
         pathname.startsWith(`/${safeSlug}/admin/settings/`),
     },
-    ...(user?.publicMetadata?.role === "GOD" ? [{
-      label: "GOD Panel",
-      icon: ShieldAlert,
-      href: "/system/dashboard",
-      active: pathname.startsWith("/system"),
-      color: "text-sky-500",
-    }] : []),
+    ...(user?.publicMetadata?.role === "GOD"
+      ? [
+        {
+          label: "GOD Panel",
+          icon: ShieldAlert,
+          href: "/system/dashboard",
+          active: pathname.startsWith("/system"),
+          color: "text-sky-500",
+        },
+      ]
+      : []),
     {
       label: "Ayuda",
       icon: HelpCircle,
       href: "/help",
       active: pathname.startsWith("/help"),
       color: "text-red-400",
-    }
+    },
   ];
 
   const systemRoutes: RouteProps[] = [
@@ -180,13 +191,6 @@ export function Sidebar({
       href: "/system/settings",
       active: pathname === "/system/settings",
     },
-    // ...(user?.publicMetadata?.role === "GOD" ? [{
-    //   label: "Dummy Gym Panel",
-    //   icon: ShieldAlert,
-    //   href: `${safeSlug}/admin/dashboard`,
-    //   active: pathname.startsWith(`/${safeSlug}/admin/dashboard`),
-    //   color: "text-sky-500",
-    // }] : []),
   ];
 
   const routes = mode === "system" ? systemRoutes : orgRoutes;
@@ -197,16 +201,22 @@ export function Sidebar({
       return (
         <div className="flex items-center gap-2">
           <ShieldAlert className="w-5 h-5 text-indigo-500" />
-          <span>Izi<span className="text-indigo-600">Gym</span> SaaS</span>
-          {process.env.NODE_ENV === "development" && <span className="text-red-500"> &lt; (DEV) &gt; </span>}
+          <span>
+            Izi<span className="text-indigo-600">Gym</span> SaaS
+          </span>
+          {process.env.NODE_ENV === "development" && (
+            <span className="text-red-500"> &lt; (DEV) &gt; </span>
+          )}
         </div>
       );
     }
     // Fallback seguro si organization aún no carga o es null
     return (
       <span>
-        {organization?.name || "Cargando..."}
-        {process.env.NODE_ENV === "development" && <span className="text-red-500"> &lt; (DEV) &gt; </span>}
+        {clerkOrganization?.name || "Cargando..."}
+        {process.env.NODE_ENV === "development" && (
+          <span className="text-red-500"> &lt; (DEV) &gt; </span>
+        )}
       </span>
     );
   };
@@ -292,9 +302,48 @@ export function Sidebar({
                 </Button>
               ),
             )}
+
+            {/* SECCIÓN DEL PLAN */}
+            {organizationPlan && (
+              <div className="mt-4">
+                {isSidebarCollapsed ? (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary mx-auto">
+                        <Crown className="h-4 w-4" />
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent side="right">
+                      <p className="font-medium">Plan Actual:</p>
+                      <p className="capitalize">
+                        {organizationPlan.replace(/-/g, " ")}
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                ) : (
+                  <div
+                    className="flex w-full items-center gap-3 rounded-lg border bg-card p-3 shadow-sm animate-mobile-slide-in md:animate-none md:opacity-100"
+                    style={{ animationDelay: "300ms" }}
+                  >
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                      <Crown className="h-4 w-4" />
+                    </div>
+                    <div className="flex flex-col overflow-hidden">
+                      <span className="text-xs font-medium text-muted-foreground">
+                        Plan Actual
+                      </span>
+                      <span className="truncate text-sm font-semibold capitalize text-foreground">
+                        {organizationPlan.replace(/-/g, " ")}
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </TooltipProvider>
         </nav>
       </div>
+
       <div
         className="mt-auto border-t p-4 animate-mobile-slide-in-footer md:animate-none md:opacity-100"
         style={{ animationDelay: "300ms" }}
@@ -328,10 +377,14 @@ export function Sidebar({
                   <>
                     <div className="flex flex-col items-start min-w-0">
                       <span className="text-sm font-medium truncate w-[130px] text-left">
-                        {process.env.NODE_ENV === "development" ? "development" : user?.fullName || "Usuario"}
+                        {process.env.NODE_ENV === "development"
+                          ? "development"
+                          : user?.fullName || "Usuario"}
                       </span>
                       <span className="text-xs text-muted-foreground truncate w-[130px] text-left">
-                        {process.env.NODE_ENV === "development" ? "test@development.dev" : user?.primaryEmailAddress?.emailAddress || ""}
+                        {process.env.NODE_ENV === "development"
+                          ? "test@development.dev"
+                          : user?.primaryEmailAddress?.emailAddress || ""}
                       </span>
                     </div>
                     <ChevronsUpDown className="ml-auto h-4 w-4 text-muted-foreground" />
@@ -349,10 +402,14 @@ export function Sidebar({
             <DropdownMenuLabel className="font-normal">
               <div className="flex flex-col space-y-1">
                 <p className="text-sm font-medium leading-none">
-                  {process.env.NODE_ENV === "development" ? "development" : user?.fullName}
+                  {process.env.NODE_ENV === "development"
+                    ? "development"
+                    : user?.fullName}
                 </p>
                 <p className="text-xs leading-none text-muted-foreground">
-                  {process.env.NODE_ENV === "development" ? "test@development.dev" : user?.primaryEmailAddress?.emailAddress}
+                  {process.env.NODE_ENV === "development"
+                    ? "test@development.dev"
+                    : user?.primaryEmailAddress?.emailAddress}
                 </p>
               </div>
             </DropdownMenuLabel>

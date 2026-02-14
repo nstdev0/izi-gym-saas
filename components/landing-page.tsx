@@ -46,8 +46,8 @@ export function LandingPage({ dashboardUrl, isLoggedIn }: { dashboardUrl?: strin
                                 <Link href="/sign-in">
                                     <Button variant="ghost">Iniciar Sesión</Button>
                                 </Link>
-                                <Link href="/sign-up">
-                                    <Button>Comenzar Gratis</Button>
+                                <Link href="#pricing">
+                                    <Button>Empezar</Button>
                                 </Link>
                             </>
                         )}
@@ -83,7 +83,7 @@ export function LandingPage({ dashboardUrl, isLoggedIn }: { dashboardUrl?: strin
                         </p>
 
                         <div className="mt-10 flex flex-col sm:flex-row justify-center gap-4">
-                            <Link href={isLoggedIn ? (dashboardUrl || "/sign-in") : "/sign-up"}>
+                            <Link href={isLoggedIn ? (dashboardUrl || "/sign-in") : "/sign-up?plan=free-trial"}>
                                 <Button size="lg" className="w-full sm:w-auto h-12 px-8 text-base shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all">
                                     {isLoggedIn ? "Ir a mi Panel" : "Prueba Gratis 14 Días"}
                                     <ArrowRight className="ml-2 h-5 w-5" />
@@ -307,7 +307,8 @@ export function LandingPage({ dashboardUrl, isLoggedIn }: { dashboardUrl?: strin
                                 desc: "Para gimnasios que recién comienzan",
                                 features: ["Hasta 50 miembros", "Gestión básica", "1 usuario admin", "Soporte por email"],
                                 cta: "Comenzar Gratis",
-                                popular: false
+                                popular: false,
+                                slug: "free-trial"
                             },
                             {
                                 name: "Pro",
@@ -316,7 +317,8 @@ export function LandingPage({ dashboardUrl, isLoggedIn }: { dashboardUrl?: strin
                                 desc: "Para gimnasios en crecimiento",
                                 features: ["Hasta 500 miembros", "Cobros automáticos", "Control de acceso", "Reportes avanzados", "5 usuarios admin", "Soporte prioritario"],
                                 cta: "Prueba 14 días gratis",
-                                popular: true
+                                popular: true,
+                                slug: "pro-monthly"
                             },
                             {
                                 name: "Enterprise",
@@ -324,7 +326,8 @@ export function LandingPage({ dashboardUrl, isLoggedIn }: { dashboardUrl?: strin
                                 desc: "Para cadenas de gimnasios",
                                 features: ["Miembros ilimitados", "Multi-sucursal", "API personalizada", "Onboarding dedicado", "SLA garantizado"],
                                 cta: "Contactar Ventas",
-                                popular: false
+                                popular: false,
+                                slug: "enterprise-monthly"
                             },
                         ].map((plan, i) => (
                             <div
@@ -355,7 +358,7 @@ export function LandingPage({ dashboardUrl, isLoggedIn }: { dashboardUrl?: strin
                                         </li>
                                     ))}
                                 </ul>
-                                <Link href="/sign-up" className="block mt-8">
+                                <Link href={`/sign-up?plan=${plan.slug}`} className="block mt-8">
                                     <Button
                                         className="w-full"
                                         variant={plan.popular ? "default" : "outline"}

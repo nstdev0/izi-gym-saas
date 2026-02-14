@@ -175,7 +175,8 @@ model Membership {
 }
 
 model Organization {
-  id String @id @default(cuid())
+  id             String @id @default(cuid())
+  organizationId String
 
   // REGLA APLICADA: Name y Slug únicos globales
   name  String  @unique
@@ -183,7 +184,8 @@ model Organization {
   image String?
 
   organizationPlanId String
-  plan               OrganizationPlan @relation(fields: [organizationPlanId], references: [id])
+  organizationPlan   String
+  plan               OrganizationPlan @relation(fields: [organizationPlanId, organizationPlan], references: [id, name])
 
   config OrganizationConfig?
 
@@ -247,11 +249,14 @@ model OrganizationPlan {
   deletedAt DateTime?
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
+
+  @@unique([id, name])
 }
 
 model Plan {
   id           String       @id @default(cuid())
-  name         String
+  name         String       @unique
+  slug         String       @unique
   description  String?
   price        Decimal      @db.Decimal(10, 2)
   durationDays Int
@@ -269,6 +274,7 @@ model Plan {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 
+  @@unique([organizationId, name])
   @@index([organizationId])
 }
 

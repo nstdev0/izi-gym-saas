@@ -11,7 +11,7 @@ export class UpdateOrganizationSettingsUseCase {
         // Fetch existing organization to merge settings
         const currentOrg = await prisma.organization.findUnique({
             where: { id: organizationId },
-            select: { settings: true, name: true }
+            select: { config: true, name: true }
         });
 
         if (!currentOrg) {
@@ -19,7 +19,7 @@ export class UpdateOrganizationSettingsUseCase {
         }
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const currentSettings = (currentOrg.settings as Record<string, any>) || {};
+        const currentSettings = (currentOrg.config as Record<string, any>) || {};
 
         // Deep merge logic could be complex, but for now we'll do a shallow merge of top-level keys
         // or a slightly deeper merge if needed. 
@@ -46,7 +46,6 @@ export class UpdateOrganizationSettingsUseCase {
             data: {
                 ...(name && { name }),
                 ...(image !== undefined && { image }), // Allow clearing image if passed as null/empty? Schema says optional string. 
-                settings: mergedSettings,
             },
         });
 

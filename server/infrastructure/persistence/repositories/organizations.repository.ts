@@ -101,9 +101,11 @@ export class OrganizationsRepository
       // A. Crear Org
       const org = await tx.organization.create({
         data: {
+          organizationId: "",
           name: input.name,
           slug: input.slug,
           organizationPlanId: plan.id,
+          organizationPlan: plan.name,
           config: {
             create: {
               // 1. IDENTIDAD (Casteo a any para evitar error InputJsonValue)
@@ -206,6 +208,13 @@ export class OrganizationsRepository
         }
       });
 
+      await tx.organization.update({
+        where: { id: org.id },
+        data: {
+          organizationId: org.id,
+        }
+      })
+
       // B. Crear Suscripción Trial
       await tx.subscription.create({
         data: {
@@ -286,9 +295,32 @@ export class OrganizationsRepository
       newOrg.name,
       newOrg.slug,
       newOrg.isActive,
+      newOrg.organizationPlan,
       newOrg.image ? newOrg.image : undefined,
       domainConfig,
       newOrg.organizationPlanId
     );
+  }
+
+  async upgradePlan(planSlug: string): Promise<Organization> {
+    const { prisma } = await import("@/server/infrastructure/persistence/prisma");
+
+    const plan = await prisma.organizationPlan.findUnique({
+      where: { slug: planSlug },
+    });
+
+    if (!plan) {
+      throw new Error(`El plan '${planSlug}' no es válido o no existe.`);
+    }
+
+    const org = await this.model.update({
+      where: { id: this.organizationId },
+      data: {
+        organizationPlanId: plan.id,
+        organizationPlan: plan.name,
+      },
+    });
+
+    return org as Organization;
   }
 }

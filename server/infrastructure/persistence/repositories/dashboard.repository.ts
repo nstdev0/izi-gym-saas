@@ -15,12 +15,12 @@ export class PrismaDashboardRepository implements IDashboardRepository {
         // Fetch organization settings to get currency
         const organization = await this.prisma.organization.findUnique({
             where: { id: organizationId },
-            select: { settings: true }
+            select: { config: true }
         });
 
         // Default to USD if not set
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const settings = (organization?.settings as any) || {};
+        const settings = (organization?.config as any) || {};
         const currency = settings.general?.currency || "USD";
 
         // --- 1. REVENUE (Ingresos) ---

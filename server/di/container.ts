@@ -18,6 +18,8 @@ import { GetOrganizationController } from "@/server/interface-adapters/controlle
 import { GetOrganizationUseCase } from "@/server/application/use-cases/organization/get-organization.use-case";
 import { UpdateOrganizationSettingsController } from "@/server/interface-adapters/controllers/organization/update-organization-settings.controller";
 import { UpdateOrganizationSettingsUseCase } from "@/server/application/use-cases/organization/update-organization-settings.use-case";
+import { UpgradeOrganizationPlanController } from "@/server/interface-adapters/controllers/organizations/upgrade-organization-plan.controller";
+import { UpgradeOrganizationPlanUseCase } from "@/server/application/use-cases/organizations/upgrade-organization-plan.use-case";
 
 // --- Imports: Members ---
 import { MembersRepository } from "@persistence/repositories/members.repository";
@@ -156,6 +158,9 @@ export const getContainer = cache(async () => {
   const createOrganizationUseCase = new CreateOrganizationUseCase(
     organizationsRepository,
   );
+  const upgradeOrganizationPlanUseCase = new UpgradeOrganizationPlanUseCase(
+    organizationsRepository,
+  );
   // Controllers
   const getAllOrganizationsController = new GetAllOrganizationsController(
     getAllOrganizationsUseCase,
@@ -177,6 +182,9 @@ export const getContainer = cache(async () => {
   );
   const updateOrganizationSettingsController = new UpdateOrganizationSettingsController(
     new UpdateOrganizationSettingsUseCase(),
+  );
+  const upgradeOrganizationPlanController = new UpgradeOrganizationPlanController(
+    upgradeOrganizationPlanUseCase,
   );
 
   // ===========================================================================
@@ -389,6 +397,7 @@ export const getContainer = cache(async () => {
     updateOrganizationController,
     deleteOrganizationController,
     updateOrganizationSettingsController,
+    upgradeOrganizationPlanController,
     // Members
     getAllMembersController,
     createMemberController,

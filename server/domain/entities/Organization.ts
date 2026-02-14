@@ -26,6 +26,7 @@ export class Organization extends BaseEntity {
     public name: string,
     public slug: string,
     public isActive: boolean,
+    public organizationPlan: string,
     public image?: string,
     public config?: OrganizationConfig,
     public organizationPlanId?: string,
