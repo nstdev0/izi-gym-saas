@@ -1,27 +1,10 @@
 "use client";
 
-import { Plus, ChevronDown, CreditCard, CalendarCheck, CheckCircle2, Download } from "lucide-react";
-import { SearchInput } from "@/components/ui/search-input";
-import { Pagination } from "@/components/ui/pagination";
-import { useParams } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { PageHeader } from "@/components/ui/page-header";
-import Link from "next/link";
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
 import { Card, CardContent } from "@/components/ui/card";
-import { useMembershipsList } from "@/hooks/memberships/use-memberships";
-import Loading from "../loading";
-import { Suspense, useState } from "react";
-import { useQueryStates } from "nuqs";
-import { membershipsParsers } from "@/lib/nuqs/search-params/memberships";
-import {
-    getCoreRowModel,
-    useReactTable,
-    flexRender,
-    VisibilityState
-} from "@tanstack/react-table";
-import { columns } from "./memberships-columns";
-import SmartFilters, { FilterConfiguration } from "@/components/ui/smart-filters";
+import { Suspense } from "react";
+import { SearchInput } from "@/components/ui/search-input";
+import { Pagination } from "@/components/ui/pagination";
 import {
     Table,
     TableBody,
@@ -30,6 +13,25 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
+import { flexRender } from "@tanstack/react-table";
+import Loading from "../loading";
+import { FilterConfiguration } from "@/components/ui/smart-filters";
+import { useParams } from "next/navigation";
+import SmartFilters from "@/components/ui/smart-filters";
+import { Plus, ChevronDown, CreditCard, Activity, Download } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/ui/page-header";
+import Link from "next/link";
+import { useMembershipsList } from "@/hooks/memberships/use-memberships";
+import { Membership } from "@/server/domain/entities/Membership";
+import { membershipsParsers } from "@/lib/nuqs/search-params/memberships";
+import { useQueryStates } from "nuqs";
+import {
+    useReactTable,
+    getCoreRowModel,
+    VisibilityState,
+} from "@tanstack/react-table";
+import { columns } from "./memberships-columns";
 import {
     DropdownMenu,
     DropdownMenuCheckboxItem,
@@ -38,8 +40,8 @@ import {
     DropdownMenuLabel,
     DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import { useState } from "react";
 import { cn } from "@/lib/utils";
-import { MembershipWithRelations } from "@/lib/services/memberships.service";
 
 export default function MembershipsViewPage() {
     const params = useParams();
@@ -48,9 +50,9 @@ export default function MembershipsViewPage() {
     const [queryStates, setQueryStates] = useQueryStates(membershipsParsers, {
         shallow: true,
         history: "push"
-    })
+    });
 
-    const { page, limit, ...restFilters } = queryStates
+    const { page, limit, ...restFilters } = queryStates;
 
     const { data: paginatedMemberships, isLoading, isFetching } = useMembershipsList({
         page,
@@ -58,30 +60,35 @@ export default function MembershipsViewPage() {
         filters: restFilters
     });
 
-    const filtersConfig: FilterConfiguration<MembershipWithRelations> = {
+    const filtersConfig: FilterConfiguration<Membership> = {
         sort: [
-            { label: "Fecha Inicio (Reciente)", field: "startDate", value: "startDate-desc" },
-            { label: "Fecha Inicio (Antigua)", field: "startDate", value: "startDate-asc" },
-            { label: "Fecha Fin (Próxima)", field: "endDate", value: "endDate-asc" },
-            { label: "Fecha Fin (Lejana)", field: "endDate", value: "endDate-desc" },
-            { label: "Precio (Mayor a Menor)", field: "pricePaid", value: "pricePaid-desc" },
-            { label: "Precio (Menor a Mayor)", field: "pricePaid", value: "pricePaid-asc" },
+            {
+                label: "Fecha Inicio (Más reciente)",
+                field: "startDate",
+                value: "startDate-desc"
+            },
+            {
+                label: "Fecha Inicio (Más antiguo)",
+                field: "startDate",
+                value: "startDate-asc"
+            }
         ],
         filters: [
             {
                 key: "status",
                 label: "Estado",
                 options: [
-                    { label: "Activo", value: "ACTIVE" },
-                    { label: "Vencido", value: "EXPIRED" },
+                    { label: "Activa", value: "ACTIVE" },
                     { label: "Pendiente", value: "PENDING" },
-                    { label: "Cancelado", value: "CANCELLED" },
-                ],
-            },
-        ],
+                    { label: "Vencida", value: "EXPIRED" },
+                    { label: "Cancelada", value: "CANCELLED" }
+                ]
+            }
+        ]
     };
 
-    const memberships = paginatedMemberships?.records || [];
+    // Type assertion since the hook might return a generic shape
+    const memberships = (paginatedMemberships?.records || []) as any[];
     const totalPages = paginatedMemberships?.totalPages || 0;
     const totalRecords = paginatedMemberships?.totalRecords || 0;
     const currentRecordsCount = memberships.length;
@@ -100,19 +107,22 @@ export default function MembershipsViewPage() {
         state: {
             columnVisibility,
             sorting: queryStates.sort ? [{
-                id: queryStates.sort.split("-")[0],
-                desc: queryStates.sort.endsWith("desc"),
+                id: queryStates.sort.split('-')[0],
+                desc: queryStates.sort.split('-')[1] === 'desc'
             }] : [],
             pagination: {
-                pageIndex: page - 1,
-                pageSize: limit,
+                pageIndex: queryStates.page - 1,
+                pageSize: queryStates.limit,
             }
         },
     });
 
     const handleFilterChange = (key: string, value: string | null) => {
-        setQueryStates({ [key]: value, page: 1 });
-    }
+        setQueryStates({
+            [key]: value,
+            page: 1,
+        });
+    };
 
     return (
         <Suspense fallback={<Loading />}>
@@ -122,25 +132,26 @@ export default function MembershipsViewPage() {
                 <div className="flex flex-col h-full space-y-6 pb-4">
                     <PageHeader
                         title="Gestión de Membresías"
-                        description="Administra las suscripciones y planes de tus miembros"
+                        description="Administra los planes y suscripciones de tus miembros"
                         actions={
                             <div className="flex gap-2">
                                 <Button variant="outline" size="sm" className="hidden sm:flex gap-2 shadow-sm hover:bg-muted/50">
                                     <Download className="w-4 h-4 text-muted-foreground" />
                                     Exportar
                                 </Button>
-                                <Button asChild size="sm" className="gap-2 shadow-md hover:shadow-lg transition-all">
-                                    <Link href={`/${slug}/admin/memberships/new`}>
-                                        <Plus className="w-4 h-4" /> Nueva Membresía
-                                    </Link>
-                                </Button>
+                                <Link href={`/${slug}/admin/memberships/new`}>
+                                    <Button size="sm" className="gap-2 shadow-md hover:shadow-lg transition-all">
+                                        <Plus className="w-4 h-4" />
+                                        Nueva Membresía
+                                    </Button>
+                                </Link>
                             </div>
                         }
                     />
 
                     {/* Stats Cards - Con Profundidad y Bordes Semánticos */}
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <Card className="border-none shadow-md border-l-4 border-l-blue-500 bg-gradient-to-br from-card to-blue-500/5">
+                        <Card className="border-none shadow-md border-l-4 border-l-blue-500 bg-linear-to-br from-card to-blue-500/5">
                             <CardContent className="p-4 flex items-center gap-4">
                                 <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-full text-blue-600 dark:text-blue-400">
                                     <CreditCard className="w-5 h-5" />
@@ -152,27 +163,14 @@ export default function MembershipsViewPage() {
                             </CardContent>
                         </Card>
 
-                        <Card className="border-none shadow-md border-l-4 border-l-green-500 bg-linear-to-br from-card to-green-500/5">
+                        <Card className="border-none shadow-md border-l-4 border-l-green-500 bg-linear-gradient-to-br from-card to-green-500/5">
                             <CardContent className="p-4 flex items-center gap-4">
                                 <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-full text-green-600 dark:text-green-400">
-                                    <CalendarCheck className="w-5 h-5" />
+                                    <Activity className="w-5 h-5" />
                                 </div>
                                 <div>
                                     <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">En esta página</p>
                                     <h3 className="text-2xl font-bold text-foreground">{isLoading ? "..." : currentRecordsCount}</h3>
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        <Card className="border-none shadow-md border-l-4 border-l-purple-500 bg-linear-to-br from-card to-purple-500/5 hidden sm:block">
-                            <CardContent className="p-4 flex items-center gap-4">
-                                <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-full text-purple-600 dark:text-purple-400">
-                                    <CheckCircle2 className="w-5 h-5" />
-                                </div>
-                                <div>
-                                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Activas Hoy</p>
-                                    <h3 className="text-2xl font-bold text-foreground">--</h3>
-                                    {/* TODO: Calcular activas hoy si el backend lo devuelve */}
                                 </div>
                             </CardContent>
                         </Card>
@@ -182,7 +180,7 @@ export default function MembershipsViewPage() {
                     <div className="flex flex-col sm:flex-row gap-3 p-1">
                         <div className="flex-1">
                             <SearchInput
-                                placeholder="Buscar por miembro o plan..."
+                                placeholder="Buscar por miembro..."
                                 value={queryStates.search || ""}
                                 onChange={(value) => setQueryStates({ search: value, page: 1 })}
                             />
@@ -244,19 +242,21 @@ export default function MembershipsViewPage() {
                                                     key={headerGroup.id}
                                                     className="border-b border-border/60 hover:bg-transparent"
                                                 >
-                                                    {headerGroup.headers.map((header) => (
-                                                        <TableHead
-                                                            key={header.id}
-                                                            className="px-6 py-4 font-semibold text-muted-foreground uppercase text-[0.7rem] tracking-wider"
-                                                        >
-                                                            {header.isPlaceholder
-                                                                ? null
-                                                                : flexRender(
-                                                                    header.column.columnDef.header,
-                                                                    header.getContext()
-                                                                )}
-                                                        </TableHead>
-                                                    ))}
+                                                    {headerGroup.headers.map((header) => {
+                                                        return (
+                                                            <TableHead
+                                                                key={header.id}
+                                                                className="px-6 py-4 font-semibold text-muted-foreground uppercase text-[0.7rem] tracking-wider"
+                                                            >
+                                                                {header.isPlaceholder
+                                                                    ? null
+                                                                    : flexRender(
+                                                                        header.column.columnDef.header,
+                                                                        header.getContext(),
+                                                                    )}
+                                                            </TableHead>
+                                                        );
+                                                    })}
                                                 </TableRow>
                                             ))}
                                         </TableHeader>
@@ -288,12 +288,6 @@ export default function MembershipsViewPage() {
                                         </TableBody>
                                     </Table>
                                 </div>
-
-                                {isFetching && (
-                                    <div className="absolute inset-0 flex items-center justify-center z-10 bg-background/20 backdrop-blur-[1px]">
-                                        {/* Optional loading overlay */}
-                                    </div>
-                                )}
 
                                 {/* Footer de Paginación */}
                                 <div className="p-4 border-t border-border/40 bg-background/50 backdrop-blur-sm">

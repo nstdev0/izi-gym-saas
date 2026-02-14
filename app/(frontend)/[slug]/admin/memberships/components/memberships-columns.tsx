@@ -87,11 +87,6 @@ function ActionsCell({ membership }: { membership: MembershipWithRelations }) {
                     <Eye className="h-4 w-4" />
                 </Link>
             </Button>
-            <Button variant="ghost" size="icon" asChild>
-                <Link href={`/${slug}/admin/memberships/${membership.id}/edit`}>
-                    <Edit className="h-4 w-4" />
-                </Link>
-            </Button>
             <AlertDialog open={open} onOpenChange={setOpen}>
                 <AlertDialogTrigger asChild>
                     <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">

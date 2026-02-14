@@ -1,48 +1,34 @@
-import { getContainer } from "@/server/di/container";
-import { notFound } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
 import { Metadata } from "next";
-import { ChevronLeft, Edit } from "lucide-react";
-import MembershipDetail from "./membership-detail";
+import { makeQueryClient } from "@/lib/react-query/client-config";
+
+import { membershipKeys } from "@/lib/react-query/query-keys";
+import { MembershipsService } from "@/lib/services/memberships.service";
+import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
+import MembershipDetailViewPage from "./view-page";
 
 export const metadata: Metadata = {
     title: "Detalle de Membresía",
     description: "Ver información de la membresía",
 };
 
-interface Props {
-    params: Promise<{ slug: string; id: string }>;
+interface PageProps {
+    params: Promise<{ id: string }>;
+    searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
-export default async function MembershipDetailPage({ params }: Props) {
-    const { slug, id } = await params;
-    const container = await getContainer();
+export default async function MembershipsDetail({ params, searchParams }: PageProps) {
+    const queryClient = makeQueryClient();
 
-    const membership = await container.getMembershipByIdController.execute(undefined, id);
+    const { id } = await params; // params is a Promise now
 
-    if (!membership) {
-        notFound();
-    }
+    await queryClient.prefetchQuery({
+        queryKey: membershipKeys.detail(id),
+        queryFn: () => MembershipsService.getById(id),
+    });
 
     return (
-        <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                    <Button variant="ghost" size="icon" asChild>
-                        <Link href={`/${slug}/admin/memberships`}>
-                            <ChevronLeft className="h-5 w-5" />
-                        </Link>
-                    </Button>
-                    <h1 className="text-2xl font-bold">Detalle de Membresía</h1>
-                </div>
-                <Button asChild>
-                    <Link href={`/${slug}/admin/memberships/${id}/edit`}>
-                        <Edit className="mr-2 h-4 w-4" /> Editar
-                    </Link>
-                </Button>
-            </div>
-            <MembershipDetail membership={membership} />
-        </div>
+        <HydrationBoundary state={dehydrate(queryClient)}>
+            <MembershipDetailViewPage />
+        </HydrationBoundary>
     );
 }

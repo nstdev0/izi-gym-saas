@@ -290,7 +290,7 @@ export default function DashboardViewPage() {
                                     <div className="p-2 bg-primary/10 rounded-full">
                                         <UserCheck className="h-5 w-5 text-primary" />
                                     </div>
-                                    <span className="text-xs sm:text-sm font-medium">Asistencia</span>
+                                    <span className="text-xs sm:text-sm font-medium">Asistencia rápida</span>
                                 </Button>
                             </AttendanceModal>
                             <Link href={`/${slug}/admin/memberships`}>
@@ -306,7 +306,7 @@ export default function DashboardViewPage() {
                                     <div className="p-2 bg-primary/10 rounded-full">
                                         <Dumbbell className="h-5 w-5 text-primary" />
                                     </div>
-                                    <span className="text-xs sm:text-sm font-medium">Renovar</span>
+                                    <span className="text-xs sm:text-sm font-medium">Renovar membresía</span>
                                 </Button>
                             </Link>
                         </div>
