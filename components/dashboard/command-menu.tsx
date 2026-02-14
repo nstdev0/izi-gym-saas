@@ -61,7 +61,7 @@ export function CommandMenu() {
         <CommandEmpty>No se encontraron resultados.</CommandEmpty>
 
         {/* --- ACCIONES RÁPIDAS (Nuevas) --- */}
-        <CommandGroup heading="Acciones Rápidas">
+        <CommandGroup className="p-4" heading="Acciones Rápidas">
           <CommandItem
             onSelect={() =>
               runCommand(() => router.push(`/${slug}/admin/attendance`))
@@ -115,7 +115,7 @@ export function CommandMenu() {
         <CommandSeparator />
 
         {/* --- NAVEGACIÓN --- */}
-        <CommandGroup heading="Navegación">
+        <CommandGroup className="p-4" heading="Navegación">
           <CommandItem
             onSelect={() => runCommand(() => router.push(`/${slug}/admin/dashboard`))}
           >
@@ -183,7 +183,7 @@ export function CommandMenu() {
         <CommandSeparator />
 
         {/* --- TEMA --- */}
-        <CommandGroup heading="Tema">
+        <CommandGroup className="p-4" heading="Tema">
           <CommandItem onSelect={() => runCommand(() => setTheme("light"))}>
             <Sun className="mr-2 h-4 w-4" />
             <span>Claro</span>

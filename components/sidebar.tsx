@@ -350,7 +350,7 @@ export function Sidebar({
         </nav>
       </div>
 
-      <div className="mt-auto border-t p-4 bg-background/50 backdrop-blur-sm">
+      <div className="border-t p-1 bg-background/50 backdrop-blur-sm">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
