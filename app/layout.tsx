@@ -73,20 +73,31 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const { orgId } = await auth();
+  const { userId } = await auth();
   let initialFont: "inter" | "outfit" | "lato" = "inter";
+  let initialColor: string = "";
+  let initialTheme: "light" | "dark" | "system" = "system";
 
-  if (orgId) {
-    const org = await prisma.organization.findUnique({
-      where: { id: orgId },
-      select: { config: true }
+  if (userId) {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { preferences: true }
     });
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const settings = (org?.config as any) || {};
-    if (settings.appearance?.font) {
-      initialFont = settings.appearance.font;
+    const preferences = (user?.preferences as any) || {};
+
+    if (preferences.appearance?.font) {
+      initialFont = preferences.appearance.font;
+    }
+    if (preferences.appearance?.primaryColor) {
+      initialColor = preferences.appearance.primaryColor;
+    }
+    if (preferences.appearance?.theme) {
+      initialTheme = preferences.appearance.theme;
     }
   }
+
 
   return (
     <ClerkProvider
@@ -106,11 +117,11 @@ export default async function RootLayout({
         <body className="font-sans antialiased bg-background text-foreground transition-colors duration-300">
           <ThemeProvider
             attribute="class"
-            defaultTheme="system"
+            defaultTheme={initialTheme}
             enableSystem
             disableTransitionOnChange
           >
-            <AppearanceProvider initialFont={initialFont}>
+            <AppearanceProvider initialFont={initialFont} initialColor={initialColor} initialTheme={initialTheme}>
               <NuqsAdapter>
                 <ReactQueryProvider>
                   <NextSSRPlugin routerConfig={extractRouterConfig(ourFileRouter)} />

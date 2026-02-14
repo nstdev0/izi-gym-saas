@@ -6,12 +6,12 @@ import { clerkClient } from "@clerk/nextjs/server";
 
 export class UpdateOrganizationSettingsUseCase {
     async execute(organizationId: string, input: UpdateOrganizationSettingsInput): Promise<Organization> {
-        const { name, image, settings } = input;
+        const { name, image, config } = input;
 
         // Fetch existing organization to merge settings
         const currentOrg = await prisma.organization.findUnique({
             where: { id: organizationId },
-            select: { config: true, name: true }
+            include: { config: true }
         });
 
         if (!currentOrg) {
@@ -19,34 +19,106 @@ export class UpdateOrganizationSettingsUseCase {
         }
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const currentSettings = (currentOrg.config as Record<string, any>) || {};
+        const currentSettings = (currentOrg.config as any) || {};
 
-        // Deep merge logic could be complex, but for now we'll do a shallow merge of top-level keys
-        // or a slightly deeper merge if needed. 
-        // Since our input settings structure matches the DB structure, let's merge section by section.
+        // Prepare update data for Config
+        const configUpdateData: any = {};
 
-        // If a whole section was missing in currentSettings but present in input, the above spread handles it? 
-        // No, `...currentSettings.general` would throw if currentSettings.general is undefined.
-        // Let's make it safer.
-
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const safeMerge = (current: any, incoming: any) => {
-            return { ...current, ...incoming };
+        // 1. Identity / General (Currency, Locale, Timezone)
+        // DTO has these in `identity`, DB seems to have them at root or mixed.
+        // Based on "create" block below, DB keys: locale, timezone, currency.
+        if (config?.identity) {
+            if (config.identity.currency) configUpdateData.currency = config.identity.currency;
+            if (config.identity.locale) configUpdateData.locale = config.identity.locale;
+            if (config.identity.timezone) configUpdateData.timezone = config.identity.timezone;
+            configUpdateData.identity = {
+                ...((currentSettings.identity as object) || {}),
+                ...config.identity
+            };
         }
 
-        const mergedSettings = {
-            general: safeMerge(currentSettings.general || {}, settings?.general || {}),
-            operations: safeMerge(currentSettings.operations || {}, settings?.operations || {}),
-            notifications: safeMerge(currentSettings.notifications || {}, settings?.notifications || {}),
-            appearance: safeMerge(currentSettings.appearance || {}, settings?.appearance || {}),
+        // 2. Access Control
+        if (config?.accessControl) {
+            configUpdateData.accessControl = {
+                ...((currentSettings.accessControl as object) || {}),
+                ...config.accessControl
+            };
         }
+
+        // 3. Booking
+        if (config?.booking) {
+            configUpdateData.booking = {
+                ...((currentSettings.booking as object) || {}),
+                ...config.booking
+            };
+        }
+
+        // 4. Notifications
+        if (config?.notifications) {
+            configUpdateData.notifications = {
+                ...((currentSettings.notifications as object) || {}),
+                ...config.notifications
+            };
+        }
+
+        // 5. Branding
+        if (config?.branding) {
+            configUpdateData.branding = {
+                ...((currentSettings.branding as object) || {}),
+                ...config.branding
+            };
+        }
+
+        // 6. Billing
+        if (config?.billing) {
+            configUpdateData.billing = {
+                ...((currentSettings.billing as object) || {}),
+                ...config.billing
+            };
+        }
+
+        // 7. Features
+        if (config?.features) {
+            configUpdateData.features = {
+                ...((currentSettings.features as object) || {}),
+                ...config.features
+            };
+        }
+
+        // 8. Staff Settings
+        if (config?.staffSettings) {
+            configUpdateData.staffSettings = {
+                ...((currentSettings.staffSettings as object) || {}),
+                ...config.staffSettings
+            };
+        }
+
 
         const updatedOrg = await prisma.organization.update({
             where: { id: organizationId },
             data: {
                 ...(name && { name }),
-                ...(image !== undefined && { image }), // Allow clearing image if passed as null/empty? Schema says optional string. 
+                ...(image !== undefined && { image }),
+                config: {
+                    upsert: {
+                        create: {
+                            locale: config?.identity?.locale || "es-PE",
+                            timezone: config?.identity?.timezone || "America/Lima",
+                            currency: config?.identity?.currency || "PEN",
+                            accessControl: config?.accessControl || {},
+                            booking: config?.booking || {},
+                            notifications: config?.notifications || {},
+                            billing: config?.billing || {},
+                            branding: config?.branding || {},
+                            identity: config?.identity || {},
+                            features: config?.features || {},
+                            staffSettings: config?.staffSettings || {}
+                        },
+                        update: configUpdateData
+                    }
+                }
             },
+            include: { config: true }
         });
 
         // Sync with Clerk if name or slug changed

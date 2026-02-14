@@ -14,6 +14,7 @@ export class User extends BaseEntity {
     public role: string,
     public isActive: boolean,
     public image: string | null,
+    public preferences: Record<string, unknown> | null = null,
   ) {
     super(id, organizationId, createdAt, updatedAt, status, deletedAt);
   }

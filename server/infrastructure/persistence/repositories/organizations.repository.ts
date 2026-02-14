@@ -9,6 +9,7 @@ import {
 } from "@/server/domain/types/organizations";
 import { EntityStatus } from "@/server/domain/entities/_base";
 import { Organization } from "@/server/domain/entities/Organization";
+import { OrganizationConfig } from "@/server/domain/entities/OrganizationConfig";
 import { clerkClient } from "@clerk/nextjs/server";
 
 export class OrganizationsRepository
@@ -275,27 +276,91 @@ export class OrganizationsRepository
     return this.mapToEntity(org);
   }
 
+  async updateSettings(id: string, settings: any): Promise<Organization> {
+    const { name, image, config } = settings;
+
+    // Update Organization Root (Name, Image)
+    if (name || image !== undefined) {
+      await this.model.update({
+        where: { id },
+        data: {
+          name: name,
+          image: image
+        }
+      });
+    }
+
+    // Update Configuration
+    if (config) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const payload: any = { ...config };
+
+      // Sync top-level fields from identity if present in the update
+      if (config.identity) {
+        if (config.identity.locale) payload.locale = config.identity.locale;
+        if (config.identity.timezone) payload.timezone = config.identity.timezone;
+        if (config.identity.currency) payload.currency = config.identity.currency;
+      }
+
+      // We use upsert to ensure config exists
+      // But BaseRepository structure is tricky with relations.
+      // We rely on prisma direct access here via this.model (which is OrganizationDelegate)
+      // but to access relation we need to update via relation
+      await this.model.update({
+        where: { id },
+        data: {
+          config: {
+            upsert: {
+              create: payload,
+              update: payload
+            }
+          }
+        }
+      });
+    }
+
+    // Refetch to return full entity
+    const updatedOrg = await this.model.findUnique({
+      where: { id },
+      include: { config: true, plan: true }
+    });
+
+    if (!updatedOrg) throw new Error("Organization not found after update");
+
+    return this.mapToEntity(updatedOrg);
+  }
+
   private mapToEntity(prismaOrg: any): Organization {
     const status = prismaOrg.isActive ? EntityStatus.ACTIVE : EntityStatus.INACTIVE;
 
     // Mapeo seguro de Config
-    // Si tienes una clase OrganizationConfig, instánciala aquí.
-    // Si no, asegúrate de que Organization acepte el objeto plano casteado.
-    const configData = prismaOrg.config ? {
-      id: prismaOrg.config.id,
-      identity: prismaOrg.config.identity,
-      branding: prismaOrg.config.branding,
-      billing: prismaOrg.config.billing,
-      booking: prismaOrg.config.booking,
-      accessControl: prismaOrg.config.accessControl,
-      notifications: prismaOrg.config.notifications,
-      features: prismaOrg.config.features,
-      staffSettings: prismaOrg.config.staffSettings,
-    } : undefined;
+    const configData = prismaOrg.config ? new OrganizationConfig(
+      prismaOrg.config.id,
+      prismaOrg.config.organizationId,
+      prismaOrg.config.createdAt,
+      prismaOrg.config.updatedAt,
+      // Config doesn't have an active status but BaseEntity needs one. 
+      // Assuming ACTIVE if exists, or passed from somewhere else. 
+      // BaseEntity for Config might be overkill if it doesn't have status, 
+      // but let's use ACTIVE.
+      EntityStatus.ACTIVE,
+      prismaOrg.config.deletedAt,
+      prismaOrg.config.locale,
+      prismaOrg.config.timezone,
+      prismaOrg.config.currency,
+      prismaOrg.config.identity as Record<string, unknown>,
+      prismaOrg.config.branding as Record<string, unknown>,
+      prismaOrg.config.billing as Record<string, unknown>,
+      prismaOrg.config.booking as Record<string, unknown>,
+      prismaOrg.config.accessControl as Record<string, unknown>,
+      prismaOrg.config.notifications as Record<string, unknown>,
+      prismaOrg.config.features as Record<string, unknown>,
+      prismaOrg.config.staffSettings as Record<string, unknown>,
+    ) : null;
 
     return new Organization(
       prismaOrg.id,
-      prismaOrg.id, // organizationId
+      prismaOrg.organizationId || prismaOrg.id, // Fallback if organizationId is missing/empty string
       prismaOrg.createdAt,
       prismaOrg.updatedAt,
       status,
@@ -304,9 +369,15 @@ export class OrganizationsRepository
       prismaOrg.slug,
       prismaOrg.isActive,
       // Mapea el Plan si vino incluido
-      prismaOrg.organizationPlan ? { ...prismaOrg.organizationPlan } as any : undefined,
+      // Note: organizationPlan in constructor expects string (name), but here we might be passing object?
+      // Looking at constructor: public organizationPlan: string,
+      // Looking at usage: prismaOrg.organizationPlanName ??
+      // In the create method: organizationPlan: plan.name
+      // In prisma schema: organizationPlan String
+      // So prismaOrg.organizationPlan is the string name.
+      prismaOrg.organizationPlan,
       prismaOrg.image || undefined,
-      configData as any, // Cast a OrganizationConfig
+      configData,
       prismaOrg.organizationPlanId
     );
   }

@@ -363,6 +363,8 @@ model User {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 
+  preferences Json? // Preferencias personales (tema, fuente, etc.)
+
   // REGLA APLICADA: Email único por organización
   // Nota: Esto permite tener el mismo email en diferentes gyms (o sin gym si orgId es null)
   @@unique([email, organizationId])

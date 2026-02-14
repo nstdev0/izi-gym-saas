@@ -1,19 +1,6 @@
 import { BaseEntity, EntityStatus } from "./_base";
 
-interface OrganizationConfig {
-  id: string
-  locale: string
-  timezone: string
-  currency: string
-  identity: Record<string, unknown>
-  branding: Record<string, unknown>
-  billing: Record<string, unknown>
-  booking: Record<string, unknown>
-  accessControl: Record<string, unknown>
-  notifications: Record<string, unknown>
-  features: Record<string, unknown>
-  staffSettings: Record<string, unknown>
-}
+import { OrganizationConfig } from "./OrganizationConfig";
 
 export class Organization extends BaseEntity {
   constructor(
@@ -28,9 +15,10 @@ export class Organization extends BaseEntity {
     public isActive: boolean,
     public organizationPlan: string,
     public image?: string,
-    public config?: OrganizationConfig,
+    public config?: OrganizationConfig | null,
     public organizationPlanId?: string,
   ) {
     super(id, organizationId, createdAt, updatedAt, status, deletedAt);
   }
 }
+

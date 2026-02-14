@@ -42,6 +42,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useOrganizationDetail } from "@/hooks/organizations/use-organizations";
+import { useUserDetail } from "@/hooks/users/use-users";
 
 export function Sidebar({
   className,
@@ -57,9 +58,10 @@ export function Sidebar({
   const pathname = usePathname();
   const { isSidebarCollapsed: contextCollapsed, toggleSidebar } =
     useDashboard();
-  const { user } = useUser();
-  const { signOut, openUserProfile } = useClerk();
+  const { user: clerkUser } = useUser();
+  const { signOut } = useClerk();
   const { organization: clerkOrganization } = useOrganization();
+  const { data: user } = useUserDetail(clerkUser?.id || "");
 
   // Safe access to ID
   const orgId = clerkOrganization?.id;
@@ -145,7 +147,7 @@ export function Sidebar({
         pathname === `/${safeSlug}/admin/settings` ||
         pathname.startsWith(`/${safeSlug}/admin/settings/`),
     },
-    ...(user?.publicMetadata?.role === "GOD"
+    ...(clerkUser?.publicMetadata?.role === "GOD"
       ? [
         {
           label: "GOD Panel",
@@ -273,7 +275,7 @@ export function Sidebar({
                     <Button
                       variant={route.active ? "secondary" : "ghost"}
                       size="icon"
-                      className={cn("h-9 w-9", route.active && "bg-muted")}
+                      className={cn("h-9 w-9", route.active && "bg-primary/10 text-primary hover:bg-primary/20")}
                       asChild
                     >
                       <Link href={route.href}>
@@ -297,13 +299,13 @@ export function Sidebar({
                     "w-full justify-start gap-3 mb-1",
                     // Solo animamos en montaje inicial o móvil, no en cada render
                     "animate-in fade-in slide-in-from-left-2 duration-300",
-                    route.active && "bg-muted pointer-events-none"
+                    route.active && "bg-primary/10 text-primary pointer-events-none font-medium"
                   )}
                   style={{ animationDelay: `${index * 50}ms`, animationFillMode: 'backwards' }}
                   asChild
                 >
                   <Link href={route.href}>
-                    <route.icon className={cn("h-4 w-4", route.color)} />
+                    <route.icon className={cn("h-4 w-4", route.active ? "text-primary" : route.color)} />
                     {route.label}
                   </Link>
                 </Button>
@@ -368,26 +370,26 @@ export function Sidebar({
               >
                 <Avatar className="h-8 w-8 border border-border">
                   <AvatarImage
-                    src={user?.imageUrl}
-                    alt={user?.fullName || ""}
+                    src={user?.image || clerkUser?.imageUrl}
+                    alt={user?.firstName + " " + user?.lastName || clerkUser?.fullName || ""}
                   />
                   <AvatarFallback className="bg-primary text-primary-foreground">
-                    {user?.firstName?.charAt(0)}
-                    {user?.lastName?.charAt(0)}
+                    {user?.firstName?.charAt(0) || clerkUser?.firstName?.charAt(0)}
+                    {user?.lastName?.charAt(0) || clerkUser?.lastName?.charAt(0)}
                   </AvatarFallback>
                 </Avatar>
                 {!isSidebarCollapsed && (
                   <>
                     <div className="flex flex-col items-start min-w-0">
                       <span className="text-sm font-medium truncate w-[120px] text-left">
-                        {process.env.NODE_ENV === "development" && !user?.fullName
+                        {process.env.NODE_ENV === "development" && !user?.firstName
                           ? "Dev User"
-                          : user?.fullName || "Usuario"}
+                          : user?.firstName + " " + user?.lastName || clerkUser?.fullName || "Usuario"}
                       </span>
                       <span className="text-xs text-muted-foreground truncate w-[120px] text-left">
-                        {process.env.NODE_ENV === "development" && !user?.primaryEmailAddress
+                        {process.env.NODE_ENV === "development" && !user?.email
                           ? "dev@local.host"
-                          : user?.primaryEmailAddress?.emailAddress || ""}
+                          : user?.email || clerkUser?.primaryEmailAddress?.emailAddress || ""}
                       </span>
                     </div>
                     <ChevronsUpDown className="ml-auto h-4 w-4 text-muted-foreground" />
@@ -405,17 +407,19 @@ export function Sidebar({
             <DropdownMenuLabel className="font-normal">
               <div className="flex flex-col space-y-1">
                 <p className="text-sm font-medium leading-none">
-                  {user?.fullName}
+                  {clerkUser?.fullName}
                 </p>
                 <p className="text-xs leading-none text-muted-foreground">
-                  {user?.primaryEmailAddress?.emailAddress}
+                  {clerkUser?.primaryEmailAddress?.emailAddress}
                 </p>
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => openUserProfile()}>
-              <User className="mr-2 h-4 w-4" />
-              <span>Perfil</span>
+            <DropdownMenuItem asChild>
+              <Link href={`/${safeSlug}/admin/profile`} className="w-full cursor-pointer flex items-center">
+                <User className="mr-2 h-4 w-4" />
+                <span>Perfil</span>
+              </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem

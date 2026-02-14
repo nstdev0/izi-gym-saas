@@ -11,6 +11,7 @@ export class CreateOrganizationUseCase {
   ): Promise<Organization> {
     return await this.repository.createWithTransaction(input, userId);
   }
+
 }
 
 export type ICreateOrganizationUseCase = InstanceType<typeof CreateOrganizationUseCase>;
