@@ -242,6 +242,24 @@ export class OrganizationsRepository
       throw new Error(`El plan '${planSlug}' no es válido o no existe.`);
     }
 
+    await prisma.$transaction(async (tx) => {
+      await tx.organization.update({
+        where: { id: this.organizationId },
+        data: {
+          organizationPlanId: plan.id,
+          organizationPlan: plan.name
+        }
+      });
+
+      await tx.subscription.update({
+        where: { organizationId: this.organizationId },
+        data: {
+          pricePaid: plan.price
+        },
+      });
+
+    })
+
     const org = await this.model.update({
       where: { id: this.organizationId },
       data: {

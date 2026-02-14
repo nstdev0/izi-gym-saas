@@ -24,7 +24,6 @@ export class SystemRepository implements ISystemRepository {
             prisma.subscription.findMany({
                 where: { status: 'ACTIVE' },
                 include: {
-                    // Asumimos que la relación en Subscription se llama organizationPlan
                     plan: true
                 }
             })
@@ -32,8 +31,7 @@ export class SystemRepository implements ISystemRepository {
 
         // Calculate MRR from active subscriptions
         const mrr = allActiveSubs.reduce((acc, sub) => {
-            // Protección contra nulls y conversión de Decimal
-            return acc + Number(sub.plan?.price || 0);
+            return acc + Number(sub.pricePaid || 0);
         }, 0);
 
         return {

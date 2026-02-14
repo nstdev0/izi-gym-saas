@@ -10,9 +10,6 @@ export default function SystemDashboardView() {
     const { data: recentSignups = [] } = useSystemRecentSignups();
     const { data: revenueStats = [] } = useSystemRevenueStats();
 
-    // Loading states can be handled here if needed, or rely on Suspense/prenetched data
-    // For now, we pass undefined which components should handle gracefully or show loading skeleton
-
     return (
         <div className="flex-1 space-y-4">
             <div className="flex items-center justify-between space-y-2">

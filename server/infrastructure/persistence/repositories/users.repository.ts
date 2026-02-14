@@ -27,8 +27,7 @@ export class UsersRepository
     };
 
     return (await this.model.create({
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      data: { ...prismaData, organizationId: this.organizationId } as any,
+      data: { ...prismaData, organizationId: this.organizationId },
     })) as unknown as User;
   }
 
