@@ -183,6 +183,8 @@ model Organization {
   slug  String  @unique
   image String?
 
+  status Boolean @default(true)
+
   organizationPlanId String
   organizationPlan   String
   plan               OrganizationPlan @relation(fields: [organizationPlanId, organizationPlan], references: [id, name])
@@ -320,6 +322,8 @@ model Subscription {
 
   organizationId String       @unique
   organization   Organization @relation(fields: [organizationId], references: [id])
+
+  pricePaid Decimal @db.Decimal(10, 2)
 
   organizationPlanId String
   plan               OrganizationPlan @relation(fields: [organizationPlanId], references: [id])

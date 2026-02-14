@@ -1,4 +1,5 @@
 import { Prisma } from "@/generated/prisma/client";
+import { prisma } from "@/server/infrastructure/persistence/prisma"; // Import directo es mejor aquí
 import { BaseRepository } from "./base.repository";
 import { IOrganizationRepository } from "@/server/application/repositories/organizations.repository.interface";
 import {
@@ -8,6 +9,7 @@ import {
 } from "@/server/domain/types/organizations";
 import { EntityStatus } from "@/server/domain/entities/_base";
 import { Organization } from "@/server/domain/entities/Organization";
+import { clerkClient } from "@clerk/nextjs/server";
 
 export class OrganizationsRepository
   extends BaseRepository<
@@ -19,18 +21,16 @@ export class OrganizationsRepository
   >
   implements IOrganizationRepository {
 
-  /**
-   * Override findUnique to verify organizationId context usage.
-   * However, for "get current organization", we often just want findById(this.organizationId).
-   */
   async findCurrent(): Promise<Organization | null> {
     if (!this.organizationId) return null;
-
+    // Usamos findUnique del modelo base, pero mapeamos correctamente si es necesario
     const org = await this.model.findUnique({
       where: { id: this.organizationId },
+      include: { config: true, plan: true } // Incluir relaciones necesarias
     });
 
-    return org as unknown as Organization | null;
+    if (!org) return null;
+    return this.mapToEntity(org);
   }
 
   async buildPrismaClauses(
@@ -41,7 +41,6 @@ export class OrganizationsRepository
 
     if (filters.search) {
       const searchTerms = filters.search.trim().split(/\s+/).filter(Boolean);
-
       if (searchTerms.length > 0) {
         whereClause.AND = searchTerms.map((term) => ({
           OR: [
@@ -60,10 +59,9 @@ export class OrganizationsRepository
 
     if (filters.sort) {
       const [field, direction] = filters.sort.split("-");
-      const isValidDirection = direction === "asc" || direction === "desc";
-      if (isValidDirection) {
-        if (field === "name") orderByClause = { name: direction as Prisma.SortOrder };
-        if (field === "createdAt") orderByClause = { createdAt: direction as Prisma.SortOrder };
+      if (direction === "asc" || direction === "desc") {
+        if (field === "name") orderByClause = { name: direction };
+        if (field === "createdAt") orderByClause = { createdAt: direction };
       }
     }
 
@@ -74,12 +72,9 @@ export class OrganizationsRepository
     input: CreateOrganizationInput,
     userId: string,
   ): Promise<Organization> {
-    const { prisma } =
-      await import("@/server/infrastructure/persistence/prisma");
-
     const selectedPlan = input.planSlug || "free-trial";
 
-    // 1. Buscar Plan (Ahora dinámico)
+    // 1. Buscar Plan
     const plan = await prisma.organizationPlan.findUnique({
       where: { slug: selectedPlan },
     });
@@ -88,7 +83,7 @@ export class OrganizationsRepository
       throw new Error(`El plan '${selectedPlan}' no es válido o no existe.`);
     }
 
-    // 2. Verificar Slug Duplicado
+    // 2. Verificar Slug
     const existingOrg = await prisma.organization.findUnique({
       where: { slug: input.slug },
     });
@@ -96,7 +91,7 @@ export class OrganizationsRepository
       throw new Error("Este URL ya está en uso");
     }
 
-    // 3. Transacción Atómica
+    // 3. Transacción
     const newOrg = await prisma.$transaction(async (tx) => {
       // A. Crear Org
       const org = await tx.organization.create({
@@ -108,16 +103,14 @@ export class OrganizationsRepository
           organizationPlan: plan.name,
           config: {
             create: {
-              // 1. IDENTIDAD (Casteo a any para evitar error InputJsonValue)
               identity: {
-                website: null, // Usa null en vez de undefined para DB
+                website: null,
                 contact_email: null,
                 locale: "es-PE",
                 timezone: "America/Lima",
                 currency: "PEN",
-              } as any,
+              } as Prisma.InputJsonValue,
 
-              // 2. BRANDING
               branding: {
                 primary_color: null,
                 secondary_color: null,
@@ -126,44 +119,23 @@ export class OrganizationsRepository
                 favicon_url: null,
                 custom_css_enabled: false,
                 app_name_override: null
-              } as any,
+              } as Prisma.InputJsonValue,
 
-              // 3. FACTURACIÓN
               billing: {
-                tax_settings: {
-                  enabled: true,
-                  tax_name: "IGV",
-                  tax_rate: 0.18,
-                  prices_include_tax: true
-                },
-                payment_gateways: {
-                  stripe: { enabled: true, publishable_key: null, methods: [] },
-                  paypal: { enabled: false },
-                  cash: { enabled: true, require_manager_approval: false }
-                },
-                dunning_management: {
-                  retry_attempts: 3,
-                  retry_interval_days: 2,
-                  lock_access_on_fail: true,
-                  notify_customer: true
-                },
+                tax_settings: { enabled: true, tax_name: "IGV", tax_rate: 0.18, prices_include_tax: true },
+                payment_gateways: { stripe: { enabled: true, publishable_key: null, methods: [] }, paypal: { enabled: false }, cash: { enabled: true, require_manager_approval: false } },
+                dunning_management: { retry_attempts: 3, retry_interval_days: 2, lock_access_on_fail: true, notify_customer: true },
                 proration_behavior: "always_invoice"
-              } as any,
+              } as Prisma.InputJsonValue,
 
-              // 4. BOOKING
               booking: {
                 booking_window_days: 7,
-                cancellation_policy: {
-                  late_cancel_window_hours: null,
-                  penalty_fee: null,
-                  refund_credits: null
-                },
+                cancellation_policy: { late_cancel_window_hours: null, penalty_fee: null, refund_credits: null },
                 waitlist: { enabled: true, auto_promote: true, max_size: 5 },
                 max_active_bookings: 3,
                 guest_passes_allowed: true
-              } as any,
+              } as Prisma.InputJsonValue,
 
-              // 5. CONTROL DE ACCESO
               accessControl: {
                 provider: null,
                 hardware_integration_enabled: false,
@@ -171,9 +143,8 @@ export class OrganizationsRepository
                 allow_entry_grace_period_minutes: null,
                 anti_passback: true,
                 multi_location_access: false
-              } as any,
+              } as Prisma.InputJsonValue,
 
-              // 6. NOTIFICACIONES
               notifications: {
                 channels: { email: false, sms: false, push: false, whatsapp: false },
                 triggers: {
@@ -183,74 +154,70 @@ export class OrganizationsRepository
                   membership_expiring: { enabled: true, days_before: 5 }
                 },
                 marketing_consent_required: null
-              } as any,
+              } as Prisma.InputJsonValue,
 
-              // 7. FEATURES
               features: {
                 gamification: { leaderboards: false, achievements: false, social_feed: false },
                 workouts: { track_weights: false, video_library: false },
                 ecommerce: { sell_products: false, click_and_collect: false }
-              } as any,
+              } as Prisma.InputJsonValue,
 
-              // 8. STAFF
               staffSettings: {
                 require_2fa: false,
                 trainers_can_view_revenue: false,
                 trainers_can_cancel_classes: false,
                 reception_can_apply_discounts: false,
                 max_discount_percent: null
-              } as any
+              } as Prisma.InputJsonValue
             }
           }
         },
         include: {
           config: true,
+          plan: true
         }
       });
 
+      // Update organizationId to self (Tenant Root)
+      // Solo si tu modelo lo requiere explícitamente, si no, es redundante.
       await tx.organization.update({
         where: { id: org.id },
-        data: {
-          organizationId: org.id,
-        }
-      })
+        data: { organizationId: org.id } // Asumiendo que tienes este campo
+      });
 
-      // B. Crear Suscripción Trial
+      // B. Suscripción
       await tx.subscription.create({
         data: {
           organizationId: org.id,
           organizationPlanId: plan.id,
           status: "TRIALING",
-          currentPeriodEnd: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14 días
+          currentPeriodEnd: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
+          pricePaid: plan.price
         },
       });
 
-      // C. Verificar si el usuario existe en DB (JIT Sync)
-      // Esto previene condiciones de carrera si el Webhook de Clerk es lento
+      // C. Usuario (Dueño)
       const existingUser = await tx.user.findUnique({ where: { id: userId } });
 
       if (!existingUser) {
-        // Fetch from Clerk API (Server Side)
-        const { clerkClient } = await import("@clerk/nextjs/server");
         const client = await clerkClient();
         const clerkUser = await client.users.getUser(userId);
-
         const email = clerkUser.emailAddresses[0]?.emailAddress;
+
         if (!email) throw new Error("User has no email in Clerk");
 
-        // Create User in DB
         await tx.user.create({
           data: {
             id: userId,
             email: email,
-            image: clerkUser.imageUrl,
-            role: "OWNER",
-            passwordHash: "OAUTH_MANAGED",
+            // image: clerkUser.imageUrl, // Verifica si tu modelo User tiene 'image'
+            role: "OWNER", // Usa el Enum Role.OWNER si es posible
+            // passwordHash: "OAUTH_MANAGED", // Verifica si existe
             organizationId: org.id,
+            isActive: true
           }
         });
       } else {
-        // Vincular Usuario como Dueño (Update)
         await tx.user.update({
           where: { id: userId },
           data: {
@@ -263,48 +230,10 @@ export class OrganizationsRepository
       return org;
     });
 
-    // NOTE: Organization entity expects: id, organizationId, createdAt, updatedAt, name, slug, isActive.
-    // However, Organization model in Prisma doesn't always strictly map to "organizationId" property of itself unless it's a tenant data.
-    // The BaseEntity expects organizationId, but Organization is the tenant itself.
-    // We might need to adjust the Entity or pass the ID as organizationId too.
-    const status = newOrg.isActive ? EntityStatus.ACTIVE : EntityStatus.INACTIVE;
-
-    const domainConfig = newOrg.config ? {
-      id: newOrg.config.id,
-      locale: (newOrg.config.identity as any)?.locale || "es-PE",
-      timezone: (newOrg.config.identity as any)?.timezone || "America/Lima",
-      currency: (newOrg.config.identity as any)?.currency || "PEN",
-
-      identity: newOrg.config.identity as Record<string, unknown>,
-      branding: newOrg.config.branding as Record<string, unknown>,
-      billing: newOrg.config.billing as Record<string, unknown>,
-      booking: newOrg.config.booking as Record<string, unknown>,
-      accessControl: newOrg.config.accessControl as Record<string, unknown>,
-      notifications: newOrg.config.notifications as Record<string, unknown>,
-      features: newOrg.config.features as Record<string, unknown>,
-      staffSettings: newOrg.config.staffSettings as Record<string, unknown>,
-    } : undefined;
-
-    return new Organization(
-      newOrg.id,
-      newOrg.id,
-      newOrg.createdAt,
-      newOrg.updatedAt,
-      status,
-      null,
-      newOrg.name,
-      newOrg.slug,
-      newOrg.isActive,
-      newOrg.organizationPlan,
-      newOrg.image ? newOrg.image : undefined,
-      domainConfig,
-      newOrg.organizationPlanId
-    );
+    return this.mapToEntity(newOrg);
   }
 
   async upgradePlan(planSlug: string): Promise<Organization> {
-    const { prisma } = await import("@/server/infrastructure/persistence/prisma");
-
     const plan = await prisma.organizationPlan.findUnique({
       where: { slug: planSlug },
     });
@@ -317,10 +246,50 @@ export class OrganizationsRepository
       where: { id: this.organizationId },
       data: {
         organizationPlanId: plan.id,
-        organizationPlan: plan.name,
+        // organizationPlan: plan.name, // ELIMINAR: Esto da error en Prisma update
       },
+      include: {
+        config: true,
+        plan: true
+      }
     });
 
-    return org as Organization;
+    return this.mapToEntity(org);
+  }
+
+  private mapToEntity(prismaOrg: any): Organization {
+    const status = prismaOrg.isActive ? EntityStatus.ACTIVE : EntityStatus.INACTIVE;
+
+    // Mapeo seguro de Config
+    // Si tienes una clase OrganizationConfig, instánciala aquí.
+    // Si no, asegúrate de que Organization acepte el objeto plano casteado.
+    const configData = prismaOrg.config ? {
+      id: prismaOrg.config.id,
+      identity: prismaOrg.config.identity,
+      branding: prismaOrg.config.branding,
+      billing: prismaOrg.config.billing,
+      booking: prismaOrg.config.booking,
+      accessControl: prismaOrg.config.accessControl,
+      notifications: prismaOrg.config.notifications,
+      features: prismaOrg.config.features,
+      staffSettings: prismaOrg.config.staffSettings,
+    } : undefined;
+
+    return new Organization(
+      prismaOrg.id,
+      prismaOrg.id, // organizationId
+      prismaOrg.createdAt,
+      prismaOrg.updatedAt,
+      status,
+      prismaOrg.deletedAt,
+      prismaOrg.name,
+      prismaOrg.slug,
+      prismaOrg.isActive,
+      // Mapea el Plan si vino incluido
+      prismaOrg.organizationPlan ? { ...prismaOrg.organizationPlan } as any : undefined,
+      prismaOrg.image || undefined,
+      configData as any, // Cast a OrganizationConfig
+      prismaOrg.organizationPlanId
+    );
   }
 }

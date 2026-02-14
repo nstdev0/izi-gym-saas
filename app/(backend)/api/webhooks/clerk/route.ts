@@ -139,6 +139,7 @@ export async function POST(req: Request) {
                 organizationPlanId: freePlan.id,
                 status: "TRIALING",
                 currentPeriodEnd: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
+                pricePaid: freePlan.price
               },
             });
           }
