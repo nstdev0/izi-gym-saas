@@ -16,12 +16,13 @@ import {
     Dumbbell,
     Loader2,
     UserCheck,
+    TrendingUp,
 } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { PageHeader } from "@/components/ui/page-header";
 import { useState } from "react";
-import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts";
+import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
 import { Calendar } from "@/components/ui/calendar";
 import {
     Popover,
@@ -61,10 +62,6 @@ export default function DashboardViewPage() {
         grouping,
     });
 
-    // Determine loading state: initial load or loading new data without placeholder
-    // We use isPlaceholderData to show previous data while fetching new, so "loading" might not be needed for UI blocks strictly if we want smooth transitions
-    // However, for the very first load or if we want to show spinners, we can use isLoading.
-    // The previous implementation showed skeletons on loading.
     const loading = isLoading;
     const [selectedPreset, setSelectedPreset] = useState<string | undefined>("thisMonth")
 
@@ -185,7 +182,7 @@ export default function DashboardViewPage() {
         <DashboardLayout
             breadcrumbs={[{ label: "Admin" }, { label: "Panel" }]}
         >
-            <div className="flex flex-col space-y-4 sm:space-y-6 pb-4 scrollbar-hide">
+            <div className="flex flex-col space-y-4 sm:space-y-6 pb-4">
                 <PageHeader
                     title={`Bienvenido al panel de ${slug} 👋`}
                     description={`Métricas generales del gimnasio`}
@@ -197,18 +194,18 @@ export default function DashboardViewPage() {
                                     variant={"outline"}
                                     size="sm"
                                     className={cn(
-                                        "w-auto justify-start text-left font-normal",
-                                        "fixed top-16 sm:top-30 right-6 z-50 shadow-2xl bg-background",
+                                        "w-auto justify-start text-left font-normal shadow-sm hover:bg-muted/50 transition-all",
+                                        "fixed top-16 sm:top-30 right-6 z-50 shadow-2xl bg-background/95 backdrop-blur-sm border-primary/20",
                                         !date && "text-muted-foreground"
                                     )}
                                 >
-                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                    <CalendarIcon className="mr-2 h-4 w-4 text-primary" />
                                     {date?.from ? (
                                         date.to ? (
-                                            <>
+                                            <span className="font-medium text-foreground">
                                                 {format(date.from, "LLL dd, y", { locale: es })} -{" "}
                                                 {format(date.to, "LLL dd, y", { locale: es })}
-                                            </>
+                                            </span>
                                         ) : (
                                             format(date.from, "LLL dd, y", { locale: es })
                                         )
@@ -236,7 +233,7 @@ export default function DashboardViewPage() {
                                             }
                                         }}
                                     />
-                                    <div className="p-3 border-t sm:border-t-0 sm:border-l space-y-1 min-w-[140px]">
+                                    <div className="p-3 border-t sm:border-t-0 sm:border-l space-y-1 min-w-[140px] bg-muted/20">
                                         <div id="date-presets" className="space-y-1">
                                             <Button variant={selectedPreset === "today" ? "secondary" : "ghost"} className={cn("w-full justify-start text-xs font-normal", selectedPreset === "today" && "font-semibold")} onClick={() => handlePresetSelect("today")}>
                                                 Hoy
@@ -276,39 +273,47 @@ export default function DashboardViewPage() {
                     }
                 />
 
-                {/* Quick Actions - Row 1 */}
-                <Card>
+                {/* Quick Actions - Con profundidad y efecto hover */}
+                <Card className="border-none shadow-md bg-gradient-to-br from-card to-muted/30">
                     <CardContent className="px-4 sm:px-6 py-4">
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                             <Link href={`/${slug}/admin/members/new`}>
-                                <Button variant="outline" className="w-full h-auto py-4 flex flex-col gap-2 hover:border-primary hover:text-primary transition-colors">
-                                    <UserPlus className="h-5 w-5" />
-                                    <span className="text-xs sm:text-sm">Nuevo Miembro</span>
+                                <Button variant="outline" className="w-full h-auto py-5 flex flex-col gap-2 border-dashed border-2 hover:border-primary hover:bg-primary/5 hover:text-primary transition-all duration-300 shadow-sm hover:shadow-md">
+                                    <div className="p-2 bg-primary/10 rounded-full">
+                                        <UserPlus className="h-5 w-5 text-primary" />
+                                    </div>
+                                    <span className="text-xs sm:text-sm font-medium">Nuevo Miembro</span>
                                 </Button>
                             </Link>
                             <AttendanceModal>
-                                <Button variant="outline" className="w-full h-auto py-4 flex flex-col gap-2 hover:border-primary hover:text-primary transition-colors">
-                                    <UserCheck className="h-5 w-5" />
-                                    <span className="text-xs sm:text-sm">Registrar asistencia</span>
+                                <Button variant="outline" className="w-full h-auto py-5 flex flex-col gap-2 border-dashed border-2 hover:border-primary hover:bg-primary/5 hover:text-primary transition-all duration-300 shadow-sm hover:shadow-md">
+                                    <div className="p-2 bg-primary/10 rounded-full">
+                                        <UserCheck className="h-5 w-5 text-primary" />
+                                    </div>
+                                    <span className="text-xs sm:text-sm font-medium">Asistencia</span>
                                 </Button>
                             </AttendanceModal>
                             <Link href={`/${slug}/admin/memberships`}>
-                                <Button variant="outline" className="w-full h-auto py-4 flex flex-col gap-2 hover:border-primary hover:text-primary transition-colors">
-                                    <CreditCard className="h-5 w-5" />
-                                    <span className="text-xs sm:text-sm">Venta rápida</span>
+                                <Button variant="outline" className="w-full h-auto py-5 flex flex-col gap-2 border-dashed border-2 hover:border-primary hover:bg-primary/5 hover:text-primary transition-all duration-300 shadow-sm hover:shadow-md">
+                                    <div className="p-2 bg-primary/10 rounded-full">
+                                        <CreditCard className="h-5 w-5 text-primary" />
+                                    </div>
+                                    <span className="text-xs sm:text-sm font-medium">Venta rápida</span>
                                 </Button>
                             </Link>
                             <Link href={`/${slug}/admin/products`}>
-                                <Button variant="outline" className="w-full h-auto py-4 flex flex-col gap-2 hover:border-primary hover:text-primary transition-colors">
-                                    <Dumbbell className="h-5 w-5" />
-                                    <span className="text-xs sm:text-sm">Renovar membresía</span>
+                                <Button variant="outline" className="w-full h-auto py-5 flex flex-col gap-2 border-dashed border-2 hover:border-primary hover:bg-primary/5 hover:text-primary transition-all duration-300 shadow-sm hover:shadow-md">
+                                    <div className="p-2 bg-primary/10 rounded-full">
+                                        <Dumbbell className="h-5 w-5 text-primary" />
+                                    </div>
+                                    <span className="text-xs sm:text-sm font-medium">Renovar</span>
                                 </Button>
                             </Link>
                         </div>
                     </CardContent>
                 </Card>
 
-                {/* KPI Stats Grid - Row 2 */}
+                {/* KPI Stats Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
                     <StatCard
                         title="Miembros Activos"
@@ -333,14 +338,23 @@ export default function DashboardViewPage() {
                     />
                 </div>
 
-                {/* Main Content Grid - Row 3 */}
+                {/* Main Content Grid */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-                    {/* Revenue Chart - Full width visually (or col-span-3) */}
-                    <Card className="lg:col-span-3">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-base sm:text-lg font-semibold">Ingresos</CardTitle>
+
+                    {/* 1. REVENUE CHART: Destacado con sombra más fuerte y un tono sutil */}
+                    <Card className="lg:col-span-3 shadow-lg border-primary/10 bg-gradient-to-b from-card to-muted/10">
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 border-b border-border/50">
+                            <div className="flex flex-col gap-1">
+                                <CardTitle className="text-base sm:text-lg font-bold flex items-center gap-2">
+                                    <div className="p-1.5 bg-green-100 dark:bg-green-900/30 rounded-md">
+                                        <TrendingUp className="h-4 w-4 text-green-600 dark:text-green-400" />
+                                    </div>
+                                    Ingresos Totales
+                                </CardTitle>
+                                <p className="text-xs text-muted-foreground">Evolución financiera en el tiempo seleccionado</p>
+                            </div>
                             <Select value={grouping} onValueChange={(v) => handleGroupingChange(v as "day" | "month" | "year")}>
-                                <SelectTrigger className="w-[120px] h-8 text-xs">
+                                <SelectTrigger className="w-[130px] h-8 text-xs bg-background shadow-sm">
                                     <SelectValue placeholder="Agrupar por" />
                                 </SelectTrigger>
                                 <SelectContent align="end">
@@ -354,7 +368,7 @@ export default function DashboardViewPage() {
                                 </SelectContent>
                             </Select>
                         </CardHeader>
-                        <CardContent className="pl-2">
+                        <CardContent className="pl-0 pt-6 pr-6">
                             {loading ? (
                                 <div className="h-[300px] flex items-center justify-center">
                                     <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -362,7 +376,9 @@ export default function DashboardViewPage() {
                             ) : (
                                 <div className="h-[300px] w-full">
                                     <ResponsiveContainer width="100%" height="100%">
-                                        <BarChart data={metrics?.revenueOverTime || []}>
+                                        <BarChart data={metrics?.revenueOverTime || []} margin={{ top: 5, right: 0, left: 0, bottom: 0 }}>
+                                            {/* Grilla sutil */}
+                                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" opacity={0.4} />
                                             <XAxis
                                                 dataKey="month"
                                                 tickFormatter={(val) => {
@@ -375,6 +391,7 @@ export default function DashboardViewPage() {
                                                 fontSize={12}
                                                 tickLine={false}
                                                 axisLine={false}
+                                                dy={10}
                                             />
                                             <YAxis
                                                 width={80}
@@ -385,41 +402,38 @@ export default function DashboardViewPage() {
                                                 tickFormatter={(value) => value.toLocaleString('es-ES', { style: 'currency', currency: metrics?.currency || 'PEN', maximumFractionDigits: 0 })}
                                             />
                                             <Tooltip
-                                                cursor={{ fill: "transparent" }}
+                                                cursor={{ fill: "var(--muted)", opacity: 0.2 }}
                                                 content={({ active, payload }) => {
                                                     if (active && payload && payload.length) {
                                                         const data = payload[0].payload;
                                                         let dateLabel = "";
                                                         try {
                                                             const dateObj = new Date(data.month)
-
                                                             if (grouping === 'day') {
-                                                                dateLabel = format(dateObj, "dd 'de' MMMM 'de' yyyy", { locale: es });
+                                                                dateLabel = format(dateObj, "dd 'de' MMMM, yyyy", { locale: es });
                                                             } else if (grouping === 'month') {
-                                                                dateLabel = format(dateObj, "MMMM 'de' yyyy", { locale: es });
+                                                                dateLabel = format(dateObj, "MMMM yyyy", { locale: es });
                                                             } else if (grouping === 'year') {
                                                                 dateLabel = format(dateObj, "yyyy", { locale: es });
                                                             }
                                                         } catch (e) {
                                                             dateLabel = data.month;
                                                         }
-                                                        return (
-                                                            <div className="rounded-lg border bg-background p-2 shadow-sm">
-                                                                <div className="grid grid-cols-2 gap-2">
-                                                                    <div className="flex flex-col">
 
-                                                                        <span className="text-[0.70rem] uppercase text-muted-foreground">
-                                                                            Ingresos
+                                                        return (
+                                                            <div className="rounded-xl border bg-background/95 backdrop-blur-md p-3 shadow-xl ring-1 ring-border/50">
+                                                                <div className="flex flex-col gap-1">
+                                                                    <div className="border-b pb-1 mb-1 border-border/50">
+                                                                        <span className="text-xs font-semibold text-foreground capitalize">
+                                                                            {dateLabel}
                                                                         </span>
-                                                                        <span className="font-bold text-muted-foreground">
-                                                                            {payload[0]?.value?.toLocaleString('es-ES', { style: 'currency', currency: metrics?.currency || 'PEN' })}
-                                                                        </span>
-                                                                        <div className="border-b pb-1 mb-1">
-                                                                            <span className="text-xs font-semibold text-foreground capitalize">
-                                                                                {dateLabel}
-                                                                            </span>
-                                                                        </div>
                                                                     </div>
+                                                                    <span className="text-[0.65rem] uppercase text-muted-foreground font-medium tracking-wider">
+                                                                        Ingresos
+                                                                    </span>
+                                                                    <span className="font-bold text-xl text-primary">
+                                                                        {payload[0]?.value?.toLocaleString('es-ES', { style: 'currency', currency: metrics?.currency || 'PEN' })}
+                                                                    </span>
                                                                 </div>
                                                             </div>
                                                         );
@@ -430,8 +444,9 @@ export default function DashboardViewPage() {
                                             <Bar
                                                 dataKey="revenue"
                                                 fill="currentColor"
-                                                radius={[4, 4, 0, 0]}
-                                                className="fill-primary"
+                                                radius={[6, 6, 0, 0]}
+                                                className="fill-primary/90 hover:fill-primary transition-all duration-300"
+                                                barSize={grouping === 'day' ? undefined : 40}
                                             />
                                         </BarChart>
                                     </ResponsiveContainer>
@@ -440,8 +455,8 @@ export default function DashboardViewPage() {
                         </CardContent>
                     </Card>
 
-                    {/* Popular Plans */}
-                    <Card className="lg:col-span-1">
+                    {/* 2. POPULAR PLANS: Tinte sutil azulado/primary */}
+                    <Card className="lg:col-span-1 shadow-md border-l-4 border-l-primary bg-gradient-to-br from-card to-primary/5">
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
                             <CardTitle className="text-base sm:text-lg font-semibold flex items-center gap-2">
                                 <Dumbbell className="h-4 w-4 text-primary" />
@@ -454,22 +469,22 @@ export default function DashboardViewPage() {
                                     <Loader2 className="h-8 w-8 animate-spin text-primary" />
                                 </div>
                             ) : (
-                                <div className="space-y-4">
+                                <div className="space-y-5">
                                     {metrics?.salesByPlan.sort((a, b) => b.count - a.count).map((plan) => {
                                         const totalCount = metrics.salesByPlan.reduce((acc, p) => acc + p.count, 0);
                                         const percentage = totalCount > 0 ? (plan.count / totalCount) * 100 : 0;
 
                                         return (
-                                            <div key={plan.planName} className="space-y-2">
+                                            <div key={plan.planName} className="space-y-2 group">
                                                 <div className="flex items-center justify-between text-sm">
-                                                    <span className="font-medium text-foreground">{plan.planName}</span>
-                                                    <span className="text-muted-foreground">
+                                                    <span className="font-medium text-foreground group-hover:text-primary transition-colors">{plan.planName}</span>
+                                                    <span className="text-xs font-mono text-muted-foreground bg-background px-2 py-0.5 rounded-full border shadow-sm">
                                                         {plan.count} ventas
                                                     </span>
                                                 </div>
-                                                <div className="h-2 rounded-full bg-muted overflow-hidden">
+                                                <div className="h-2.5 rounded-full bg-muted/50 overflow-hidden shadow-inner">
                                                     <div
-                                                        className={`h-full rounded-full bg-primary transition-all duration-500`}
+                                                        className={`h-full rounded-full bg-gradient-to-r from-primary to-primary/70 transition-all duration-1000 ease-out`}
                                                         style={{ width: `${percentage}%` }}
                                                     />
                                                 </div>
@@ -478,7 +493,7 @@ export default function DashboardViewPage() {
                                     })}
                                     {metrics?.salesByPlan.length === 0 && (
                                         <p className="text-sm text-muted-foreground text-center py-8">
-                                            No hay datos registrados para la fecha seleccionada.
+                                            No hay datos registrados.
                                         </p>
                                     )}
                                 </div>
@@ -486,8 +501,8 @@ export default function DashboardViewPage() {
                         </CardContent>
                     </Card>
 
-                    {/* Upcoming Expirations */}
-                    <Card className="lg:col-span-1">
+                    {/* 3. UPCOMING EXPIRATIONS: Tinte sutil naranja/alerta */}
+                    <Card className="lg:col-span-1 shadow-md border-l-4 border-l-orange-500 bg-gradient-to-br from-card to-orange-500/5">
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
                             <CardTitle className="text-base sm:text-lg font-semibold flex items-center gap-2">
                                 <AlertTriangle className="h-4 w-4 text-orange-500" />
@@ -500,24 +515,25 @@ export default function DashboardViewPage() {
                                     <Loader2 className="h-8 w-8 animate-spin text-primary" />
                                 </div>
                             ) : (
-                                <div className="space-y-3 sm:space-y-4">
+                                <div className="space-y-3">
                                     {metrics?.upcomingExpirations?.map((member) => (
                                         <div
                                             key={member.id}
-                                            className="flex items-center justify-between gap-3 p-2 sm:p-3 rounded-lg hover:bg-muted/50 transition-colors"
+                                            className="flex items-center justify-between gap-3 p-3 rounded-xl bg-background/50 border border-transparent hover:border-orange-200 hover:bg-orange-50/50 dark:hover:bg-orange-950/20 transition-all duration-200 group cursor-pointer"
                                         >
                                             <div className="flex items-center gap-3 min-w-0">
-                                                <Avatar className="h-8 w-8 shrink-0">
+                                                <Avatar className="h-9 w-9 shrink-0 ring-2 ring-background group-hover:ring-orange-200 transition-all">
                                                     <AvatarImage src={member.avatar || undefined} alt={member.name} />
-                                                    <AvatarFallback className="bg-orange-500/10 text-orange-500 text-xs">
+                                                    <AvatarFallback className="bg-orange-100 text-orange-600 text-xs font-bold">
                                                         {member.name.split(" ").map((n) => n[0]).join("")}
                                                     </AvatarFallback>
                                                 </Avatar>
                                                 <div className="min-w-0">
-                                                    <Link href={`/${slug}/admin/members/${member.id}`} className="text-sm font-medium text-foreground hover:text-primary transition-colors truncate">
+                                                    <Link href={`/${slug}/admin/members/${member.id}`} className="text-sm font-semibold text-foreground group-hover:text-orange-700 transition-colors truncate block">
                                                         {member.name}
                                                     </Link>
-                                                    <p className="text-xs text-muted-foreground truncate">
+                                                    <p className="text-xs text-muted-foreground truncate flex items-center gap-1">
+                                                        <span className={cn("w-1.5 h-1.5 rounded-full", member.daysUntil === 0 ? "bg-red-500 animate-pulse" : "bg-orange-400")} />
                                                         {member.daysUntil === 0 ? `Vence hoy` :
                                                             member.daysUntil === 1 ? `Vence mañana` :
                                                                 `Vence en ${member.daysUntil} días`}
@@ -525,7 +541,7 @@ export default function DashboardViewPage() {
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-2 shrink-0">
-                                                <Badge variant="outline" className="text-xs border-orange-200 text-orange-700 bg-orange-50">
+                                                <Badge variant="outline" className="text-[10px] sm:text-xs border-orange-200 text-orange-700 bg-orange-50 dark:bg-orange-950/30 dark:text-orange-400 dark:border-orange-800">
                                                     {format(new Date(member.endDate), "dd MMM", { locale: es })}
                                                 </Badge>
                                             </div>
@@ -541,15 +557,17 @@ export default function DashboardViewPage() {
                         </CardContent>
                     </Card>
 
-                    {/* Recent Members */}
-                    <Card className="lg:col-span-1">
+                    {/* 4. RECENT MEMBERS: Tinte sutil neutral/slate */}
+                    <Card className="lg:col-span-1 shadow-md border-l-4 border-l-blue-500 bg-gradient-to-br from-card to-blue-500/5">
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-                            <CardTitle className="text-base sm:text-lg font-semibold">
+                            <CardTitle className="text-base sm:text-lg font-semibold flex items-center gap-2">
+                                <Users className="h-4 w-4 text-blue-500" />
                                 Miembros Recientes
                             </CardTitle>
                             <Link href={`/${slug}/admin/members`}>
-                                <Button variant="ghost" size="sm" className="gap-1 text-primary">
-                                    <ArrowRight className="h-4 w-4" />
+                                <Button variant="ghost" size="sm" className="gap-1 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950/30 h-8 px-2">
+                                    <span className="text-xs">Ver todos</span>
+                                    <ArrowRight className="h-3 w-3" />
                                 </Button>
                             </Link>
                         </CardHeader>
@@ -559,21 +577,21 @@ export default function DashboardViewPage() {
                                     <Loader2 className="h-8 w-8 animate-spin text-primary" />
                                 </div>
                             ) : (
-                                <div className="space-y-3 sm:space-y-4">
+                                <div className="space-y-3">
                                     {metrics?.recentActivity.map((member) => (
                                         <div
                                             key={member.id}
-                                            className="flex items-center justify-between gap-3 p-2 sm:p-3 rounded-lg hover:bg-muted/50 transition-colors"
+                                            className="flex items-center justify-between gap-3 p-3 rounded-xl bg-background/50 border border-transparent hover:border-blue-200 hover:bg-blue-50/50 dark:hover:bg-blue-950/20 transition-all duration-200 group"
                                         >
                                             <div className="flex items-center gap-3 min-w-0">
-                                                <Avatar className="h-9 w-9 sm:h-10 sm:w-10 shrink-0">
+                                                <Avatar className="h-9 w-9 shrink-0 ring-2 ring-background group-hover:ring-blue-200 transition-all">
                                                     <AvatarImage src={member.avatar || undefined} alt={member.name} />
-                                                    <AvatarFallback className="bg-primary/10 text-primary text-xs sm:text-sm">
+                                                    <AvatarFallback className="bg-blue-100 text-blue-600 text-xs font-bold">
                                                         {member.name.split(" ").map((n) => n[0]).join("")}
                                                     </AvatarFallback>
                                                 </Avatar>
                                                 <div className="min-w-0">
-                                                    <p className="text-sm font-medium text-foreground truncate">
+                                                    <p className="text-sm font-semibold text-foreground group-hover:text-blue-700 transition-colors truncate">
                                                         {member.name}
                                                     </p>
                                                     <p className="text-xs text-muted-foreground truncate">
@@ -582,7 +600,7 @@ export default function DashboardViewPage() {
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-2 shrink-0">
-                                                <Badge variant={getPlanBadgeVariant(member.planName || "")} className="hidden sm:flex">
+                                                <Badge variant={getPlanBadgeVariant(member.planName || "")} className="hidden sm:flex shadow-sm">
                                                     {member.planName}
                                                 </Badge>
                                             </div>
