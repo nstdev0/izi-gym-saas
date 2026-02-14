@@ -187,8 +187,8 @@ export default function DashboardViewPage() {
         >
             <div className="flex flex-col space-y-4 sm:space-y-6 overflow-auto pb-4 scrollbar-hide">
                 <PageHeader
-                    title="Panel"
-                    description={`Resumen general de ${slug}`}
+                    title={`Bienvenido al panel de ${slug} 👋`}
+                    description={`Métricas generales del gimnasio`}
                     actions={
                         <Popover>
                             <PopoverTrigger asChild>
@@ -365,6 +365,12 @@ export default function DashboardViewPage() {
                                         <BarChart data={metrics?.revenueOverTime || []}>
                                             <XAxis
                                                 dataKey="month"
+                                                tickFormatter={(val) => {
+                                                    const d = new Date(val);
+                                                    if (grouping === 'day') return format(d, "dd MMM", { locale: es });
+                                                    if (grouping === 'month') return format(d, "MMM yy", { locale: es });
+                                                    return format(d, "yyyy");
+                                                }}
                                                 stroke="#888888"
                                                 fontSize={12}
                                                 tickLine={false}
@@ -382,16 +388,37 @@ export default function DashboardViewPage() {
                                                 cursor={{ fill: "transparent" }}
                                                 content={({ active, payload }) => {
                                                     if (active && payload && payload.length) {
+                                                        const data = payload[0].payload;
+                                                        let dateLabel = "";
+                                                        try {
+                                                            const dateObj = new Date(data.month)
+
+                                                            if (grouping === 'day') {
+                                                                dateLabel = format(dateObj, "dd 'de' MMMM 'de' yyyy", { locale: es });
+                                                            } else if (grouping === 'month') {
+                                                                dateLabel = format(dateObj, "MMMM 'de' yyyy", { locale: es });
+                                                            } else if (grouping === 'year') {
+                                                                dateLabel = format(dateObj, "yyyy", { locale: es });
+                                                            }
+                                                        } catch (e) {
+                                                            dateLabel = data.month;
+                                                        }
                                                         return (
                                                             <div className="rounded-lg border bg-background p-2 shadow-sm">
                                                                 <div className="grid grid-cols-2 gap-2">
                                                                     <div className="flex flex-col">
+
                                                                         <span className="text-[0.70rem] uppercase text-muted-foreground">
                                                                             Ingresos
                                                                         </span>
                                                                         <span className="font-bold text-muted-foreground">
                                                                             {payload[0]?.value?.toLocaleString('es-ES', { style: 'currency', currency: metrics?.currency || 'PEN' })}
                                                                         </span>
+                                                                        <div className="border-b pb-1 mb-1">
+                                                                            <span className="text-xs font-semibold text-foreground capitalize">
+                                                                                {dateLabel}
+                                                                            </span>
+                                                                        </div>
                                                                     </div>
                                                                 </div>
                                                             </div>

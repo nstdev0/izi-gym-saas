@@ -20,8 +20,8 @@ export class PrismaDashboardRepository implements IDashboardRepository {
 
         // Default to USD if not set
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const settings = (organization?.config as any) || {};
-        const currency = settings.general?.currency || "USD";
+        const config = (organization?.config as any) || {};
+        const currency = config.general?.currency || "USD";
 
         // --- 1. REVENUE (Ingresos) ---
         // Logic: Sum pricePaid of Membership. Filter: organizationId AND createdAt in range.
@@ -202,89 +202,80 @@ export class PrismaDashboardRepository implements IDashboardRepository {
     private async calculateRevenueOverTime(organizationId: string, start: Date, end: Date, grouping?: 'day' | 'month' | 'year') {
         const diffTime = Math.abs(end.getTime() - start.getTime());
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        const promises = [];
 
-        // Determine grouping if not provided
-        const appliedGrouping = grouping || (diffDays <= 35 ? 'day' : 'month');
+        // 1. Determinar agrupación
+        const appliedGrouping = grouping || (diffDays <= 31 ? 'day' : 'month');
 
-        if (appliedGrouping === 'day') {
-            // Group by Day
-            for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-                const dayStart = new Date(d);
-                dayStart.setHours(0, 0, 0, 0);
-                const dayEnd = new Date(d);
-                dayEnd.setHours(23, 59, 59, 999);
+        // 2. UNA SOLA CONSULTA A BASE DE DATOS (Optimización masiva)
+        // Traemos solo fecha y precio de las membresías en el rango
+        const memberships = await this.prisma.membership.findMany({
+            where: {
+                organizationId,
+                createdAt: { gte: start, lte: end }
+            },
+            select: {
+                createdAt: true,
+                pricePaid: true
+            },
+            orderBy: { createdAt: 'asc' }
+        });
 
-                const label = dayStart.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }); // "5 ene"
+        // 3. Agrupar en memoria (JavaScript es muy rápido para esto)
+        const revenueMap = new Map<string, number>();
 
-                promises.push(
-                    this.prisma.membership.aggregate({
-                        _sum: { pricePaid: true },
-                        where: {
-                            organizationId,
-                            createdAt: { gte: dayStart, lte: dayEnd },
-                        },
-                    }).then(result => ({
-                        month: label,
-                        revenue: result._sum.pricePaid ? Number(result._sum.pricePaid) : 0
-                    }))
-                );
+        // Función auxiliar para generar la clave según agrupación
+        const getKey = (date: Date) => {
+            if (appliedGrouping === 'day') {
+                return date.toISOString().split('T')[0]; // "2026-02-14"
+            } else if (appliedGrouping === 'month') {
+                return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-01`; // "2026-02-01" (Siempre primer día)
+            } else {
+                return `${date.getFullYear()}-01-01`; // "2026-01-01" (Siempre primer día del año)
             }
-        } else if (appliedGrouping === 'month') {
-            // Group by Month
-            const current = new Date(start);
-            current.setDate(1);
+        };
 
-            while (current <= end) {
-                const monthStart = new Date(current.getFullYear(), current.getMonth(), 1);
-                const monthEnd = new Date(current.getFullYear(), current.getMonth() + 1, 0);
-                monthEnd.setHours(23, 59, 59, 999);
+        // Llenar el mapa con los datos reales
+        memberships.forEach(m => {
+            const key = getKey(m.createdAt);
+            const amount = Number(m.pricePaid || 0);
+            revenueMap.set(key, (revenueMap.get(key) || 0) + amount);
+        });
 
-                const monthName = monthStart.toLocaleString('es-ES', { month: 'short', year: '2-digit' });
+        // 4. Rellenar los huecos (Días/Meses sin ventas deben ser 0)
+        const results = [];
+        const current = new Date(start);
 
-                promises.push(
-                    this.prisma.membership.aggregate({
-                        _sum: { pricePaid: true },
-                        where: {
-                            organizationId,
-                            createdAt: { gte: monthStart, lte: monthEnd },
-                        },
-                    }).then(result => ({
-                        month: monthName.charAt(0).toUpperCase() + monthName.slice(1),
-                        revenue: result._sum.pricePaid ? Number(result._sum.pricePaid) : 0
-                    }))
-                );
+        // Ajustar current al inicio del periodo según agrupación
+        if (appliedGrouping === 'month') current.setDate(1);
+        if (appliedGrouping === 'year') { current.setMonth(0); current.setDate(1); }
 
-                current.setMonth(current.getMonth() + 1);
+        while (current <= end) {
+            const key = getKey(current);
+            // Formatear etiqueta para el eje X (corto) si es necesario, 
+            // pero mandamos 'date' completo para el Tooltip
+            let label = "";
+            if (appliedGrouping === 'day') {
+                label = current.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }); // "14 feb"
+            } else if (appliedGrouping === 'month') {
+                label = current.toLocaleDateString('es-ES', { month: 'short', year: '2-digit' }); // "feb 26"
+            } else {
+                label = current.getFullYear().toString(); // "2026"
             }
-        } else if (appliedGrouping === 'year') {
-            // Group by Year
-            const current = new Date(start);
 
-            while (current <= end) {
-                const yearStart = new Date(current.getFullYear(), 0, 1);
-                const yearEnd = new Date(current.getFullYear(), 11, 31, 23, 59, 59, 999);
+            results.push({
+                month: key, // Usamos la fecha ISO completa como valor para el gráfico (Recharts lo entiende mejor)
+                originalDate: key, // Campo extra por si acaso
+                label: label, // La etiqueta visual corta
+                revenue: revenueMap.get(key) || 0
+            });
 
-                const yearName = yearStart.getFullYear().toString();
-
-                promises.push(
-                    this.prisma.membership.aggregate({
-                        _sum: { pricePaid: true },
-                        where: {
-                            organizationId,
-                            createdAt: { gte: yearStart, lte: yearEnd },
-                        },
-                    }).then(result => ({
-                        month: yearName, // Using 'month' key for frontend compatibility (XAxis dataKey)
-                        revenue: result._sum.pricePaid ? Number(result._sum.pricePaid) : 0
-                    }))
-                );
-
-                current.setFullYear(current.getFullYear() + 1);
-            }
+            // Avanzar cursor
+            if (appliedGrouping === 'day') current.setDate(current.getDate() + 1);
+            else if (appliedGrouping === 'month') current.setMonth(current.getMonth() + 1);
+            else current.setFullYear(current.getFullYear() + 1);
         }
 
-        return Promise.all(promises);
+        return results;
     }
 
     private calculateTrend(current: number, previous: number): MetricWithTrend {
