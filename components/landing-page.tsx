@@ -21,7 +21,7 @@ import { ModeToggle } from "@/components/mode-toggle";
 
 export function LandingPage({ dashboardUrl, isLoggedIn }: { dashboardUrl?: string, isLoggedIn?: boolean }) {
     return (
-        <div className="min-h-screen bg-background">
+        <div className="h-screen w-full overflow-y-auto bg-background scroll-smooth scrollbar-hide">
             {/* Navbar */}
             <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
@@ -60,7 +60,8 @@ export function LandingPage({ dashboardUrl, isLoggedIn }: { dashboardUrl?: strin
             <section className="relative overflow-hidden py-20 sm:py-32">
                 {/* Background Gradient */}
                 <div className="absolute inset-0 -z-10">
-                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-linear-to-br from-primary/20 via-blue-500/10 to-transparent rounded-full blur-3xl" />
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-linear-to-br from-primary/20 via-primary/5 to-transparent rounded-full blur-3xl opacity-60 dark:opacity-40" />
+                    <div className="absolute bottom-0 right-0 w-[600px] h-[400px] bg-linear-to-tl from-blue-500/10 via-purple-500/10 to-transparent rounded-full blur-3xl opacity-40" />
                 </div>
 
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -186,44 +187,56 @@ export function LandingPage({ dashboardUrl, isLoggedIn }: { dashboardUrl?: strin
                                 icon: Users,
                                 title: "Gestión de Miembros",
                                 desc: "Base de datos completa con fotos, historial de pagos, fecha de vencimiento y estado activo.",
-                                color: "bg-blue-500/10 text-blue-500"
+                                color: "text-blue-500",
+                                gradient: "from-blue-500/5 to-blue-500/10",
+                                border: "border-l-blue-500"
                             },
                             {
                                 icon: CreditCard,
                                 title: "Cobros Automáticos",
                                 desc: "Integración con Stripe para cobros recurrentes. Olvídate de perseguir pagos.",
-                                color: "bg-green-500/10 text-green-500"
+                                color: "text-green-500",
+                                gradient: "from-green-500/5 to-green-500/10",
+                                border: "border-l-green-500"
                             },
                             {
                                 icon: Shield,
                                 title: "Control de Acceso",
                                 desc: "Valida membresías en tiempo real. QR, código o reconocimiento facial.",
-                                color: "bg-purple-500/10 text-purple-500"
+                                color: "text-purple-500",
+                                gradient: "from-purple-500/5 to-purple-500/10",
+                                border: "border-l-purple-500"
                             },
                             {
                                 icon: BarChart3,
                                 title: "Reportes Inteligentes",
                                 desc: "Métricas de ingresos, retención, asistencia y crecimiento en un solo lugar.",
-                                color: "bg-orange-500/10 text-orange-500"
+                                color: "text-orange-500",
+                                gradient: "from-orange-500/5 to-orange-500/10",
+                                border: "border-l-orange-500"
                             },
                             {
                                 icon: Smartphone,
                                 title: "App para Miembros",
                                 desc: "Tus clientes ven su membresía, pagos y horarios desde su celular.",
-                                color: "bg-pink-500/10 text-pink-500"
+                                color: "text-pink-500",
+                                gradient: "from-pink-500/5 to-pink-500/10",
+                                border: "border-l-pink-500"
                             },
                             {
                                 icon: Clock,
                                 title: "Gestión de Clases",
                                 desc: "Horarios, reservas de cupos con límites y recordatorios automáticos.",
-                                color: "bg-cyan-500/10 text-cyan-500"
+                                color: "text-cyan-500",
+                                gradient: "from-cyan-500/5 to-cyan-500/10",
+                                border: "border-l-cyan-500"
                             },
                         ].map((feature, i) => (
                             <div
                                 key={i}
-                                className="group p-6 rounded-2xl border border-border bg-card hover:shadow-lg hover:shadow-primary/5 transition-all duration-300"
+                                className={`group p-6 rounded-2xl border border-transparent bg-linear-to-br ${feature.gradient} shadow-md border-l-4 ${feature.border} hover:shadow-lg transition-all duration-300`}
                             >
-                                <div className={`inline-flex p-3 rounded-xl ${feature.color}`}>
+                                <div className={`inline-flex p-3 rounded-xl bg-background/50 shadow-sm ${feature.color}`}>
                                     <feature.icon className="h-6 w-6" />
                                 </div>
                                 <h3 className="mt-4 text-lg font-semibold">{feature.title}</h3>
@@ -266,7 +279,7 @@ export function LandingPage({ dashboardUrl, isLoggedIn }: { dashboardUrl?: strin
                         ].map((testimonial, i) => (
                             <div
                                 key={i}
-                                className="p-6 rounded-2xl bg-card border border-border"
+                                className="p-6 rounded-2xl bg-linear-to-b from-card to-muted/20 border border-border/50 shadow-sm hover:shadow-md transition-all"
                             >
                                 <div className="flex gap-1 mb-4">
                                     {[...Array(testimonial.rating)].map((_, j) => (
@@ -332,9 +345,9 @@ export function LandingPage({ dashboardUrl, isLoggedIn }: { dashboardUrl?: strin
                         ].map((plan, i) => (
                             <div
                                 key={i}
-                                className={`relative p-6 sm:p-8 rounded-2xl border ${plan.popular
-                                    ? "border-primary bg-primary/5 shadow-lg shadow-primary/10"
-                                    : "border-border bg-card"
+                                className={`relative p-6 sm:p-8 rounded-2xl border transition-all duration-300 ${plan.popular
+                                    ? "border-primary/50 bg-linear-to-b from-primary/10 to-background shadow-lg shadow-primary/10 scale-105"
+                                    : "border-border/50 bg-background/50 hover:bg-muted/30 hover:border-border"
                                     }`}
                             >
                                 {plan.popular && (
