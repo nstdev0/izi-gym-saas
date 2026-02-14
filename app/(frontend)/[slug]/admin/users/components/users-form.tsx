@@ -13,17 +13,18 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { CreateUserSchema } from "@/server/application/dtos/users.dto";
-import { Loader2, Save } from "lucide-react";
+import { Loader2, Save, User, Mail, Shield, CheckCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
 import { api, ApiError } from "@/lib/api";
 import { toast } from "sonner";
-import { User } from "@/server/domain/entities/User";
+import { User as UserEntity } from "@/server/domain/entities/User";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { AvatarUploader } from "@/components/avatar-uploader";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 type UserFormProps = {
-    initialData?: User;
+    initialData?: UserEntity;
     isEdit?: boolean;
     redirectUrl?: string;
 };
@@ -90,110 +91,141 @@ export default function UserForm({
     };
 
     return (
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 max-w-2xl mx-auto py-6">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 max-w-4xl mx-auto">
             {!isEdit && (
-                <div className="bg-gray-600 p-4 rounded-md border border-blue-200 text-sm text-primary-foreground">
-                    ℹ️ Se enviará una invitación por correo. El usuario podrá elegir iniciar sesión con <strong>Google</strong> o crear una contraseña.
+                <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800 text-sm text-blue-800 dark:text-blue-300 flex items-center gap-3">
+                    <div className="p-1 bg-blue-100 dark:bg-blue-800 rounded-full">
+                        <Mail className="w-4 h-4" />
+                    </div>
+                    <span>
+                        Se enviará una invitación por correo. El usuario podrá elegir iniciar sesión con <strong>Google</strong> o crear una contraseña.
+                    </span>
                 </div>
             )}
 
-            <div className="flex justify-center mb-8">
-                <Controller
-                    name="image"
-                    control={form.control}
-                    render={({ field }) => (
-                        <AvatarUploader
-                            value={field.value ?? undefined}
-                            onChange={(url) => field.onChange(url)}
-                            fileNamePrefix={`user-${form.getValues("email").split("@")[0]}`}
+            <Card className="border-none shadow-md border-l-4 border-l-blue-500 bg-linear-to-br from-card to-blue-500/5">
+                <CardHeader className="pb-4 border-b border-border/50">
+                    <div className="flex items-center gap-2">
+                        <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                            <User className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                        </div>
+                        <CardTitle className="text-lg">Información del Usuario</CardTitle>
+                    </div>
+                </CardHeader>
+
+                <CardContent className="pt-6 grid gap-8 md:grid-cols-[200px_1fr]">
+                    <div className="flex flex-col items-center gap-4">
+                        <Controller
+                            name="image"
+                            control={form.control}
+                            render={({ field }) => (
+                                <AvatarUploader
+                                    value={field.value ?? undefined}
+                                    onChange={(url) => field.onChange(url)}
+                                    fileNamePrefix={`user-${form.getValues("email").split("@")[0]}`}
+                                />
+                            )}
                         />
-                    )}
-                />
-            </div>
+                        <p className="text-xs text-muted-foreground text-center">
+                            Sube una foto de perfil para identificar al usuario.
+                        </p>
+                    </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Nombres (Opcional, pero útil para la invitación) */}
-                <Field>
-                    <FieldLabel>Nombre (Opcional)</FieldLabel>
-                    <Input
-                        placeholder="Juan"
-                        {...form.register("firstName")}
-                    />
-                    <FieldError errors={[form.formState.errors.firstName]} />
-                </Field>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Nombres (Opcional, pero útil para la invitación) */}
+                        <Field>
+                            <FieldLabel>Nombre (Opcional)</FieldLabel>
+                            <Input
+                                placeholder="Juan"
+                                {...form.register("firstName")}
+                                className="bg-background/50"
+                            />
+                            <FieldError errors={[form.formState.errors.firstName]} />
+                        </Field>
 
-                <Field>
-                    <FieldLabel>Apellido (Opcional)</FieldLabel>
-                    <Input
-                        placeholder="Pérez"
-                        {...form.register("lastName")}
-                    />
-                    <FieldError errors={[form.formState.errors.lastName]} />
-                </Field>
+                        <Field>
+                            <FieldLabel>Apellido (Opcional)</FieldLabel>
+                            <Input
+                                placeholder="Pérez"
+                                {...form.register("lastName")}
+                                className="bg-background/50"
+                            />
+                            <FieldError errors={[form.formState.errors.lastName]} />
+                        </Field>
 
-                {/* Email */}
-                <Field className="col-span-2">
-                    <FieldLabel required>Email</FieldLabel>
-                    <Input
-                        placeholder="usuario@ejemplo.com"
-                        {...form.register("email")}
-                        disabled={isEdit}
-                    />
-                    <FieldError errors={[form.formState.errors.email]} />
-                </Field>
+                        {/* Email */}
+                        <Field className="md:col-span-2">
+                            <FieldLabel required>Email</FieldLabel>
+                            <div className="relative">
+                                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                    placeholder="usuario@ejemplo.com"
+                                    {...form.register("email")}
+                                    disabled={isEdit}
+                                    className="pl-9 bg-background/50"
+                                />
+                            </div>
+                            <FieldError errors={[form.formState.errors.email]} />
+                        </Field>
 
-                {/* Role */}
-                <Field>
-                    <FieldLabel required>Rol</FieldLabel>
-                    <Controller
-                        control={form.control}
-                        name="role"
-                        render={({ field }) => (
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Selecciona un rol" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {ALLOWED_ROLES.map((role) => (
-                                        <SelectItem key={role} value={role}>
-                                            {role}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        )}
-                    />
-                    <FieldError errors={[form.formState.errors.role]} />
-                </Field>
+                        {/* Role */}
+                        <Field>
+                            <FieldLabel required className="flex items-center gap-2">
+                                <Shield className="w-3.5 h-3.5" /> Rol de Acceso
+                            </FieldLabel>
+                            <Controller
+                                control={form.control}
+                                name="role"
+                                render={({ field }) => (
+                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                        <SelectTrigger className="bg-background/50">
+                                            <SelectValue placeholder="Selecciona un rol" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {ALLOWED_ROLES.map((role) => (
+                                                <SelectItem key={role} value={role}>
+                                                    {role}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                            />
+                            <FieldError errors={[form.formState.errors.role]} />
+                        </Field>
 
-                {/* Estado */}
-                <Field>
-                    <FieldLabel>Estado</FieldLabel>
-                    <Controller
-                        control={form.control}
-                        name="isActive"
-                        render={({ field }) => (
-                            <Select
-                                onValueChange={(val) => field.onChange(val === "true")}
-                                value={field.value ? "true" : "false"}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Estado" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="true">Activo</SelectItem>
-                                    <SelectItem value="false">Inactivo</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        )}
-                    />
-                    <span className="text-xs text-muted-foreground mt-1 block">
-                        {isActive ? "Acceso permitido" : "Acceso denegado"}
-                    </span>
-                </Field>
-            </div>
+                        {/* Estado */}
+                        <Field>
+                            <FieldLabel className="flex items-center gap-2">
+                                <CheckCircle className="w-3.5 h-3.5" /> Estado
+                            </FieldLabel>
+                            <Controller
+                                control={form.control}
+                                name="isActive"
+                                render={({ field }) => (
+                                    <Select
+                                        onValueChange={(val) => field.onChange(val === "true")}
+                                        value={field.value ? "true" : "false"}
+                                    >
+                                        <SelectTrigger className="bg-background/50">
+                                            <SelectValue placeholder="Estado" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="true">Activo</SelectItem>
+                                            <SelectItem value="false">Inactivo</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                            />
+                            <span className="text-[10px] text-muted-foreground mt-1 block">
+                                {isActive ? "El usuario puede acceder al sistema." : "El acceso del usuario está revocado."}
+                            </span>
+                        </Field>
+                    </div>
+                </CardContent>
+            </Card>
 
-            <div className="flex justify-end gap-3 pt-4 border-t">
+            <div className="flex justify-end gap-3 pt-4">
                 <Button
                     type="button"
                     variant="outline"
@@ -204,7 +236,7 @@ export default function UserForm({
                 >
                     Cancelar
                 </Button>
-                <Button type="submit" disabled={isPending}>
+                <Button type="submit" disabled={isPending} className="shadow-lg hover:shadow-xl transition-all">
                     {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     <Save className="mr-2 h-4 w-4" />
                     {isEdit ? "Guardar Cambios" : "Enviar Invitación"}

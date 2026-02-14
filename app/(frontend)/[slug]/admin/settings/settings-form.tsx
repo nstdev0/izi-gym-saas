@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Loader2 } from "lucide-react";
+import { Loader2, Building, Settings2, Bell } from "lucide-react";
 import { UpdateOrganizationSettingsInput, UpdateOrganizationSettingsSchema } from "@/server/application/dtos/organizations.dto";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field";
@@ -87,12 +87,19 @@ export function SettingsForm({ defaultValues }: SettingsFormProps) {
 
                     {/* GENERAL TAB */}
                     <TabsContent value="general">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Información General</CardTitle>
-                                <CardDescription>
-                                    Configura los detalles básicos de tu organización.
-                                </CardDescription>
+                        <Card className="border-none shadow-md border-l-4 border-l-blue-500 bg-linear-to-br from-card to-blue-500/5">
+                            <CardHeader className="pb-4 border-b border-border/50">
+                                <div className="flex items-center gap-2">
+                                    <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                                        <Building className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                                    </div>
+                                    <div>
+                                        <CardTitle className="text-lg">Información General</CardTitle>
+                                        <CardDescription>
+                                            Configura los detalles básicos de tu organización.
+                                        </CardDescription>
+                                    </div>
+                                </div>
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 <Controller
@@ -149,12 +156,19 @@ export function SettingsForm({ defaultValues }: SettingsFormProps) {
 
                     {/* OPERATIONS TAB */}
                     <TabsContent value="operations">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Operaciones</CardTitle>
-                                <CardDescription>
-                                    Ajusta las reglas operativas de tu gimnasio.
-                                </CardDescription>
+                        <Card className="border-none shadow-md border-l-4 border-l-purple-500 bg-linear-to-br from-card to-purple-500/5">
+                            <CardHeader className="pb-4 border-b border-border/50">
+                                <div className="flex items-center gap-2">
+                                    <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+                                        <Settings2 className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                                    </div>
+                                    <div>
+                                        <CardTitle className="text-lg">Operaciones</CardTitle>
+                                        <CardDescription>
+                                            Ajusta las reglas operativas de tu gimnasio.
+                                        </CardDescription>
+                                    </div>
+                                </div>
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -225,12 +239,19 @@ export function SettingsForm({ defaultValues }: SettingsFormProps) {
 
                     {/* NOTIFICATIONS TAB */}
                     <TabsContent value="notifications">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Notificaciones</CardTitle>
-                                <CardDescription>
-                                    Gestiona las alertas automáticas.
-                                </CardDescription>
+                        <Card className="border-none shadow-md border-l-4 border-l-orange-500 bg-linear-to-br from-card to-orange-500/5">
+                            <CardHeader className="pb-4 border-b border-border/50">
+                                <div className="flex items-center gap-2">
+                                    <div className="p-2 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
+                                        <Bell className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+                                    </div>
+                                    <div>
+                                        <CardTitle className="text-lg">Notificaciones</CardTitle>
+                                        <CardDescription>
+                                            Gestiona las alertas automáticas.
+                                        </CardDescription>
+                                    </div>
+                                </div>
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 <Controller

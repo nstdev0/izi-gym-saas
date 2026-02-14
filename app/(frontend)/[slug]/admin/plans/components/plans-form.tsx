@@ -12,7 +12,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Loader2, Save } from "lucide-react";
+import { Loader2, Save, Layers } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
 import { api, ApiError } from "@/lib/api";
@@ -95,11 +95,16 @@ export default function PlanForm({
 
     return (
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <Card>
-                <CardHeader>
-                    <CardTitle>Información del Plan</CardTitle>
+            <Card className="border-none shadow-md border-l-4 border-l-blue-500 bg-linear-to-br from-card to-blue-500/5">
+                <CardHeader className="pb-4 border-b border-border/50">
+                    <div className="flex items-center gap-2">
+                        <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                            <Layers className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                        </div>
+                        <CardTitle className="text-lg">Información del Plan</CardTitle>
+                    </div>
                 </CardHeader>
-                <CardContent className="grid gap-6 md:grid-cols-2">
+                <CardContent className="pt-6 grid gap-6 md:grid-cols-2">
                     <Controller
                         name="name"
                         control={form.control}

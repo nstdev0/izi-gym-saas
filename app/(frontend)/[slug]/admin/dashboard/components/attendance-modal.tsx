@@ -36,14 +36,14 @@ export function AttendanceModal({ children }: AttendanceModalProps) {
             <DialogTrigger asChild>
                 {children}
             </DialogTrigger>
-            <DialogContent className="sm:max-w-lg p-0 overflow-hidden gap-0 border-none shadow-2xl bg-gradient-to-b from-background to-muted/70" onInteractOutside={(e) => e.preventDefault()}>
+            <DialogContent className="sm:max-w-lg p-0 overflow-hidden gap-0 border-none shadow-2xl bg-linear-to-b from-background to-muted/70" onInteractOutside={(e) => e.preventDefault()}>
                 <DialogHeader className="px-6 py-4 border-b bg-background/80 backdrop-blur-sm sticky top-0 z-10">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-3">
                         <div className="p-2 bg-primary/10 rounded-lg">
                             <ScanLine className="w-5 h-5 text-primary" />
                         </div>
                         <div>
-                            <DialogTitle>Registrar Asistencia</DialogTitle>
+                            <DialogTitle className="text-start">Registrar Asistencia</DialogTitle>
                             <DialogDescription className="text-xs">
                                 Escanea un QR o busca manualmente
                             </DialogDescription>

@@ -20,7 +20,7 @@ import { createProductSchema } from "@/server/application/dtos/products.dto";
 import { useCreateProduct, useUpdateProduct } from "@/hooks/products/use-products";
 import { useRouter } from "next/navigation";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
-import { Loader2, Save } from "lucide-react";
+import { Loader2, Save, Package } from "lucide-react";
 
 const formSchema = createProductSchema;
 
@@ -88,11 +88,16 @@ export const ProductsForm: React.FC<ProductsFormProps> = ({
 
     return (
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <Card>
-                <CardHeader>
-                    <CardTitle>Información del Producto</CardTitle>
+            <Card className="border-none shadow-md border-l-4 border-l-blue-500 bg-linear-to-br from-card to-blue-500/5">
+                <CardHeader className="pb-4 border-b border-border/50">
+                    <div className="flex items-center gap-2">
+                        <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                            <Package className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                        </div>
+                        <CardTitle className="text-lg">Información del Producto</CardTitle>
+                    </div>
                 </CardHeader>
-                <CardContent className="grid gap-6">
+                <CardContent className="pt-6 grid gap-6 md:grid-cols-2">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <Controller
                             control={form.control}

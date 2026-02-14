@@ -3,6 +3,19 @@ import { prisma } from "@/server/infrastructure/persistence/prisma";
 async function main() {
     console.log("🌱 Starting Organization Plans Seeding...");
 
+    const existingPlans = await prisma.plan.findMany({
+        where: {
+            slug: {
+                in: ["free-trial", "pro-monthly", "enterprise-monthly"]
+            }
+        }
+    })
+
+    if (existingPlans.length > 0) {
+        console.log("Plans already exist, skipping seeding.");
+        return;
+    }
+
     const plans = [
         {
             name: "Free Trial",
