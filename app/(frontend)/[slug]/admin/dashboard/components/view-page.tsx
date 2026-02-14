@@ -274,7 +274,7 @@ export default function DashboardViewPage() {
                 />
 
                 {/* Quick Actions - Con profundidad y efecto hover */}
-                <Card className="border-none shadow-md bg-gradient-to-br from-card to-muted/30">
+                <Card className="border-none shadow-md bg-linear-to-br from-card to-muted/30">
                     <CardContent className="px-4 sm:px-6 py-4">
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                             <Link href={`/${slug}/admin/members/new`}>
@@ -293,7 +293,7 @@ export default function DashboardViewPage() {
                                     <span className="text-xs sm:text-sm font-medium">Asistencia rápida</span>
                                 </Button>
                             </AttendanceModal>
-                            <Link href={`/${slug}/admin/memberships`}>
+                            <Link href={`/${slug}/admin/sales`}>
                                 <Button variant="outline" className="w-full h-auto py-5 flex flex-col gap-2 border-dashed border-2 hover:border-primary hover:bg-primary/5 hover:text-primary transition-all duration-300 shadow-sm hover:shadow-md">
                                     <div className="p-2 bg-primary/10 rounded-full">
                                         <CreditCard className="h-5 w-5 text-primary" />
@@ -301,7 +301,7 @@ export default function DashboardViewPage() {
                                     <span className="text-xs sm:text-sm font-medium">Venta rápida</span>
                                 </Button>
                             </Link>
-                            <Link href={`/${slug}/admin/products`}>
+                            <Link href={`/${slug}/admin/memberships`}>
                                 <Button variant="outline" className="w-full h-auto py-5 flex flex-col gap-2 border-dashed border-2 hover:border-primary hover:bg-primary/5 hover:text-primary transition-all duration-300 shadow-sm hover:shadow-md">
                                     <div className="p-2 bg-primary/10 rounded-full">
                                         <Dumbbell className="h-5 w-5 text-primary" />
@@ -342,7 +342,7 @@ export default function DashboardViewPage() {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
 
                     {/* 1. REVENUE CHART: Destacado con sombra más fuerte y un tono sutil */}
-                    <Card className="lg:col-span-3 shadow-lg border-primary/10 bg-gradient-to-b from-card to-muted/10">
+                    <Card className="lg:col-span-3 shadow-lg border-primary/10 bg-linear-to-b from-card to-muted/10">
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 border-b border-border/50">
                             <div className="flex flex-col gap-1">
                                 <CardTitle className="text-base sm:text-lg font-bold flex items-center gap-2">
@@ -456,7 +456,7 @@ export default function DashboardViewPage() {
                     </Card>
 
                     {/* 2. POPULAR PLANS: Tinte sutil azulado/primary */}
-                    <Card className="lg:col-span-1 shadow-md border-l-4 border-l-primary bg-gradient-to-br from-card to-primary/5">
+                    <Card className="lg:col-span-1 shadow-md border-l-4 border-l-primary bg-linear-to-br from-card to-primary/5">
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
                             <CardTitle className="text-base sm:text-lg font-semibold flex items-center gap-2">
                                 <Dumbbell className="h-4 w-4 text-primary" />
@@ -484,7 +484,7 @@ export default function DashboardViewPage() {
                                                 </div>
                                                 <div className="h-2.5 rounded-full bg-muted/50 overflow-hidden shadow-inner">
                                                     <div
-                                                        className={`h-full rounded-full bg-gradient-to-r from-primary to-primary/70 transition-all duration-1000 ease-out`}
+                                                        className={`h-full rounded-full bg-linear-to-r from-primary to-primary/70 transition-all duration-1000 ease-out`}
                                                         style={{ width: `${percentage}%` }}
                                                     />
                                                 </div>
@@ -502,7 +502,7 @@ export default function DashboardViewPage() {
                     </Card>
 
                     {/* 3. UPCOMING EXPIRATIONS: Tinte sutil naranja/alerta */}
-                    <Card className="lg:col-span-1 shadow-md border-l-4 border-l-orange-500 bg-gradient-to-br from-card to-orange-500/5">
+                    <Card className="lg:col-span-1 shadow-md border-l-4 border-l-orange-500 bg-linear-to-br from-card to-orange-500/5">
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
                             <CardTitle className="text-base sm:text-lg font-semibold flex items-center gap-2">
                                 <AlertTriangle className="h-4 w-4 text-orange-500" />
@@ -558,7 +558,7 @@ export default function DashboardViewPage() {
                     </Card>
 
                     {/* 4. RECENT MEMBERS: Tinte sutil neutral/slate */}
-                    <Card className="lg:col-span-1 shadow-md border-l-4 border-l-blue-500 bg-gradient-to-br from-card to-blue-500/5">
+                    <Card className="lg:col-span-1 shadow-md border-l-4 border-l-blue-500 bg-linear-to-br from-card to-blue-500/5">
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
                             <CardTitle className="text-base sm:text-lg font-semibold flex items-center gap-2">
                                 <Users className="h-4 w-4 text-blue-500" />
