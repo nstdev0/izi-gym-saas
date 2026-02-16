@@ -64,7 +64,7 @@ export function CommandMenu() {
         <CommandGroup className="p-4" heading="Acciones Rápidas">
           <CommandItem
             onSelect={() =>
-              runCommand(() => router.push(`/${slug}/admin/attendance`))
+              runCommand(() => router.push(`/${slug}/admin/attendances`))
             }
           >
             <CalendarCheck className="mr-2 h-4 w-4" />
@@ -132,7 +132,7 @@ export function CommandMenu() {
           </CommandItem>
           <CommandItem
             onSelect={() =>
-              runCommand(() => router.push(`/${slug}/admin/attendance`))
+              runCommand(() => router.push(`/${slug}/admin/attendances`))
             }
           >
             <CalendarCheck className="mr-2 h-4 w-4" />

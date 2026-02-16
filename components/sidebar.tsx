@@ -94,10 +94,10 @@ export function Sidebar({
     {
       label: "Asistencias",
       icon: CalendarCheck,
-      href: `/${safeSlug}/admin/attendance`,
+      href: `/${safeSlug}/admin/attendances`,
       active:
-        pathname === `/${safeSlug}/admin/attendance` ||
-        pathname.startsWith(`/${safeSlug}/admin/attendance/`),
+        pathname === `/${safeSlug}/admin/attendances` ||
+        pathname.startsWith(`/${safeSlug}/admin/attendances/`),
     },
     {
       label: "Miembros",
