@@ -110,11 +110,11 @@ const validateDocuments = (data: { docType: DocType; docNumber: string }, ctx: z
 
   // Caso CE
   if (data.docType === DocType.CE) {
-    if (data.docNumber.length !== 9) {
+    if (data.docNumber.length > 11) {
       ctx.addIssue({
         code: "custom",
         path: ["docNumber"],
-        message: "El CE debe tener exactamente 9 dígitos",
+        message: "El CE debe tener máximo 11 dígitos",
       });
     }
   }

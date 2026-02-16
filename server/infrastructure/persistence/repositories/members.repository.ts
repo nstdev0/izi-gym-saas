@@ -2,7 +2,7 @@ import { BaseRepository } from "./base.repository";
 import { IMembersRepository } from "@repositories/members.repository.interface";
 import { Member } from "@entities/Member";
 import { MembersFilters } from "@repositories/members.repository.interface";
-import { Prisma } from "@/generated/prisma/client";
+import { Prisma, PrismaClient, DocType } from "@/generated/prisma/client";
 import {
   CreateMemberInput,
   UpdateMemberInput,
@@ -11,6 +11,8 @@ import {
   PageableRequest,
   PageableResponse,
 } from "@/server/shared/common/pagination";
+import { NotFoundError } from "@/server/domain/errors/common";
+import { MemberMapper } from "../mappers/members.mapper";
 
 
 
@@ -24,14 +26,8 @@ export class MembersRepository
   >
   implements IMembersRepository {
 
-  private restoreField = (value: string | null | undefined): string | null => {
-    if (!value) return null;
-    return value.replace(/^deletedAt_\d+_/, '');
-  };
-
-  private softDelete = (value: string | null | undefined): string | null => {
-    if (!value) return null;
-    return `deletedAt_${Date.now()}_${value}`;
+  constructor(model: Prisma.MemberDelegate, organizationId: string) {
+    super(model, new MemberMapper(), organizationId)
   }
 
   async findAll(
@@ -79,6 +75,11 @@ export class MembersRepository
 
     const totalPages = Math.ceil(totalRecords / limit);
 
+    const mappedRecords = records.map((record) => {
+      // @ts-ignore - Prisma include types are complex, but the mapper handles the structure
+      return this.mapper.toDomain(record);
+    });
+
     return {
       currentPage: page,
       pageSize: limit,
@@ -86,15 +87,15 @@ export class MembersRepository
       totalPages,
       hasNext: page < totalPages,
       hasPrevious: page > 1,
-      records: records as unknown as Member[],
+      records: mappedRecords,
     };
   }
 
-  async delete(id: string): Promise<Member> {
+  async delete(id: string): Promise<void> {
     const member = await this.model.findUnique({ where: { id } });
-    if (!member) throw new Error("Member not found");
+    if (!member) throw new NotFoundError("Miembro no encontrado");
 
-    return (await this.model.update({
+    await this.model.update({
       where: { id },
       data: {
         isActive: false,
@@ -102,14 +103,14 @@ export class MembersRepository
         email: this.softDelete(member.email),
         docNumber: this.softDelete(member.docNumber) || "",
       },
-    })) as Member;
+    })
   }
 
-  async restore(id: string): Promise<Member> {
+  async restore(id: string): Promise<void> {
     const member = await this.model.findUnique({ where: { id } });
-    if (!member) throw new Error("Member not found");
+    if (!member) throw new NotFoundError("Miembro no encontrado");
 
-    return (await this.model.update({
+    await this.model.update({
       where: { id },
       data: {
         isActive: true,
@@ -117,7 +118,7 @@ export class MembersRepository
         email: this.restoreField(member.email),
         docNumber: this.restoreField(member.docNumber) || "",
       },
-    })) as Member;
+    })
   }
 
 
@@ -183,47 +184,55 @@ export class MembersRepository
     return [WhereClause, OrderByClause];
   }
 
-  async validateUnique(args: Partial<Member>): Promise<Member | null> {
-    // 1. Check Document Uniqueness (only if both docType and docNumber are provided)
-    if (args.docType && args.docNumber) {
-      const docRecord = await this.findUnique({
-        docType_docNumber_organizationId: {
-          docType: args.docType,
-          docNumber: args.docNumber,
-          organizationId: this.organizationId as string,
-        },
-      } as unknown as Partial<Member>);
-      if (docRecord) return docRecord;
-    }
-
-    // 2. Check Email Uniqueness (if provided and not empty)
-    if (args.email && args.email.trim() !== "") {
-      const emailRecord = await this.findUnique({
+  async validateUniqueEmail(email: string | null | undefined): Promise<Member | null> {
+    if (!email) return null;
+    const emailRecord = await this.model.findUnique({
+      where: {
         email_organizationId: {
-          email: args.email,
+          email,
           organizationId: this.organizationId as string,
         },
-      } as unknown as Partial<Member>);
-      if (emailRecord) return emailRecord;
-    }
+      }
+    });
 
+    if (emailRecord) return this.mapper.toDomain(emailRecord);
+    return null;
+  }
+
+  async validateUniqueDocument(docType: DocType, docNumber: string): Promise<Member | null> {
+    const docRecord = await this.model.findUnique({
+      where: {
+        docType_docNumber_organizationId: {
+          docType,
+          docNumber,
+          organizationId: this.organizationId as string,
+        },
+      }
+    });
+    if (docRecord) return this.mapper.toDomain(docRecord);
     return null;
   }
 
   async findByIdWithMemberships(id: string): Promise<Member | null> {
-    return this.model.findUnique({
+    const record = await this.model.findUnique({
       where: { id, organizationId: this.organizationId },
       include: {
         memberships: {
           select: { status: true },
         },
       },
-    }) as unknown as Promise<Member | null>;
+    });
+
+    if (!record) return null;
+    // @ts-ignore
+    return this.mapper.toDomain(record);
   }
 
   async findByQrCode(qrCode: string): Promise<Member | null> {
-    return this.model.findUnique({
+    const record = await this.model.findUnique({
       where: { qr_organizationId: { qr: qrCode, organizationId: this.organizationId! } },
-    }) as unknown as Promise<Member | null>;
+    });
+    if (!record) return null;
+    return this.mapper.toDomain(record);
   }
 }

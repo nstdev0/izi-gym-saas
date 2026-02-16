@@ -2,14 +2,10 @@ import { IMembersRepository } from "@/server/application/repositories/members.re
 import { Member } from "@/server/domain/entities/Member";
 import { NotFoundError } from "@/server/domain/errors/common";
 
-export interface IRestoreMemberUseCase {
-    execute(id: string): Promise<Member>;
-}
-
-export class RestoreMemberUseCase implements IRestoreMemberUseCase {
+export class RestoreMemberUseCase {
     constructor(private readonly membersRepo: IMembersRepository) { }
 
-    async execute(id: string): Promise<Member> {
+    async execute(id: string): Promise<void> {
         const member = await this.membersRepo.findByIdWithMemberships(id);
 
         if (!member) {

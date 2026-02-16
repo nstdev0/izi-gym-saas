@@ -16,8 +16,6 @@ export const createMembershipSchema = z.object({
   planId: z.string().min(1, "El plan es requerido"),
 });
 
-export type CreateMembershipInput = z.infer<typeof createMembershipSchema>;
-
 export const UpdateMembershipSchema = createMembershipSchema.partial();
-
+export type CreateMembershipInput = z.infer<typeof createMembershipSchema>;
 export type UpdateMembershipInput = z.infer<typeof UpdateMembershipSchema>;

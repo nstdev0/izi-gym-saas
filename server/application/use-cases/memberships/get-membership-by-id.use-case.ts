@@ -5,7 +5,7 @@ export class GetMembershipByIdUseCase {
   constructor(private readonly repository: IMembershipsRepository) { }
 
   async execute(id: string): Promise<Membership | null> {
-    const membership = await this.repository.findUnique({ id });
+    const membership = await this.repository.findUnique({ id: id });
     if (membership) {
       membership.pricePaid = Number(membership.pricePaid);
     }

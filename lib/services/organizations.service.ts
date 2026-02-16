@@ -53,4 +53,10 @@ export class OrganizationsService {
             method: "DELETE",
         });
     }
+
+    static async restore(id: string) {
+        return fetchClient<Organization>(`${this.BASE_PATH}/id/${id}/restore`, {
+            method: "POST",
+        });
+    }
 }

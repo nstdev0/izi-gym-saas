@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { CreateMemberSchema } from "@/server/application/dtos/members.dto";
+import { CreateMemberInput, CreateMemberSchema } from "@/server/application/dtos/members.dto";
 import { Loader2, Save, User, FileBadge, Phone, Activity } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { ApiError } from "@/lib/api";
@@ -38,17 +38,15 @@ export default function MemberForm({
   const router = useRouter();
 
   // 1. Configuración del Formulario
-  const form = useForm<z.infer<typeof CreateMemberSchema>>({
+  const form = useForm<CreateMemberInput>({
     resolver: zodResolver(CreateMemberSchema),
     defaultValues: {
       firstName: initialData?.firstName || "",
       lastName: initialData?.lastName || "",
       email: initialData?.email || "",
       phone: initialData?.phone || "",
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       docType: (initialData?.docType as any) || "DNI",
       docNumber: initialData?.docNumber || "",
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       gender: (initialData?.gender as any) || "MALE",
       isActive: initialData?.isActive ?? true,
       birthDate: initialData?.birthDate ? new Date(initialData.birthDate) : undefined,
@@ -60,42 +58,26 @@ export default function MemberForm({
     },
   });
 
-  const { mutate: createMember, isPending: isCreating } = useCreateMember();
-  const { mutate: updateMember, isPending: isUpdating } = useUpdateMember();
-  const isPending = isCreating || isUpdating;
   const isDirty = form.formState.isDirty;
   const canSubmit = isEdit ? isDirty : true;
 
-  const onSubmit = (values: z.infer<typeof CreateMemberSchema>) => {
+  const { mutate: createMember, isPending: isCreating } = useCreateMember();
+  const { mutate: updateMember, isPending: isUpdating } = useUpdateMember();
+
+  const onSubmit = (values: CreateMemberInput) => {
     const onSuccess = () => {
-      router.refresh();
       if (redirectUrl) router.push(redirectUrl);
     };
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const onError = (error: any) => {
-      if (error instanceof ApiError && error.code === "VALIDATION_ERROR" && error.errors) {
-        Object.entries(error.errors).forEach(([field, messages]) => {
-          form.setError(field as keyof z.infer<typeof CreateMemberSchema>, {
-            type: "server",
-            message: messages[0],
-          }, { shouldFocus: true });
-        });
-        toast.error("Revisa los errores marcados en rojo.");
-      }
-    };
-
     if (isEdit && initialData?.id) {
-      updateMember({ id: initialData.id, data: values }, { onSuccess, onError });
+      updateMember({ id: initialData.id, data: values }, { onSuccess });
     } else {
-      createMember(values, { onSuccess, onError });
+      createMember(values, { onSuccess });
     }
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const onInvalid = (errors: any) => {
-    console.log(errors);
-    toast.error("Por favor completa los campos requeridos");
+  const onInvalid = () => {
+    toast.error("Por favor completa los campos requeridos.");
   };
 
   const selectedDocType = form.watch("docType");
@@ -114,8 +96,8 @@ export default function MemberForm({
     switch (type) {
       case "DNI": return "12345678";
       case "RUC": return "10123456789";
-      case "CE": return "E1234567";
-      case "PASSPORT": return "PE123456";
+      case "CE": return "E12345678";
+      case "PASSPORT": return "PE1234";
       default: return "";
     }
   };
@@ -399,8 +381,8 @@ export default function MemberForm({
 
       {/* BOTONES DE ACCIÓN */}
       <div className="flex justify-end gap-4 sticky bottom-4 z-10">
-        <Button type="submit" disabled={isPending || !canSubmit} size="lg">
-          {isPending ? (
+        <Button type="submit" disabled={isCreating || isUpdating && !canSubmit} size="lg">
+          {isCreating || isUpdating ? (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
           ) : (
             <Save className="mr-2 h-4 w-4" />

@@ -7,6 +7,7 @@ import {
   UpdateProductInput,
   ProductsFilters,
 } from "@/server/domain/types/products";
+import { ProductMapper } from "../mappers/products.mapper";
 
 export class ProductsRepository
   extends BaseRepository<
@@ -17,6 +18,10 @@ export class ProductsRepository
     ProductsFilters
   >
   implements IProductsRepository {
+
+  constructor(model: Prisma.ProductDelegate, organizationId: string) {
+    super(model, new ProductMapper(), organizationId);
+  }
   protected async buildPrismaClauses(
     filters: ProductsFilters,
   ): Promise<[Prisma.ProductWhereInput, Prisma.ProductOrderByWithRelationInput[]]> {

@@ -113,6 +113,7 @@ export default async function RootLayout({
         suppressHydrationWarning
         className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} ${outfit.variable} ${lato.variable}`}
         data-font={initialFont}
+        data-scroll-behavior="smooth"
       >
         <body className="font-sans antialiased bg-background text-foreground transition-colors duration-300">
           <ThemeProvider
@@ -121,7 +122,7 @@ export default async function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            <AppearanceProvider initialFont={initialFont} initialColor={initialColor} initialTheme={initialTheme}>
+            <AppearanceProvider initialFont={initialFont} initialColor={initialColor}>
               <NuqsAdapter>
                 <ReactQueryProvider>
                   <NextSSRPlugin routerConfig={extractRouterConfig(ourFileRouter)} />

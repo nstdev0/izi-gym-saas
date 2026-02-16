@@ -1,6 +1,4 @@
 import { Prisma } from "@/generated/prisma/client";
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { EntityStatus } from "@/server/domain/entities/_base";
 import { BaseRepository } from "./base.repository";
 import { Plan } from "@/server/domain/entities/Plan";
 import { IPlansRepository } from "@/server/application/repositories/plans.repository.interface";
@@ -9,6 +7,7 @@ import {
   PlansFilters,
   UpdatePlanInput,
 } from "@/server/domain/types/plans";
+import { PlanMapper } from "../mappers/plans.mapper";
 
 export class PlansRepository
   extends BaseRepository<
@@ -19,6 +18,13 @@ export class PlansRepository
     PlansFilters
   >
   implements IPlansRepository {
+
+  constructor(
+    protected readonly model: Prisma.PlanDelegate,
+    protected readonly organizationId: string
+  ) {
+    super(model, new PlanMapper(), organizationId);
+  }
 
   protected async buildPrismaClauses(
     filters: PlansFilters,

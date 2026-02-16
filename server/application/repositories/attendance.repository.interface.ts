@@ -1,6 +1,6 @@
 import { RegisterAttendanceInput, UpdateAttendanceInput } from "@/server/application/dtos/attendance.dto";
-import { Attendance } from "@/generated/prisma/client";
-import { PageableRequest, PageableResponse } from "@/server/shared/common/pagination";
+import { IBaseRepository } from "./base.repository.interface";
+import { Attendance } from "@/server/domain/entities/Attendance";
 
 export interface AttendanceFilters {
     search?: string;
@@ -8,21 +8,8 @@ export interface AttendanceFilters {
     method?: string;
 }
 
-export interface AttendanceWithMember extends Attendance {
-    member: {
-        id: string;
-        firstName: string;
-        lastName: string;
-        image: string | null;
-    };
-}
-
-export interface IAttendanceRepository {
-    findAll(request: PageableRequest<AttendanceFilters>): Promise<PageableResponse<AttendanceWithMember>>;
-    findById(id: string): Promise<AttendanceWithMember | null>;
-    create(data: RegisterAttendanceInput): Promise<Attendance>;
-    update(id: string, data: UpdateAttendanceInput): Promise<AttendanceWithMember>;
-    delete(id: string): Promise<void>;
+export interface IAttendanceRepository extends IBaseRepository<Attendance, RegisterAttendanceInput, UpdateAttendanceInput, AttendanceFilters> {
+    findById(id: string): Promise<Attendance | null>;
 }
 
 

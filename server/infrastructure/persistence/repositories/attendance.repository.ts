@@ -1,24 +1,37 @@
+import { BaseRepository } from "./base.repository";
 import {
     IAttendanceRepository,
     AttendanceFilters,
-    AttendanceWithMember,
 } from "@/server/application/repositories/attendance.repository.interface";
 import { RegisterAttendanceInput, UpdateAttendanceInput } from "@/server/application/dtos/attendance.dto";
-import { Attendance, Prisma, PrismaClient } from "@/generated/prisma/client";
+import { Prisma } from "@/generated/prisma/client";
 import {
     PageableRequest,
     PageableResponse,
 } from "@/server/shared/common/pagination";
+import { AttendanceMapper } from "../mappers/attendance.mapper";
+import { Attendance } from "@/server/domain/entities/Attendance";
 
-export class AttendanceRepository implements IAttendanceRepository {
+export class AttendanceRepository
+    extends BaseRepository<
+        Prisma.AttendanceDelegate,
+        Attendance,
+        RegisterAttendanceInput,
+        UpdateAttendanceInput,
+        AttendanceFilters
+    >
+    implements IAttendanceRepository {
+
     constructor(
-        private readonly prisma: PrismaClient,
-        private readonly organizationId: string,
-    ) { }
+        model: Prisma.AttendanceDelegate,
+        organizationId: string,
+    ) {
+        super(model, new AttendanceMapper(), organizationId);
+    }
 
     async findAll(
         request: PageableRequest<AttendanceFilters> = { page: 1, limit: 10 },
-    ): Promise<PageableResponse<AttendanceWithMember>> {
+    ): Promise<PageableResponse<Attendance>> {
         const { page = 1, limit = 10, filters } = request;
 
         const safePage = page < 1 ? 1 : page;
@@ -38,8 +51,8 @@ export class AttendanceRepository implements IAttendanceRepository {
         }
 
         const [totalRecords, records] = await Promise.all([
-            this.prisma.attendance.count({ where }),
-            this.prisma.attendance.findMany({
+            this.model.count({ where }),
+            this.model.findMany({
                 skip,
                 take: limit,
                 where,
@@ -58,6 +71,7 @@ export class AttendanceRepository implements IAttendanceRepository {
         ]);
 
         const totalPages = Math.ceil(totalRecords / limit);
+        const mappedRecords = records.map(record => this.mapper.toDomain(record));
 
         return {
             currentPage: page,
@@ -66,23 +80,34 @@ export class AttendanceRepository implements IAttendanceRepository {
             totalPages,
             hasNext: page < totalPages,
             hasPrevious: page > 1,
-            records: records as unknown as AttendanceWithMember[],
+            records: mappedRecords,
         };
     }
 
     async create(data: RegisterAttendanceInput): Promise<Attendance> {
-        return this.prisma.attendance.create({
+        const result = await this.model.create({
             data: {
                 memberId: data.memberId,
                 date: data.date,
                 method: data.method,
                 organizationId: this.organizationId as string,
             },
+            include: {
+                member: {
+                    select: {
+                        id: true,
+                        firstName: true,
+                        lastName: true,
+                        image: true,
+                    },
+                },
+            },
         });
+        return this.mapper.toDomain(result);
     }
 
-    async findById(id: string): Promise<AttendanceWithMember | null> {
-        const result = await this.prisma.attendance.findFirst({
+    async findById(id: string): Promise<Attendance | null> {
+        const record = await this.model.findFirst({
             where: {
                 id,
                 organizationId: this.organizationId,
@@ -98,17 +123,12 @@ export class AttendanceRepository implements IAttendanceRepository {
                 },
             },
         });
-        return result as unknown as AttendanceWithMember | null;
+        if (!record) return null;
+        return this.mapper.toDomain(record);
     }
 
-    async delete(id: string): Promise<void> {
-        await this.prisma.attendance.delete({
-            where: { id },
-        });
-    }
-
-    async update(id: string, data: UpdateAttendanceInput): Promise<AttendanceWithMember> {
-        const result = await this.prisma.attendance.update({
+    async update(id: string, data: UpdateAttendanceInput): Promise<Attendance> {
+        const result = await this.model.update({
             where: { id },
             data,
             include: {
@@ -122,7 +142,7 @@ export class AttendanceRepository implements IAttendanceRepository {
                 },
             },
         });
-        return result as unknown as AttendanceWithMember;
+        return this.mapper.toDomain(result);
     }
 
     protected async buildPrismaClauses(
@@ -177,3 +197,4 @@ export class AttendanceRepository implements IAttendanceRepository {
         return [whereClause, orderByClause];
     }
 }
+

@@ -1,4 +1,4 @@
-import { Prisma, PrismaClient } from "@/generated/prisma/client";
+import { Member, Prisma, PrismaClient } from "@/generated/prisma/client";
 import { Membership } from "@/server/domain/entities/Membership";
 import { BaseRepository } from "./base.repository";
 import { IMembershipsRepository } from "@/server/application/repositories/memberships.repository.interface";
@@ -8,6 +8,7 @@ import {
   MembershipsFilters,
 } from "@/server/domain/types/memberships";
 import { PageableRequest, PageableResponse } from "@/server/shared/common/pagination";
+import { MembershipMapper } from "../mappers/memberships.mapper";
 
 type MembershipWithRelations = Membership & {
   member?: { firstName: string; lastName: string };
@@ -24,11 +25,8 @@ export class MembershipsRepository
   >
   implements IMembershipsRepository {
 
-  private prismaClient: PrismaClient;
-
-  constructor(prisma: PrismaClient, organizationId: string) {
-    super(prisma.membership, organizationId);
-    this.prismaClient = prisma;
+  constructor(model: Prisma.MembershipDelegate, organizationId: string) {
+    super(model, new MembershipMapper(), organizationId);
   }
 
   protected async buildPrismaClauses(
@@ -93,7 +91,6 @@ export class MembershipsRepository
     return [WhereClause, OrderByClause];
   }
 
-  // Override findAll to include member and plan relations
   async findAll(
     request: PageableRequest<MembershipsFilters> = { page: 1, limit: 10 },
   ): Promise<PageableResponse<MembershipWithRelations>> {
@@ -116,8 +113,8 @@ export class MembershipsRepository
     }
 
     const [totalRecords, records] = await Promise.all([
-      this.prismaClient.membership.count({ where }),
-      this.prismaClient.membership.findMany({
+      this.model.count({ where }),
+      this.model.findMany({
         skip,
         take: limit,
         where,
@@ -135,6 +132,11 @@ export class MembershipsRepository
 
     const totalPages = Math.ceil(totalRecords / limit);
 
+    const mappedRecords = records.map((record) => {
+      // @ts-ignore
+      return this.mapper.toDomain(record);
+    });
+
     return {
       currentPage: page,
       pageSize: limit,
@@ -142,33 +144,12 @@ export class MembershipsRepository
       totalPages,
       hasNext: page < totalPages,
       hasPrevious: page > 1,
-      records: records as unknown as MembershipWithRelations[],
+      records: mappedRecords,
     };
   }
 
-  // Override findUnique to include member and plan relations
-  async findUnique(args: Partial<Membership>): Promise<MembershipWithRelations | null> {
-    const result = await this.prismaClient.membership.findUnique({
-      where: {
-        id: args.id,
-        organizationId: this.organizationId,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any,
-      include: {
-        member: {
-          select: { firstName: true, lastName: true },
-        },
-        plan: {
-          select: { name: true },
-        },
-      },
-    });
-
-    return result as MembershipWithRelations | null;
-  }
-
   async findActiveMembershipByMemberId(memberId: string): Promise<Membership | null> {
-    const result = await this.prismaClient.membership.findFirst({
+    const result = await this.model.findFirst({
       where: {
         memberId,
         organizationId: this.organizationId,
@@ -176,8 +157,12 @@ export class MembershipsRepository
           in: ["ACTIVE", "PENDING"],
         },
       },
+      include: {
+        plan: true,
+      }
     });
 
-    return result as Membership | null;
+    if (!result) return null;
+    return this.mapper.toDomain(result);
   }
 }

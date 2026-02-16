@@ -5,11 +5,10 @@ import { ConflictError } from "@/server/domain/errors/common";
 import { ControllerExecutor } from "@/server/lib/api-handler";
 
 export class CreateMembershipUseCase implements ControllerExecutor<CreateMembershipInput, Membership> {
-  constructor(private membershipsRepository: IMembershipsRepository) { }
+  constructor(private repo: IMembershipsRepository) { }
 
   async execute(input: CreateMembershipInput): Promise<Membership> {
-    // Check if member already has an active or pending membership
-    const existingMembership = await this.membershipsRepository.findActiveMembershipByMemberId(
+    const existingMembership = await this.repo.findActiveMembershipByMemberId(
       input.memberId
     );
 
@@ -17,7 +16,7 @@ export class CreateMembershipUseCase implements ControllerExecutor<CreateMembers
       throw new ConflictError("El miembro ya tiene una membresía activa o pendiente");
     }
 
-    return this.membershipsRepository.create(input);
+    return this.repo.create(input);
   }
 }
 

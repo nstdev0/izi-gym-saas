@@ -55,5 +55,11 @@ export class AttendanceService {
             method: "DELETE",
         });
     }
+
+    static async restore(id: string) {
+        return fetchClient<AttendanceWithMember>(`${this.BASE_PATH}/id/${id}/restore`, {
+            method: "POST",
+        });
+    }
 }
 

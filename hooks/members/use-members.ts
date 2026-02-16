@@ -83,7 +83,7 @@ export const useUpdateMember = () => {
         onSuccess: () => {
             toast.success("Miembro actualizado exitosamente");
         },
-        onError: (_error, variables, context) => {
+        onError: (error, variables, context) => {
             if (context?.previousMembers) {
                 context.previousMembers.forEach(([key, data]) => {
                     queryClient.setQueryData(key, data);
@@ -92,7 +92,7 @@ export const useUpdateMember = () => {
             if (context?.previousDetail) {
                 queryClient.setQueryData(memberKeys.detail(variables.id), context.previousDetail);
             }
-            toast.error("Error al actualizar miembro (cambios revertidos)");
+            toast.error(error.message || "Error al actualizar miembro (cambios revertidos)");
         },
         onSettled: (_data, _error, variables) => {
             queryClient.invalidateQueries({ queryKey: memberKeys.lists() });
@@ -125,13 +125,13 @@ export const useDeleteMember = () => {
 
             return { previousMembers };
         },
-        onError: (_error, _variables, context) => {
+        onError: (error, _variables, context) => {
             if (context?.previousMembers) {
                 context.previousMembers.forEach(([key, data]) => {
                     queryClient.setQueryData(key, data);
                 });
             }
-            toast.error("Error al eliminar miembro (cambios revertidos)");
+            toast.error(error.message || "Error al eliminar miembro (cambios revertidos)");
         },
         onSettled: () => {
             queryClient.invalidateQueries({ queryKey: memberKeys.lists() });
@@ -150,8 +150,8 @@ export const useRestoreMember = () => {
             toast.success("Miembro restaurado correctamente");
             queryClient.invalidateQueries({ queryKey: memberKeys.lists() });
         },
-        onError: () => {
-            toast.error("No se pudo restaurar el miembro");
+        onError: (error) => {
+            toast.error(error.message || "No se pudo restaurar el miembro");
         }
     });
 };

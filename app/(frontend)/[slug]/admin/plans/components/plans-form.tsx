@@ -2,7 +2,6 @@
 
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,22 +13,13 @@ import {
 } from "@/components/ui/select";
 import { Loader2, Save, Layers } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useMutation } from "@tanstack/react-query";
-import { api, ApiError } from "@/lib/api";
+import { ApiError } from "@/lib/api";
 import { toast } from "sonner";
 import { Plan } from "@/server/domain/entities/Plan";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
-const planFormSchema = z.object({
-    name: z.string().min(1, "El nombre es requerido"),
-    description: z.string().optional().nullable(),
-    price: z.coerce.number().min(0, "El precio no puede ser negativo"),
-    durationDays: z.coerce.number().int().min(1, "La duración debe ser al menos 1 día"),
-    isActive: z.boolean().optional(),
-});
-
-type PlanFormValues = z.infer<typeof planFormSchema>;
+import { CreatePlanInput, createPlanSchema } from "@/server/application/dtos/plans.dto";
+import { useCreatePlan, useUpdatePlan } from "@/hooks/plans/use-plans";
 
 interface PlanFormProps {
     initialData?: Plan;
@@ -44,12 +34,12 @@ export default function PlanForm({
 }: PlanFormProps) {
     const router = useRouter();
 
-    const form = useForm<PlanFormValues>({
-        resolver: zodResolver(planFormSchema),
+    const form = useForm<CreatePlanInput>({
+        resolver: zodResolver(createPlanSchema),
         defaultValues: {
             name: initialData?.name || "",
             description: initialData?.description || "",
-            price: initialData?.price || 0,
+            price: initialData?.price || undefined,
             durationDays: initialData?.durationDays || 30,
             isActive: initialData?.isActive ?? true,
         },
@@ -58,43 +48,30 @@ export default function PlanForm({
     const isDirty = form.formState.isDirty;
     const canSubmit = isEdit ? isDirty : true;
 
-    const { mutate: mutatePlan, isPending } = useMutation({
-        mutationFn: async (values: PlanFormValues) => {
-            if (isEdit && initialData?.id) {
-                return api.patch(`/api/plans/${initialData.id}`, values);
-            }
-            return api.post("/api/plans", values);
-        },
-        onSuccess: () => {
-            toast.success(
-                isEdit ? "Plan actualizado correctamente" : "Plan creado con éxito"
-            );
-            router.refresh();
-            if (redirectUrl) {
-                // router.push(redirectUrl);
-            }
-        },
-        onError: (error) => {
-            if (error instanceof ApiError && error.code === "VALIDATION_ERROR" && error.errors) {
-                Object.entries(error.errors).forEach(([field, messages]) => {
-                    form.setError(field as keyof PlanFormValues, {
-                        type: "server",
-                        message: messages[0],
-                    }, { shouldFocus: true });
-                });
-                toast.error("Revisa los errores marcados en rojo.");
-            } else {
-                toast.error(error.message || "Error al guardar");
-            }
-        },
-    });
+    const { mutate: createPlan, isPending: isCreating } = useCreatePlan()
+    const { mutate: updatePlan, isPending: isUpdating } = useUpdatePlan()
 
-    const onSubmit = (values: PlanFormValues) => {
-        mutatePlan(values);
-    };
+    const isPending = isCreating || isUpdating;
+
+    const onSubmit = (values: CreatePlanInput) => {
+        const onSuccess = () => {
+            if (redirectUrl) router.push(redirectUrl);
+        }
+
+        if (isEdit && initialData) {
+            updatePlan({ id: initialData.id, data: values }, { onSuccess });
+        } else {
+            createPlan(values, { onSuccess });
+        }
+    }
+
+    const onInvalid = () => {
+        toast.error("Por favor completa los campos requeridos")
+
+    }
 
     return (
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <form onSubmit={form.handleSubmit(onSubmit, onInvalid)} className="space-y-6">
             <Card className="border-none shadow-md border-l-4 border-l-blue-500 bg-linear-to-br from-card to-blue-500/5">
                 <CardHeader className="pb-4 border-b border-border/50">
                     <div className="flex items-center gap-2">
@@ -179,7 +156,7 @@ export default function PlanForm({
                         control={form.control}
                         render={({ field, fieldState }) => (
                             <Field data-invalid={fieldState.invalid}>
-                                <FieldLabel>Estado</FieldLabel>
+                                <FieldLabel required>Estado</FieldLabel>
                                 <Select
                                     onValueChange={(val) => field.onChange(val === "true")}
                                     defaultValue={field.value?.toString()}

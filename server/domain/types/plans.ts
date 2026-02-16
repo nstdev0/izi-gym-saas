@@ -1,5 +1,6 @@
 export interface CreatePlanInput {
   name: string;
+  slug: string;
   description?: string | null;
   price: number;
   durationDays: number;

@@ -50,4 +50,10 @@ export class UsersService {
             method: "DELETE",
         });
     }
+
+    static async restore(id: string) {
+        return fetchClient<User>(`${this.BASE_PATH}/id/${id}/restore`, {
+            method: "POST",
+        });
+    }
 }

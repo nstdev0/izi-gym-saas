@@ -133,6 +133,8 @@ import { SystemCreatePlanUseCase } from "../application/use-cases/system/system-
 import { SystemGetPlansUseCase } from "../application/use-cases/system/system-get-plans.use-case";
 import { GetMemberByQrCodeController } from "../interface-adapters/controllers/members/get-member-by-qr-code.controller";
 import { GetMemberByQrCodeUseCase } from "../application/use-cases/members/get-member-by-qr.use-case";
+import { TransactionManager } from "../infrastructure/persistence/repositories/transaction-manager";
+import { OrganizationMapper } from "../infrastructure/persistence/mappers/organizations.mapper";
 
 
 // Factory function "memoizada" por request
@@ -156,10 +158,13 @@ export const getContainer = cache(async () => {
     organizationsRepository,
   );
   const createOrganizationUseCase = new CreateOrganizationUseCase(
-    organizationsRepository,
+    prisma,
+    new OrganizationMapper()
   );
   const upgradeOrganizationPlanUseCase = new UpgradeOrganizationPlanUseCase(
-    organizationsRepository,
+    prisma,
+    new OrganizationMapper(),
+    tenantId
   );
   // Controllers
   const getAllOrganizationsController = new GetAllOrganizationsController(
@@ -274,7 +279,10 @@ export const getContainer = cache(async () => {
   // 5. MEMBERSHIPS
   // ===========================================================================
   // Repo
-  const membershipsRepository = new MembershipsRepository(prisma, tenantId);
+  const membershipsRepository = new MembershipsRepository(
+    prisma.membership,
+    tenantId,
+  );
   // Use Cases
   const getAllMembershipsUseCase = new GetAllMembershipsUseCase(
     membershipsRepository,
@@ -336,7 +344,7 @@ export const getContainer = cache(async () => {
   // 9. ATTENDANCE
   // ===========================================================================
   // Repo
-  const attendanceRepository = new AttendanceRepository(prisma, tenantId);
+  const attendanceRepository = new AttendanceRepository(prisma.attendance, tenantId);
   // Use Cases
   const registerAttendanceUseCase = new RegisterAttendanceUseCase(attendanceRepository, membersRepository);
   const getAllAttendancesUseCase = new GetAllAttendancesUseCase(attendanceRepository);

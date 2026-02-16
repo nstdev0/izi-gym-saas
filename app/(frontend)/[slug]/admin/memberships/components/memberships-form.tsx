@@ -2,7 +2,6 @@
 
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,7 +11,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Loader2, Save, CreditCard, CalendarDays, DollarSign, Activity, Info, ArrowLeft } from "lucide-react";
+import { Loader2, Save, CreditCard, CalendarDays, DollarSign, Activity, Info } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
 import { api, ApiError } from "@/lib/api";
@@ -21,11 +20,9 @@ import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MembershipStatus } from "@/server/domain/entities/Membership";
 import { MemberCombobox } from "./member-combobox";
-import { createMembershipSchema } from "@/server/application/dtos/memberships.dto";
 import { Member } from "@/server/domain/entities/Member";
-import { cn } from "@/lib/utils";
-import { format } from "date-fns";
-import { es } from "date-fns/locale";
+import { CreateMembershipInput, createMembershipSchema } from "@/server/application/dtos/memberships.dto";
+import { useCreateMembership, useUpdateMembership } from "@/hooks/memberships/use-memberships";
 
 export interface SelectablePlan {
     id: string;
@@ -61,7 +58,7 @@ export default function MembershipForm({
     const router = useRouter();
     const initialMember = member || (initialData?.member ? initialData.member : undefined);
 
-    const form = useForm<z.infer<typeof createMembershipSchema>>({
+    const form = useForm<CreateMembershipInput>({
         resolver: zodResolver(createMembershipSchema),
         defaultValues: {
             memberId: initialData?.memberId || "",
@@ -87,48 +84,32 @@ export default function MembershipForm({
         }
     };
 
-    const { mutate: mutateMembership, isPending } = useMutation({
-        mutationFn: async (values: z.infer<typeof createMembershipSchema>) => {
-            const plan = plans?.find((p) => p.id === values.planId);
-            const startDate = new Date(values.startDate);
-            startDate.setHours(0, 0, 0, 0);
+    const isDirty = form.formState.isDirty;
+    const canSubmit = isEdit ? isDirty : true;
 
-            const endDate = new Date(startDate);
-            if (plan) {
-                endDate.setDate(startDate.getDate() + plan.durationDays);
-                endDate.setHours(23, 59, 59, 999);
-            } else {
-                const formEndDate = new Date(values.endDate);
-                formEndDate.setHours(23, 59, 59, 999);
-                endDate.setTime(formEndDate.getTime());
-            }
+    const { mutate: createMembership, isPending: isCreating } = useCreateMembership()
+    const { mutate: updateMembership, isPending: isUpdating } = useUpdateMembership()
 
-            const payload = { ...values, startDate, endDate };
+    const onSubmit = (values: CreateMembershipInput) => {
+        const onSuccess = () => {
+            if (redirectUrl) router.push(redirectUrl)
+        }
 
-            if (isEdit && initialData?.id) {
-                return api.patch(`/api/memberships/${initialData.id}`, payload);
-            }
-            return api.post("/api/memberships", payload);
-        },
-        onSuccess: () => {
-            toast.success(isEdit ? "Membresía actualizada correctamente" : "Membresía creada con éxito");
-            router.refresh();
-            router.push(redirectUrl);
-        },
-        onError: (error) => {
-            if (error instanceof ApiError && error.code === "VALIDATION_ERROR" && error.errors) {
-                Object.entries(error.errors).forEach(([field, messages]) => {
-                    form.setError(field as any, { type: "server", message: messages[0] });
-                });
-                toast.error("Por favor, revisa los campos marcados.");
-            } else {
-                toast.error(error.message || "Ocurrió un error inesperado");
-            }
-        },
-    });
+        if (isEdit && initialData?.id) {
+            updateMembership({ id: initialData.id, data: values }, {
+                onSuccess
+            })
+        } else {
+            createMembership(values, { onSuccess })
+        }
+    }
+
+    const onInvalid = () => {
+        toast.error("Por favor, completa todos los campos requeridos.")
+    }
 
     return (
-        <form onSubmit={form.handleSubmit((data) => mutateMembership(data))} className="space-y-6">
+        <form onSubmit={form.handleSubmit(onSubmit, onInvalid)} className="space-y-6">
             <Card className="border-none shadow-md border-l-4 border-l-purple-500 bg-linear-to-br from-card to-muted/20">
                 <CardHeader className="pb-4 border-b border-border/50">
                     <div className="flex items-center gap-2">
@@ -300,18 +281,16 @@ export default function MembershipForm({
                 </CardContent>
             </Card>
 
-            {/* ACCIONES */}
-            <div className="flex items-center justify-end pt-4">
-                <div className="flex gap-3">
-                    <Button
-                        type="submit"
-                        disabled={isPending}
-                        className="shadow-md shadow-purple-500/20 bg-purple-600 hover:bg-purple-700 transition-all duration-300"
-                    >
-                        {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-                        {isEdit ? "Guardar Cambios" : "Confirmar Membresía"}
-                    </Button>
-                </div>
+            {/* BOTONES DE ACCIÓN */}
+            <div className="flex justify-end gap-4 sticky bottom-4 z-10">
+                <Button type="submit" disabled={isCreating || isUpdating && !canSubmit} size="lg">
+                    {isCreating || isUpdating ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                        <Save className="mr-2 h-4 w-4" />
+                    )}
+                    {isEdit ? "Guardar Cambios" : "Crear Miembro"}
+                </Button>
             </div>
         </form>
     );

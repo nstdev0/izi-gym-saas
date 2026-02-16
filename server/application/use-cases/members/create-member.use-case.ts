@@ -6,17 +6,21 @@ import { IMCCalculator } from "@/server/application/services/imc-calculator.serv
 import { generateMemberQrToken } from "@/server/shared/utils/token-generator";
 
 export class CreateMemberUseCase {
-  constructor(private readonly repository: IMembersRepository) { }
+  constructor(private readonly repo: IMembersRepository) { }
 
   async execute(input: CreateMemberInput): Promise<Member> {
     const errors: string[] = [];
 
-    const validateUnique = await this.repository.validateUnique(input);
+    const validateUniqueDocument = await this.repo.validateUniqueDocument(input.docType, input.docNumber);
 
-    if (validateUnique) errors.push("Email or Document number already exists");
+    const validateUniqueEmail = await this.repo.validateUniqueEmail(input.email);
+
+    if (validateUniqueDocument) errors.push("El número de documento ya esta en uso");
+
+    if (validateUniqueEmail) errors.push("El correo electrónico ya esta en uso");
 
     if (errors.length > 0) {
-      const msg = errors.join(" and ");
+      const msg = errors.join(" . ");
       throw new ConflictError(`${msg}`);
     }
 
@@ -28,7 +32,7 @@ export class CreateMemberUseCase {
     const qrToken = generateMemberQrToken();
     input.qr = qrToken;
 
-    return await this.repository.create(input);
+    return await this.repo.create(input);
   }
 }
 

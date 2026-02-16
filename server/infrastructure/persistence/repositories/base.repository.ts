@@ -4,10 +4,12 @@ import {
   IBaseRepository,
   PrismaDelegate,
 } from "@/server/application/repositories/base.repository.interface";
+import { NotFoundError } from "@/server/domain/errors/common";
 import {
   PageableRequest,
   PageableResponse,
 } from "@/server/shared/common/pagination";
+import { IMapperInterface } from "../mappers/IMapper.interface";
 
 export abstract class BaseRepository<
   D extends PrismaDelegate,
@@ -18,8 +20,19 @@ export abstract class BaseRepository<
 > implements IBaseRepository<TEntity, TCreate, TUpdate, TFilters> {
   constructor(
     protected readonly model: D,
+    protected readonly mapper: IMapperInterface<TEntity>,
     protected readonly organizationId?: string,
   ) { }
+
+  protected restoreField = (value: string | null | undefined): string | null => {
+    if (!value) return null;
+    return value.replace(/^deletedAt_\d+_/, '');
+  };
+
+  protected softDelete = (value: string | null | undefined): string | null => {
+    if (!value) return null;
+    return `deletedAt_${Date.now()}_${value}`;
+  }
 
   protected abstract buildPrismaClauses(
     filters: TFilters,
@@ -60,6 +73,8 @@ export abstract class BaseRepository<
 
     const totalPages = Math.ceil(totalRecords / limit);
 
+    const mappedRecords = records.map((record) => this.mapper.toDomain(record));
+
     return {
       currentPage: page,
       pageSize: limit,
@@ -67,40 +82,58 @@ export abstract class BaseRepository<
       totalPages,
       hasNext: page < totalPages,
       hasPrevious: page > 1,
-      records: records as TEntity[],
+      records: mappedRecords,
     };
   }
 
   async findUnique(args: Partial<TEntity>): Promise<TEntity | null> {
-    return (await this.model.findUnique({
+    const entity = await this.model.findUnique({
       where: {
         ...args,
         organizationId: this.organizationId,
       },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any)) as TEntity | null;
+    })
+    return entity ? this.mapper.toDomain(entity) : null
   }
 
   async create(data: TCreate): Promise<TEntity> {
-    return (await this.model.create({
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const entity = await this.model.create({
       data: { ...data, organizationId: this.organizationId } as any,
-    })) as TEntity;
+    })
+    return this.mapper.toDomain(entity)
   }
 
   async update(id: string, data: TUpdate): Promise<TEntity> {
-    return (await this.model.update({
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const entity = await this.model.update({
       data: { ...data, organizationId: this.organizationId } as any,
       where: { id },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any)) as TEntity;
+    })
+    return this.mapper.toDomain(entity)
   }
 
-  async delete(id: string): Promise<TEntity> {
-    return (await this.model.delete({
-      where: { id, organizationId: this.organizationId },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any)) as TEntity;
+  async delete(id: string): Promise<void> {
+    const entity = await this.model.findUnique({ where: { id } });
+    if (!entity) throw new NotFoundError("Entidad no encontrada");
+
+    await this.model.update({
+      where: { id },
+      data: {
+        isActive: false,
+        deletedAt: new Date(),
+      },
+    });
+  }
+
+  async restore(id: string): Promise<void> {
+    const entity = await this.model.findUnique({ where: { id } });
+    if (!entity) throw new NotFoundError("Entidad no encontrada");
+
+    await this.model.update({
+      where: { id },
+      data: {
+        isActive: true,
+        deletedAt: null,
+      },
+    })
   }
 }

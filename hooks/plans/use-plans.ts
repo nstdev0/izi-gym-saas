@@ -6,6 +6,7 @@ import { CreatePlanInput, UpdatePlanInput } from "@/server/application/dtos/plan
 import { PageableRequest, PageableResponse } from "@/server/shared/common/pagination";
 import { PlansFilters } from "@/server/domain/types/plans";
 import { Plan } from "@/server/domain/entities/Plan";
+import { ApiError } from "@/lib/api";
 
 export const usePlansList = (params: PageableRequest<PlansFilters>) => {
     return useQuery({
@@ -28,11 +29,11 @@ export const useCreatePlan = () => {
     return useMutation({
         mutationFn: (data: CreatePlanInput) => PlansService.create(data),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: planKeys.lists() });
             toast.success("Plan creado exitosamente");
+            queryClient.invalidateQueries({ queryKey: planKeys.lists() });
         },
-        onError: (error) => {
-            toast.error(error.message || "Error al crear plan");
+        onError: (error: ApiError) => {
+            toast.error(error.message || "Error al crear el plan");
         },
     });
 };
@@ -75,7 +76,7 @@ export const useUpdatePlan = () => {
         onSuccess: () => {
             toast.success("Plan actualizado exitosamente");
         },
-        onError: (_error, variables, context) => {
+        onError: (error, variables, context) => {
             if (context?.previousPlans) {
                 context.previousPlans.forEach(([key, data]) => {
                     queryClient.setQueryData(key, data);
@@ -84,7 +85,7 @@ export const useUpdatePlan = () => {
             if (context?.previousDetail) {
                 queryClient.setQueryData(planKeys.detail(variables.id), context.previousDetail);
             }
-            toast.error("Error al actualizar plan (cambios revertidos)");
+            toast.error(error.message || "Error al actualizar el plan");
         },
         onSettled: (_data, _error, variables) => {
             queryClient.invalidateQueries({ queryKey: planKeys.lists() });
@@ -121,6 +122,7 @@ export const useDeletePlan = () => {
             toast.success("Plan eliminado exitosamente");
         },
         onError: (_error, _variables, context) => {
+
             if (context?.previousPlans) {
                 context.previousPlans.forEach(([key, data]) => {
                     queryClient.setQueryData(key, data);

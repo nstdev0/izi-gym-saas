@@ -55,4 +55,9 @@ export class MembershipsService {
             method: "DELETE",
         });
     }
+    static async restore(id: string) {
+        return fetchClient<Membership>(`${this.BASE_PATH}/id/${id}/restore`, {
+            method: "POST",
+        });
+    }
 }

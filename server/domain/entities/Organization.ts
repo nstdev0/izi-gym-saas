@@ -1,6 +1,7 @@
 import { BaseEntity, EntityStatus } from "./_base";
 
 import { OrganizationConfig } from "./OrganizationConfig";
+import { OrganizationPlan } from "./OrganizationPlan";
 
 export class Organization extends BaseEntity {
   constructor(
@@ -17,6 +18,7 @@ export class Organization extends BaseEntity {
     public image?: string,
     public config?: OrganizationConfig | null,
     public organizationPlanId?: string,
+    public plan?: OrganizationPlan,
   ) {
     super(id, organizationId, createdAt, updatedAt, status, deletedAt);
   }

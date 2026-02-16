@@ -78,10 +78,9 @@ const PlanCell = ({ member }: { member: Member }) => {
   );
 };
 
-// Component for Actions to correctly use hooks and mutations
 const MemberActions = ({ member }: { member: Member }) => {
   const params = useParams();
-  const slug = params.slug as string;
+  const slug = params.slug?.toString();
   const { mutate: deleteMember, isPending } = useDeleteMember();
   const { mutate: restoreMember } = useRestoreMember();
   const [open, setOpen] = useState(false);
@@ -91,14 +90,12 @@ const MemberActions = ({ member }: { member: Member }) => {
       onSuccess: () => {
         setOpen(false);
         toast.success("Miembro eliminado", {
-          description: "El miembro ha sido eliminado.",
           action: {
             label: "Deshacer",
             onClick: () => {
               restoreMember(member.id);
             },
           },
-          duration: 5000,
         });
       },
     });

@@ -50,4 +50,10 @@ export class PlansService {
             method: "DELETE",
         });
     }
+
+    static async restore(id: string) {
+        return fetchClient<Plan>(`${this.BASE_PATH}/id/${id}/restore`, {
+            method: "POST",
+        });
+    }
 }

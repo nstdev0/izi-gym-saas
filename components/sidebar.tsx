@@ -297,9 +297,8 @@ export function Sidebar({
                   variant={route.active ? "secondary" : "ghost"}
                   className={cn(
                     "w-full justify-start gap-3 mb-1",
-                    // Solo animamos en montaje inicial o móvil, no en cada render
                     "animate-in fade-in slide-in-from-left-2 duration-300",
-                    route.active && "bg-primary/10 text-primary pointer-events-none font-medium"
+                    route.active && "bg-primary/10 text-primary font-medium"
                   )}
                   style={{ animationDelay: `${index * 50}ms`, animationFillMode: 'backwards' }}
                   asChild

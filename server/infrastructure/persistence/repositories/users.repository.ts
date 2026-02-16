@@ -7,6 +7,7 @@ import {
   UpdateUserInput,
   UsersFilters,
 } from "@/server/domain/types/users";
+import { UserMapper } from "../mappers/users.mapper";
 
 export class UsersRepository
   extends BaseRepository<
@@ -17,6 +18,10 @@ export class UsersRepository
     UsersFilters
   >
   implements IUsersRepository {
+
+  constructor(model: Prisma.UserDelegate, organizationId: string) {
+    super(model, new UserMapper(), organizationId);
+  }
   async create(data: CreateUserInput): Promise<User> {
     const { password, id, ...rest } = data;
     // Si viene ID (de Clerk), lo usamos.
@@ -26,9 +31,10 @@ export class UsersRepository
       passwordHash: password,
     };
 
-    return (await this.model.create({
+    const created = await this.model.create({
       data: { ...prismaData, organizationId: this.organizationId },
-    })) as unknown as User;
+    });
+    return this.mapper.toDomain(created);
   }
 
   async update(id: string, data: UpdateUserInput): Promise<User> {
@@ -39,11 +45,12 @@ export class UsersRepository
       prismaData.passwordHash = password;
     }
 
-    return (await this.model.update({
+    const updated = await this.model.update({
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       data: { ...prismaData, organizationId: this.organizationId } as any,
       where: { id },
-    })) as unknown as User;
+    });
+    return this.mapper.toDomain(updated);
   }
 
   protected async buildPrismaClauses(

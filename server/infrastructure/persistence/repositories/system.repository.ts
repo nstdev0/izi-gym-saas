@@ -8,9 +8,12 @@ import { PageableRequest, PageableResponse } from "@/server/shared/common/pagina
 import { OrganizationsFilters } from "@/server/domain/types/organizations";
 import { CreatePlanInput, UpdatePlanInput } from "@/server/domain/types/plans";
 import { Prisma } from "@/generated/prisma/client";
-import { EntityStatus } from "@/server/domain/entities/_base";
+import { OrganizationMapper } from "../mappers/organizations.mapper";
+import { OrganizationPlanMapper } from "../mappers/organization-plans.mapper";
 
 export class SystemRepository implements ISystemRepository {
+    private mapper = new OrganizationMapper();
+    private planMapper = new OrganizationPlanMapper();
 
     async getGlobalStats(): Promise<SystemStats> {
         const [totalUsers, totalOrgs, activeSubsWrapper, allActiveSubs] = await Promise.all([
@@ -87,7 +90,7 @@ export class SystemRepository implements ISystemRepository {
                 where,
                 orderBy,
                 include: {
-                    plan: true, // Corregido: nombre de relación explícito
+                    plan: true,
                     _count: {
                         select: { members: true }
                     }
@@ -97,8 +100,7 @@ export class SystemRepository implements ISystemRepository {
 
         const totalPages = Math.ceil(totalRecords / limit);
 
-        // Usamos el helper mapToEntity
-        const mappedRecords = records.map(org => this.mapToEntity(org));
+        const mappedRecords = records.map(org => this.mapper.toDomain(org));
 
         return {
             currentPage: page,
@@ -123,7 +125,7 @@ export class SystemRepository implements ISystemRepository {
             take: 5,
             orderBy: { createdAt: 'desc' },
             include: {
-                plan: true, // Incluimos el plan para mapearlo
+                plan: true,
                 subscription: {
                     include: {
                         plan: true
@@ -135,8 +137,7 @@ export class SystemRepository implements ISystemRepository {
             }
         });
 
-        // Usamos el helper mapToEntity
-        return orgs.map(org => this.mapToEntity(org));
+        return orgs.map(org => this.mapper.toDomain(org));
     }
 
     async getRevenueStats(): Promise<RevenueStats[]> {
@@ -190,18 +191,7 @@ export class SystemRepository implements ISystemRepository {
             orderBy: { price: 'asc' }
         });
 
-        return plans.map(p => new OrganizationPlan(
-            p.id,
-            p.id,
-            p.createdAt,
-            p.updatedAt,
-            EntityStatus.ACTIVE,
-            null,
-            p.name,
-            p.slug,
-            Number(p.price),
-            p.limits as any
-        ));
+        return plans.map(p => this.planMapper.toDomain(p));
     }
 
     async createPlan(data: CreatePlanInput): Promise<void> {
@@ -222,47 +212,5 @@ export class SystemRepository implements ISystemRepository {
                 limits: (data.limits || {}) as any
             }
         });
-    }
-
-    // --- HELPER PRIVADO PARA MAPEO ---
-    private mapToEntity(prismaOrg: any): Organization {
-        // 1. Convertir Boolean a Enum de Status
-        const status = prismaOrg.isActive ? EntityStatus.ACTIVE : EntityStatus.INACTIVE;
-
-        // 2. Mapear el Plan a Entidad de Dominio (si existe en la query)
-        let planEntity: OrganizationPlan | undefined = undefined;
-
-        // Verifica si "organizationPlan" vino poblado desde Prisma
-        if (prismaOrg.organizationPlan) {
-            planEntity = new OrganizationPlan(
-                prismaOrg.organizationPlan.id,
-                prismaOrg.organizationPlan.id,
-                prismaOrg.organizationPlan.createdAt,
-                prismaOrg.organizationPlan.updatedAt,
-                EntityStatus.ACTIVE,
-                null,
-                prismaOrg.organizationPlan.name,
-                prismaOrg.organizationPlan.slug,
-                Number(prismaOrg.organizationPlan.price),
-                prismaOrg.organizationPlan.limits as any
-            );
-        }
-
-        // 3. Crear la instancia de Organization
-        return new Organization(
-            prismaOrg.id,
-            prismaOrg.id, // organizationId
-            prismaOrg.createdAt,
-            prismaOrg.updatedAt,
-            status,
-            prismaOrg.deletedAt,
-            prismaOrg.name,
-            prismaOrg.slug,
-            prismaOrg.isActive,
-            prismaOrg.plan,
-            prismaOrg.image || undefined,
-            prismaOrg.config as any, // Cast seguro para JSON
-            prismaOrg.organizationPlanId
-        );
     }
 }

@@ -18,11 +18,11 @@ export interface IOrganizationRepository extends IBaseRepository<
   UpdateOrganizationInput,
   OrganizationsFilters
 > {
-  createWithTransaction(
-    input: CreateOrganizationInput,
-    userId: string,
-  ): Promise<Organization>;
+  // createWithTransaction(
+  //   input: CreateOrganizationInput,
+  //   userId: string,
+  // ): Promise<Organization>;
   findCurrent(): Promise<Organization | null>;
-  upgradePlan(planSlug: string): Promise<Organization>;
+  // upgradePlan(planSlug: string): Promise<Organization>;
   updateSettings(id: string, settings: any): Promise<Organization>;
 }

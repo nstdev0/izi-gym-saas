@@ -1,6 +1,6 @@
 import { AppError } from "./AppError"; // Ajusta la ruta
 
-// 400 Bad Request
+// 400 Validation Error
 export class ValidationError extends AppError {
   readonly statusCode = 400;
   readonly code = "VALIDATION_ERROR";

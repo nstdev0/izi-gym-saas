@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Eye, Edit, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
-import { useDeleteMembership } from "@/hooks/memberships/use-memberships";
+import { useDeleteMembership, useRestoreMembership } from "@/hooks/memberships/use-memberships";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -18,6 +18,8 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { useParams } from "next/navigation";
+import { toast } from "sonner";
 
 interface MembershipWithRelations {
     id: string;
@@ -62,20 +64,23 @@ function formatCurrency(amount: number): string {
     }).format(amount);
 }
 
-import { useParams } from "next/navigation";
-
-// ... existing imports ...
-
-function ActionsCell({ membership }: { membership: MembershipWithRelations }) {
+const MembershipActions = ({ membership }: { membership: MembershipWithRelations }) => {
     const params = useParams();
-    const slug = params.slug as string;
+    const slug = params.slug?.toString();
     const { mutate: deleteMembership, isPending } = useDeleteMembership();
+    const { mutate: restoreMembership } = useRestoreMembership()
     const [open, setOpen] = useState(false);
 
     const handleDelete = () => {
         deleteMembership(membership.id, {
             onSuccess: () => {
                 setOpen(false);
+                toast.success("Membresía eliminada", {
+                    action: {
+                        label: "Deshacer",
+                        onClick: () => restoreMembership(membership.id),
+                    },
+                })
             },
         });
     };
@@ -166,6 +171,6 @@ export const columns: ColumnDef<MembershipWithRelations>[] = [
     {
         id: "actions",
         header: () => <div className="text-center">Acciones</div>,
-        cell: ({ row }) => <ActionsCell membership={row.original} />,
+        cell: ({ row }) => <MembershipActions membership={row.original} />,
     },
 ];

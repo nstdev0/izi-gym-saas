@@ -17,7 +17,9 @@ export interface IMembersRepository extends IBaseRepository<
   UpdateMemberInput,
   MembersFilters
 > {
-  validateUnique(args: Partial<Member>): Promise<Member | null>;
-  restore(id: string): Promise<Member>;
+  validateUniqueDocument(docType: string, docNumber: string): Promise<Member | null>;
+  validateUniqueEmail(email: string | null | undefined): Promise<Member | null>;
+  restore(id: string): Promise<void>;
+  delete(id: string): Promise<void>;
   findByIdWithMemberships(id: string): Promise<Member | null>;
 }
