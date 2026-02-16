@@ -14,6 +14,8 @@ import { Plus, ChevronDown, Users2, ShieldCheck, Download } from "lucide-react";
 import Link from "next/link";
 import { useUsersList } from "@/hooks/users/use-users";
 import Loading from "../loading";
+import { StatCardSkeleton } from "@/components/ui/skeletons/stat-card-skeleton";
+import { DataTableSkeleton } from "@/components/ui/skeletons/data-table-skeleton";
 import { useQueryStates } from "nuqs";
 import { usersParsers } from "@/lib/nuqs/search-params/users";
 import { User } from "@/server/domain/entities/User";
@@ -159,29 +161,37 @@ export default function UsersViewPage() {
 
                     {/* Stats Cards - Con Profundidad y Bordes Semánticos */}
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <Card className="border-none shadow-md border-l-4 border-l-blue-500 bg-linear-to-br from-card to-blue-500/5">
-                            <CardContent className="p-4 flex items-center gap-4">
-                                <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-full text-blue-600 dark:text-blue-400">
-                                    <Users2 className="w-5 h-5" />
-                                </div>
-                                <div>
-                                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Total Usuarios</p>
-                                    <h3 className="text-2xl font-bold text-foreground">{isLoading ? "..." : totalRecords}</h3>
-                                </div>
-                            </CardContent>
-                        </Card>
+                        {isLoading ? (
+                            <StatCardSkeleton />
+                        ) : (
+                            <Card className="border-none shadow-md border-l-4 border-l-blue-500 bg-linear-to-br from-card to-blue-500/5">
+                                <CardContent className="p-4 flex items-center gap-4">
+                                    <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-full text-blue-600 dark:text-blue-400">
+                                        <Users2 className="w-5 h-5" />
+                                    </div>
+                                    <div>
+                                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Total Usuarios</p>
+                                        <h3 className="text-2xl font-bold text-foreground">{totalRecords}</h3>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        )}
 
-                        <Card className="border-none shadow-md border-l-4 border-l-green-500 bg-linear-to-br from-card to-green-500/5">
-                            <CardContent className="p-4 flex items-center gap-4">
-                                <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-full text-green-600 dark:text-green-400">
-                                    <ShieldCheck className="w-5 h-5" />
-                                </div>
-                                <div>
-                                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">En esta página</p>
-                                    <h3 className="text-2xl font-bold text-foreground">{isLoading ? "..." : currentRecordsCount}</h3>
-                                </div>
-                            </CardContent>
-                        </Card>
+                        {isLoading ? (
+                            <StatCardSkeleton />
+                        ) : (
+                            <Card className="border-none shadow-md border-l-4 border-l-green-500 bg-linear-to-br from-card to-green-500/5">
+                                <CardContent className="p-4 flex items-center gap-4">
+                                    <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-full text-green-600 dark:text-green-400">
+                                        <ShieldCheck className="w-5 h-5" />
+                                    </div>
+                                    <div>
+                                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">En esta página</p>
+                                        <h3 className="text-2xl font-bold text-foreground">{currentRecordsCount}</h3>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        )}
                     </div>
 
                     {/* Barra de Herramientas (Búsqueda y Filtros) */}
@@ -238,12 +248,7 @@ export default function UsersViewPage() {
                     {/* Tabla Principal Elevada */}
                     <Card className="flex-1 overflow-hidden flex flex-col min-h-0 relative shadow-lg border-muted/40 bg-card/50 backdrop-blur-sm">
                         {isLoading ? (
-                            <div className="p-8 flex justify-center items-center h-full">
-                                <div className="flex flex-col items-center gap-2">
-                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                                    <p className="text-sm text-muted-foreground">Cargando usuarios...</p>
-                                </div>
-                            </div>
+                            <DataTableSkeleton rowCount={10} columnCount={5} />
                         ) : (
                             <>
                                 <div className={cn("flex-1 overflow-auto scrollbar-thin scrollbar-thumb-muted transition-opacity duration-200", isFetching ? "opacity-60 pointer-events-none" : "opacity-100")}>

@@ -174,7 +174,7 @@ export function LandingPage({ dashboardUrl, isLoggedIn }: { dashboardUrl?: strin
                     <div className="text-center mb-16">
                         <h2 className="text-3xl sm:text-4xl font-bold">
                             Todo lo que necesitas,
-                            <span className="text-primary"> nada que no</span>
+                            <span className="text-primary"> lo tienes</span>
                         </h2>
                         <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
                             Herramientas diseñadas específicamente para gimnasios y centros de fitness
@@ -202,7 +202,7 @@ export function LandingPage({ dashboardUrl, isLoggedIn }: { dashboardUrl?: strin
                             {
                                 icon: Shield,
                                 title: "Control de Acceso",
-                                desc: "Valida membresías en tiempo real. QR, código o reconocimiento facial.",
+                                desc: "Valida assitencias en tiempo real. QR o manual.",
                                 color: "text-purple-500",
                                 gradient: "from-purple-500/5 to-purple-500/10",
                                 border: "border-l-purple-500"
@@ -215,14 +215,14 @@ export function LandingPage({ dashboardUrl, isLoggedIn }: { dashboardUrl?: strin
                                 gradient: "from-orange-500/5 to-orange-500/10",
                                 border: "border-l-orange-500"
                             },
-                            {
-                                icon: Smartphone,
-                                title: "App para Miembros",
-                                desc: "Tus clientes ven su membresía, pagos y horarios desde su celular.",
-                                color: "text-pink-500",
-                                gradient: "from-pink-500/5 to-pink-500/10",
-                                border: "border-l-pink-500"
-                            },
+                            // {
+                            //     icon: Smartphone,
+                            //     title: "App para Miembros",
+                            //     desc: "Tus clientes ven su membresía, pagos y horarios desde su celular.",
+                            //     color: "text-pink-500",
+                            //     gradient: "from-pink-500/5 to-pink-500/10",
+                            //     border: "border-l-pink-500"
+                            // },
                             {
                                 icon: Clock,
                                 title: "Gestión de Clases",

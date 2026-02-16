@@ -19,7 +19,7 @@ interface AppearanceContextType {
 
 const AppearanceContext = createContext<AppearanceContextType | undefined>(undefined);
 
-export function AppearanceProvider({ children, initialFont, initialColor, initialTheme }: { children: React.ReactNode, initialFont?: FontType, initialColor?: string, initialTheme?: string }) {
+export function AppearanceProvider({ children, initialFont, initialColor }: { children: React.ReactNode, initialFont?: FontType, initialColor?: string }) {
     const { theme, setTheme } = useTheme();
     const [fontState, setFontState] = useState<FontType>(() => {
         if (initialFont) return initialFont;

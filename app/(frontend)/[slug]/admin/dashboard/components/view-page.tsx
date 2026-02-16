@@ -41,6 +41,9 @@ import { makeQueryClient } from "@/lib/react-query/client-config";
 import { historicStartDateKeys } from "@/lib/react-query/query-keys";
 import { AttendanceModal } from "./attendance-modal";
 import { DashboardService } from "@/lib/services/dashboard.service";
+import { StatCardSkeleton } from "@/components/ui/skeletons/stat-card-skeleton";
+import { ChartSkeleton } from "@/components/ui/skeletons/chart-skeleton";
+import { ListSkeleton } from "@/components/ui/skeletons/list-skeleton";
 
 export default function DashboardViewPage() {
     const queryClient = makeQueryClient()
@@ -315,27 +318,39 @@ export default function DashboardViewPage() {
 
                 {/* KPI Stats Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
-                    <StatCard
-                        title="Miembros Activos"
-                        value={metrics?.activeMembers.value ?? 0}
-                        change={metrics?.activeMembers.percentageChange ?? 0}
-                        icon={Users}
-                        isLoading={loading}
-                    />
-                    <StatCard
-                        title="Ingresos"
-                        value={metrics?.revenue.value.toLocaleString('es-ES', { style: 'currency', currency: metrics?.currency || 'PEN' }) ?? 0}
-                        change={metrics?.revenue.percentageChange ?? 0}
-                        icon={DollarSign}
-                        isLoading={loading}
-                    />
-                    <StatCard
-                        title="Por Vencer (7d)"
-                        value={metrics?.expiringSoon ?? 0}
-                        change={0}
-                        icon={AlertTriangle}
-                        isLoading={loading}
-                    />
+                    {loading ? (
+                        <StatCardSkeleton />
+                    ) : (
+                        <StatCard
+                            title="Miembros Activos"
+                            value={metrics?.activeMembers.value ?? 0}
+                            change={metrics?.activeMembers.percentageChange ?? 0}
+                            icon={Users}
+                            isLoading={loading}
+                        />
+                    )}
+                    {loading ? (
+                        <StatCardSkeleton />
+                    ) : (
+                        <StatCard
+                            title="Ingresos"
+                            value={metrics?.revenue.value.toLocaleString('es-ES', { style: 'currency', currency: metrics?.currency || 'PEN' }) ?? 0}
+                            change={metrics?.revenue.percentageChange ?? 0}
+                            icon={DollarSign}
+                            isLoading={loading}
+                        />
+                    )}
+                    {loading ? (
+                        <StatCardSkeleton />
+                    ) : (
+                        <StatCard
+                            title="Por Vencer (7d)"
+                            value={metrics?.expiringSoon ?? 0}
+                            change={0}
+                            icon={AlertTriangle}
+                            isLoading={loading}
+                        />
+                    )}
                 </div>
 
                 {/* Main Content Grid */}
@@ -370,8 +385,8 @@ export default function DashboardViewPage() {
                         </CardHeader>
                         <CardContent className="pl-0 pt-6 pr-6">
                             {loading ? (
-                                <div className="h-[300px] flex items-center justify-center">
-                                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                                <div className="h-[300px] w-full">
+                                    <ChartSkeleton />
                                 </div>
                             ) : (
                                 <div className="h-[300px] w-full">
@@ -465,9 +480,7 @@ export default function DashboardViewPage() {
                         </CardHeader>
                         <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
                             {loading ? (
-                                <div className="flex items-center justify-center py-8">
-                                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                                </div>
+                                <ListSkeleton itemCount={5} />
                             ) : (
                                 <div className="space-y-5">
                                     {metrics?.salesByPlan.sort((a, b) => b.count - a.count).map((plan) => {
@@ -511,9 +524,7 @@ export default function DashboardViewPage() {
                         </CardHeader>
                         <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
                             {loading ? (
-                                <div className="flex items-center justify-center py-8">
-                                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                                </div>
+                                <ListSkeleton itemCount={5} />
                             ) : (
                                 <div className="space-y-3">
                                     {metrics?.upcomingExpirations?.map((member) => (
@@ -573,9 +584,7 @@ export default function DashboardViewPage() {
                         </CardHeader>
                         <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
                             {loading ? (
-                                <div className="flex items-center justify-center py-8">
-                                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                                </div>
+                                <ListSkeleton itemCount={5} />
                             ) : (
                                 <div className="space-y-3">
                                     {metrics?.recentActivity.map((member) => (
