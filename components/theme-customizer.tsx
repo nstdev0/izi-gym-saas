@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import { Monitor, Moon, Palette, Sun, Type, Check } from "lucide-react";
-import { useTheme } from "next-themes";
 import { useAppearance } from "@/components/appearance-provider";
 
 import { Button } from "@/components/ui/button";
@@ -21,7 +20,7 @@ import {
 
 
 export function ThemeCustomizer() {
-  const { theme, setTheme, font, setFont, primaryColor, setPrimaryColor, savePreferences } = useAppearance();
+  const { theme, setTheme, font, setFont, primaryColor, setPrimaryColor } = useAppearance();
   const [mounted, setMounted] = React.useState(false);
 
   React.useEffect(() => {
