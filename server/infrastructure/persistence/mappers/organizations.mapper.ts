@@ -1,4 +1,5 @@
 import { Organization } from "@/server/domain/entities/Organization";
+import { EntityStatus } from "@/server/domain/entities/_base";
 import { IMapperInterface } from "./IMapper.interface";
 import { OrganizationPlanMapper } from "./organization-plans.mapper";
 
@@ -15,7 +16,7 @@ export class OrganizationMapper implements IMapperInterface<Organization> {
             raw.organizationId,
             raw.createdAt,
             raw.updatedAt,
-            raw.status,
+            raw.status ? EntityStatus.ACTIVE : EntityStatus.INACTIVE,
             raw.deletedAt,
             raw.name,
             raw.slug,

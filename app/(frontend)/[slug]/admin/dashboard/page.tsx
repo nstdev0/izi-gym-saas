@@ -1,8 +1,8 @@
 import { HydrationBoundary, dehydrate, QueryClient } from "@tanstack/react-query";
 import { DashboardService } from "@/lib/services/dashboard.service";
 import { dashboardKeys } from "@/lib/react-query/query-keys";
-import DashboardViewPage from "./components/view-page";
 import { startOfYear, endOfYear } from "date-fns";
+import DashboardViewPage from "./components/view-page";
 
 export default async function DashboardPage() {
     const queryClient = new QueryClient();

@@ -135,3 +135,17 @@ export const useDeletePlan = () => {
         },
     });
 };
+
+export const useRestorePlan = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (id: string) => PlansService.restore(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: planKeys.lists() });
+            toast.success("Plan restaurado exitosamente");
+        },
+        onError: (error) => {
+            toast.error(error.message || "Error al restaurar plan");
+        },
+    });
+};

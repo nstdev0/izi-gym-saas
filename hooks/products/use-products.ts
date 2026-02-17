@@ -134,3 +134,19 @@ export const useDeleteProduct = () => {
     });
 };
 
+export const useRestoreProduct = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async (id: string) => {
+            return await ProductsService.restore(id);
+        },
+        onSuccess: () => {
+            toast.success("Producto restaurado correctamente");
+            queryClient.invalidateQueries({ queryKey: productKeys.lists() });
+        },
+        onError: (error) => {
+            toast.error(error.message || "No se pudo restaurar el producto");
+        }
+    });
+};

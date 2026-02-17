@@ -27,7 +27,7 @@ export class OrganizationsRepository
 
   constructor(
     protected readonly organizationModel: Prisma.OrganizationDelegate,
-    protected readonly organizationId: string
+    protected readonly organizationId?: string
   ) {
     super(organizationModel, new OrganizationMapper(), organizationId)
   }

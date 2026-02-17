@@ -125,3 +125,17 @@ export const useDeleteUser = () => {
         },
     });
 };
+
+export const useRestoreUser = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (id: string) => UsersService.restore(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: userKeys.lists() });
+            toast.success("Usuario restaurado exitosamente");
+        },
+        onError: (error) => {
+            toast.error(error.message || "Error al restaurar usuario");
+        },
+    });
+};

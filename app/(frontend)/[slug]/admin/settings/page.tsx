@@ -114,7 +114,7 @@ export default async function SettingsPage() {
                 />
 
                 <div className="container mx-auto max-w-6xl py-6 space-y-6">
-                    <SettingsForm defaultValues={defaultValues} />
+                    <SettingsForm id={orgId} defaultValues={defaultValues} />
                 </div>
             </div>
         </DashboardLayout>

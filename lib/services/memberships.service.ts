@@ -4,11 +4,6 @@ import { Membership } from "@/server/domain/entities/Membership";
 import { MembershipsFilters } from "@/server/domain/types/memberships";
 import { PageableRequest, PageableResponse } from "@/server/shared/common/pagination";
 
-export interface MembershipWithRelations extends Membership {
-    member?: { firstName: string; lastName: string };
-    plan?: { name: string };
-}
-
 export class MembershipsService {
     private static readonly BASE_PATH = "/api/memberships";
 
@@ -29,7 +24,7 @@ export class MembershipsService {
         const queryString = searchParams.toString();
         const endpoint = queryString ? `${this.BASE_PATH}?${queryString}` : this.BASE_PATH;
 
-        return fetchClient<PageableResponse<MembershipWithRelations>>(endpoint);
+        return fetchClient<PageableResponse<Membership>>(endpoint);
     }
 
     static async getById(id: string) {
@@ -56,7 +51,13 @@ export class MembershipsService {
         });
     }
     static async restore(id: string) {
-        return fetchClient<Membership>(`${this.BASE_PATH}/id/${id}/restore`, {
+        return fetchClient<Membership>(`${this.BASE_PATH}/${id}/restore`, {
+            method: "POST",
+        });
+    }
+
+    static async cancel(id: string) {
+        return fetchClient<void>(`${this.BASE_PATH}/${id}/cancel`, {
             method: "POST",
         });
     }

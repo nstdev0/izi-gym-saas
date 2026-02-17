@@ -15,13 +15,13 @@ import {
 import { CreateUserSchema } from "@/server/application/dtos/users.dto";
 import { Loader2, Save, User, Mail, Shield, CheckCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useMutation } from "@tanstack/react-query";
-import { api, ApiError } from "@/lib/api";
+import { ApiError } from "@/lib/api";
 import { toast } from "sonner";
 import { User as UserEntity } from "@/server/domain/entities/User";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { AvatarUploader } from "@/components/avatar-uploader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useCreateUser, useUpdateUser } from "@/hooks/users/use-users";
 
 type UserFormProps = {
     initialData?: UserEntity;
@@ -54,40 +54,46 @@ export default function UserForm({
 
     const isActive = useWatch({ control: form.control, name: "isActive" });
 
-    const { mutate: mutateUser, isPending } = useMutation({
-        mutationFn: async (values: z.infer<typeof CreateUserSchema>) => {
-            if (isEdit && initialData?.id) {
-                return api.patch(`/api/users/${initialData.id}`, values);
-            }
-            return api.post("/api/users", values);
-        },
-        onSuccess: () => {
-            toast.success(
-                isEdit ? "Usuario actualizado correctamente" : "Invitación enviada con éxito"
-            );
-            router.refresh();
-            if (redirectUrl) {
-                router.push(redirectUrl);
-            }
-        },
-        onError: (error) => {
-            if (error instanceof ApiError && error.code === "VALIDATION_ERROR" && error.errors) {
-                Object.entries(error.errors).forEach(([field, messages]) => {
-                    form.setError(field as keyof z.infer<typeof CreateUserSchema>, {
-                        type: "server",
-                        message: (messages as string[])[0],
-                    });
+    const { mutate: createUser, isPending: isCreating } = useCreateUser();
+    const { mutate: updateUser, isPending: isUpdating } = useUpdateUser();
+
+    const isPending = isCreating || isUpdating;
+
+    const handleSuccess = () => {
+        router.refresh();
+        if (redirectUrl) {
+            router.push(redirectUrl);
+        }
+    };
+
+    const handleError = (error: Error) => {
+        if (error instanceof ApiError && error.code === "VALIDATION_ERROR" && error.errors) {
+            Object.entries(error.errors).forEach(([field, messages]) => {
+                form.setError(field as keyof z.infer<typeof CreateUserSchema>, {
+                    type: "server",
+                    message: (messages as string[])[0],
                 });
-            } else if (error instanceof ApiError) {
-                toast.error(error.message);
-            } else {
-                toast.error("Ocurrió un error inesperado");
-            }
-        },
-    });
+            });
+        }
+        // The hooks already show a toast on error, so we might not need to show another one here
+        // or we can allow the hook to handle the generic error and we handle validation errors.
+    };
 
     const onSubmit = (values: z.infer<typeof CreateUserSchema>) => {
-        mutateUser(values);
+        if (isEdit && initialData?.id) {
+            updateUser(
+                { id: initialData.id, data: values },
+                {
+                    onSuccess: handleSuccess,
+                    onError: handleError,
+                }
+            );
+        } else {
+            createUser(values, {
+                onSuccess: handleSuccess,
+                onError: handleError,
+            });
+        }
     };
 
     return (

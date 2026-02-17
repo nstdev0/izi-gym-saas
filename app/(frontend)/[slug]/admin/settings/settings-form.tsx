@@ -15,43 +15,27 @@ import { AvatarUploader } from "@/components/avatar-uploader";
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useUpdateOrganization } from "@/hooks/organizations/use-organizations";
 
 interface SettingsFormProps {
+    id: string;
     defaultValues: Partial<UpdateOrganizationSettingsInput>;
 }
 
-export function SettingsForm({ defaultValues }: SettingsFormProps) {
-    const router = useRouter();
-    const [isLoading, setIsLoading] = useState(false);
-
+export function SettingsForm({ id, defaultValues }: SettingsFormProps) {
     const form = useForm<UpdateOrganizationSettingsInput>({
         resolver: zodResolver(UpdateOrganizationSettingsSchema),
         defaultValues,
     });
 
-    async function onSubmit(data: UpdateOrganizationSettingsInput) {
-        setIsLoading(true);
-        try {
-            const response = await fetch("/api/settings", {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(data),
-            });
+    const { mutate: updateOrganization, isPending: isLoading } = useUpdateOrganization()
 
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.message || "Failed to update settings");
-            }
+    const onSubmit = (values: UpdateOrganizationSettingsInput) => {
+        const onSuccess = () => {
+        };
 
-            toast.success("Configuración actualizada correctamente");
-            router.refresh();
-        } catch (error) {
-            console.error(error);
-            toast.error(error instanceof Error ? error.message : "Error al actualizar la configuración");
-        } finally {
-            setIsLoading(false);
-        }
-    }
+        updateOrganization({ id, data: values }, { onSuccess });
+    };
 
     return (
         <FormProvider {...form}>
@@ -60,7 +44,7 @@ export function SettingsForm({ defaultValues }: SettingsFormProps) {
                     <TabsList className="flex flex-wrap h-auto gap-2 bg-transparent p-0 mb-6 justify-start w-full">
                         <TabTrigger value="identity" icon={Building}>Identidad</TabTrigger>
                         <TabTrigger value="branding" icon={Palette}>Marca</TabTrigger>
-                        <TabTrigger value="operations" icon={Settings2}>Operaciones</TabTrigger>
+                        {/* <TabTrigger value="operations" icon={Settings2}>Operaciones</TabTrigger> */}
                         <TabTrigger value="billing" icon={CreditCard}>Facturación</TabTrigger>
                         <TabTrigger value="booking" icon={Calendar}>Reservas</TabTrigger>
                         <TabTrigger value="access" icon={ShieldCheck}>Acceso</TabTrigger>
@@ -76,9 +60,9 @@ export function SettingsForm({ defaultValues }: SettingsFormProps) {
                         <BrandingTab />
                     </TabsContent>
 
-                    <TabsContent value="operations" className="mt-0">
+                    {/* <TabsContent value="operations" className="mt-0">
                         <OperationsTab />
-                    </TabsContent>
+                    </TabsContent> */}
 
                     <TabsContent value="billing" className="mt-0">
                         <BillingTab />
@@ -261,16 +245,16 @@ function getContrastColor(hexColor: string) {
     return (yiq >= 128) ? "#000000" : "#ffffff";
 }
 
-function OperationsTab() {
-    return (
-        <Card>
-            <CardHeader>
-                <CardTitle>Operación Diario</CardTitle>
-            </CardHeader>
-            <div className="p-6 text-center text-muted-foreground">Coming soon...</div>
-        </Card>
-    )
-}
+// function OperationsTab() {
+//     return (
+//         <Card>
+//             <CardHeader>
+//                 <CardTitle>Operación Diario</CardTitle>
+//             </CardHeader>
+//             <div className="p-6 text-center text-muted-foreground">Coming soon...</div>
+//         </Card>
+//     )
+// }
 
 function BillingTab() {
     const { control } = useFormContext<UpdateOrganizationSettingsInput>();

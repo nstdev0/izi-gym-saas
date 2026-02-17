@@ -12,6 +12,8 @@ export class RestoreMemberUseCase {
             throw new NotFoundError("Miembro no encontrado");
         }
 
-        return this.membersRepo.restore(id);
+        await this.membersRepo.restore(id);
     }
 }
+
+export type IRestoreMemberUseCase = InstanceType<typeof RestoreMemberUseCase>

@@ -1,13 +1,12 @@
 import { UpdateMemberInput } from "@/server/domain/types/members";
 import { IMembersRepository } from "@/server/application/repositories/members.repository.interface";
-import { Member } from "@/server/domain/entities/Member";
 import { IMCCalculator } from "@/server/application/services/imc-calculator.service";
 import { ConflictError } from "@/server/domain/errors/common";
 
 export class UpdateMemberUseCase {
   constructor(private readonly repository: IMembersRepository) { }
 
-  async execute(id: string, data: UpdateMemberInput): Promise<Member> {
+  async execute(id: string, data: UpdateMemberInput): Promise<void> {
     if (data.email) {
       const existingWithEmail = await this.repository.validateUniqueEmail(data.email);
 
@@ -30,7 +29,7 @@ export class UpdateMemberUseCase {
       }
     }
 
-    return await this.repository.update(id, data);
+    await this.repository.update(id, data);
   }
 }
 

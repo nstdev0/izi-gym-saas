@@ -91,11 +91,20 @@ export const createContext = <TInput = void, TResult = unknown>(
       // Aquí ocurre la magia: pasamos input (que puede ser undefined) y el id (que puede ser undefined)
       const result = await controller.execute(input, id);
 
-      // F. Respuesta
+      // F. Respuesta Inteligente
+
+      // 1. Si el controlador decidió devolver su propia NextResponse (ej: redirect, file download)
       if (result instanceof NextResponse) {
         return result;
       }
 
+      // 2. Manejo de VOID / NULL (Casos DELETE o acciones sin retorno)
+      // Si el resultado es null o undefined, devolvemos 204 SIN CUERPO.
+      if (result === null || result === undefined) {
+        return new NextResponse(null, { status: 204 });
+      }
+
+      // 3. Caso normal: Retornamos los datos en JSON con 200 OK
       return NextResponse.json(result, { status: 200 });
 
     } catch (error: unknown) {

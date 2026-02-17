@@ -1,6 +1,26 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  async headers() {
+    return [
+      {
+        // Aplica CORS a todas las rutas de la API
+        source: "/api/:path*",
+        headers: [
+          { key: "Access-Control-Allow-Credentials", value: "true" },
+          // Si tienes múltiples dominios dinámicos, la mejor práctica es reflejar el origen 
+          // controlado por un proxy inverso (Vercel/Cloudflare) o listar el principal.
+          // Para desarrollo local y producción, Next.js permite configuración dinámica aquí:
+          {
+            key: "Access-Control-Allow-Origin",
+            value: process.env.NEXT_PUBLIC_APP_URL || "https://izi-gym-saas.vercel.app"
+          },
+          { key: "Access-Control-Allow-Methods", value: "GET,DELETE,PATCH,POST,PUT,OPTIONS" },
+          { key: "Access-Control-Allow-Headers", value: "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization" },
+        ]
+      }
+    ]
+  },
   images: {
     remotePatterns: [
       {
@@ -9,11 +29,11 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
-        hostname: "utfs.io", // El dominio de UploadThing
+        hostname: "utfs.io", // UploadThing
       },
       {
         protocol: "https",
-        hostname: "img.clerk.com", // Por si usas avatares de Clerk
+        hostname: "img.clerk.com", // Clerk
       },
       {
         protocol: "https",

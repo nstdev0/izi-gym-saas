@@ -16,4 +16,3 @@ export const PATCH = createContext(
 export const DELETE = createContext(
     (c) => c.deleteAttendanceController
 );
-

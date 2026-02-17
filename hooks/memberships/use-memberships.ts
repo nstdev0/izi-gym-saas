@@ -131,3 +131,16 @@ export const useRestoreMembership = () => {
         },
     })
 }
+
+export const useCancelMembership = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (id: string) => MembershipsService.cancel(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: membershipKeys.lists() })
+        },
+        onError: (error) => {
+            toast.error(error.message || "Error al cancelar membresía (cambios revertidos)");
+        },
+    })
+}

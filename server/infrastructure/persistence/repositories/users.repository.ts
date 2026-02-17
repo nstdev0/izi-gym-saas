@@ -37,20 +37,17 @@ export class UsersRepository
     return this.mapper.toDomain(created);
   }
 
-  async update(id: string, data: UpdateUserInput): Promise<User> {
+  async update(id: string, data: UpdateUserInput): Promise<void> {
     const { password, ...rest } = data;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const prismaData: any = { ...rest };
     if (password) {
       prismaData.passwordHash = password;
     }
 
-    const updated = await this.model.update({
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await this.model.update({
       data: { ...prismaData, organizationId: this.organizationId } as any,
       where: { id },
     });
-    return this.mapper.toDomain(updated);
   }
 
   protected async buildPrismaClauses(

@@ -127,9 +127,9 @@ export class AttendanceRepository
         return this.mapper.toDomain(record);
     }
 
-    async update(id: string, data: UpdateAttendanceInput): Promise<Attendance> {
-        const result = await this.model.update({
-            where: { id },
+    async update(id: string, data: UpdateAttendanceInput): Promise<void> {
+        await this.model.update({
+            where: { id, organizationId: this.organizationId },
             data,
             include: {
                 member: {
@@ -142,7 +142,6 @@ export class AttendanceRepository
                 },
             },
         });
-        return this.mapper.toDomain(result);
     }
 
     protected async buildPrismaClauses(
@@ -197,4 +196,3 @@ export class AttendanceRepository
         return [whereClause, orderByClause];
     }
 }
-

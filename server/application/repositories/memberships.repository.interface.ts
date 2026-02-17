@@ -19,4 +19,5 @@ export interface IMembershipsRepository extends IBaseRepository<
   MembershipsFilters
 > {
   findActiveMembershipByMemberId(memberId: string): Promise<Membership | null>;
+  cancel(id: string): Promise<void>;
 }

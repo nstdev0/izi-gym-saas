@@ -1,20 +1,19 @@
 import { IUpdateUserUseCase } from "@/server/application/use-cases/users/update-user.use-case";
-import { ValidationError, ForbiddenError } from "@/server/domain/errors/common";
+import { ForbiddenError, BadRequestError } from "@/server/domain/errors/common";
 import { UpdateUserInput } from "@/server/domain/types/users";
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/server/infrastructure/persistence/prisma";
 import { Role } from "@/generated/prisma/client";
 import { ControllerExecutor } from "@/server/lib/api-handler";
-import { User } from "@/server/domain/entities/User";
 
 const ALLOWED_ROLES: Role[] = [Role.GOD, Role.OWNER];
 
-export class UpdateUserController implements ControllerExecutor<UpdateUserInput, User> {
+export class UpdateUserController implements ControllerExecutor<UpdateUserInput, void> {
   constructor(private readonly useCase: IUpdateUserUseCase) { }
 
   async execute(input: UpdateUserInput, id?: string) {
     if (!id) {
-      throw new ValidationError("ID requerido", "No se proporcionó el ID del usuario a actualizar");
+      throw new BadRequestError("ID requerido", "No se proporcionó el ID del usuario a actualizar");
     }
 
     const session = await auth();
@@ -33,7 +32,7 @@ export class UpdateUserController implements ControllerExecutor<UpdateUserInput,
       throw new ForbiddenError("No tienes permisos para actualizar usuarios");
     }
 
-    return await this.useCase.execute(
+    await this.useCase.execute(
       id,
       input,
     );

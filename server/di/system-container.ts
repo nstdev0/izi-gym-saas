@@ -10,7 +10,6 @@ export const getSystemContainer = cache(async () => {
   // Repositorio instanciado SIN organizationId -> Ve todo
   const organizationsRepo = new OrganizationsRepository(
     prisma.organization,
-    undefined,
   );
 
   // Use Case para listar organizaciones

@@ -8,8 +8,8 @@ export class UpdateOrganizationUseCase {
   async execute(
     id: string,
     data: UpdateOrganizationInput,
-  ): Promise<Organization> {
-    return this.repository.update(id, data);
+  ): Promise<void> {
+    await this.repository.update(id, data);
   }
 }
 

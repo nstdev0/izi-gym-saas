@@ -4,13 +4,13 @@ import { Organization } from "@/server/domain/entities/Organization";
 import { BadRequestError } from "@/server/domain/errors/common";
 import { ControllerExecutor } from "@/server/lib/api-handler";
 
-export class UpdateOrganizationController implements ControllerExecutor<UpdateOrganizationInput, Organization | null> {
+export class UpdateOrganizationController implements ControllerExecutor<UpdateOrganizationInput, void> {
   constructor(private readonly useCase: IUpdateOrganizationUseCase) { }
 
   async execute(input: UpdateOrganizationInput, id?: string) {
     if (!id) {
       throw new BadRequestError("No se proporcionó un id");
     }
-    return await this.useCase.execute(id, input);
+    await this.useCase.execute(id, input);
   }
 }

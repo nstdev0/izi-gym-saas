@@ -3,7 +3,7 @@ import { Membership, MembershipStatus } from "@/server/domain/entities/Membershi
 import { IMapperInterface } from "./IMapper.interface";
 
 type PrismaMembershipWithRelations = PrismaMembership & {
-    member?: { firstName: string; lastName: string } | null;
+    member?: { firstName: string; lastName: string; image: string | null; docNumber: string; } | null;
     plan?: { name: string } | null;
 };
 
@@ -25,10 +25,19 @@ export class MembershipMapper implements IMapperInterface<Membership> {
 
         if (raw.member) {
             domainEntity.memberName = `${raw.member.firstName} ${raw.member.lastName}`;
+            domainEntity.member = {
+                firstName: raw.member.firstName,
+                lastName: raw.member.lastName,
+                image: raw.member.image ?? null, // Ensure string | null
+                docNumber: raw.member.docNumber,
+            };
         }
 
         if (raw.plan) {
             domainEntity.planName = raw.plan.name;
+            domainEntity.plan = {
+                name: raw.plan.name,
+            };
         }
 
         return domainEntity;

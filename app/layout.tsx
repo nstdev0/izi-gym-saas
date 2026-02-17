@@ -13,13 +13,13 @@ import "./globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
 import { shadcn } from "@clerk/themes";
 import { Toaster } from "@/components/ui/sonner";
-import { ReactQueryProvider } from "@/components/react-query-provider";
 import { NextSSRPlugin } from "@uploadthing/react/next-ssr-plugin";
 import { extractRouterConfig } from "uploadthing/server";
 import { ourFileRouter } from "./(backend)/api/uploadthing/core";
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/server/infrastructure/persistence/prisma";
 import { NuqsAdapter } from 'nuqs/adapters/next/app'
+import ReactQueryProvider from "@/components/react-query-provider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

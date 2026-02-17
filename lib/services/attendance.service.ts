@@ -1,7 +1,8 @@
 import { fetchClient } from "@/lib/api-client";
-import { AttendanceFilters, AttendanceWithMember } from "@/server/application/repositories/attendance.repository.interface";
+import { AttendanceFilters } from "@/server/application/repositories/attendance.repository.interface";
 import { UpdateAttendanceInput } from "@/server/application/dtos/attendance.dto";
 import { PageableRequest, PageableResponse } from "@/server/shared/common/pagination";
+import { Attendance } from "@/server/domain/entities/Attendance";
 
 export interface RegisterAttendanceInput {
     memberId: string;
@@ -29,7 +30,7 @@ export class AttendanceService {
         const queryString = searchParams.toString();
         const endpoint = queryString ? `${this.BASE_PATH}?${queryString}` : this.BASE_PATH;
 
-        return fetchClient<PageableResponse<AttendanceWithMember>>(endpoint);
+        return fetchClient<PageableResponse<Attendance>>(endpoint);
     }
 
     static async register(data: RegisterAttendanceInput) {
@@ -40,11 +41,11 @@ export class AttendanceService {
     }
 
     static async getById(id: string) {
-        return fetchClient<AttendanceWithMember>(`${this.BASE_PATH}/${id}`);
+        return fetchClient<Attendance>(`${this.BASE_PATH}/${id}`);
     }
 
     static async update(id: string, data: UpdateAttendanceInput) {
-        return fetchClient<AttendanceWithMember>(`${this.BASE_PATH}/${id}`, {
+        return fetchClient<Attendance>(`${this.BASE_PATH}/${id}`, {
             method: "PATCH",
             body: JSON.stringify(data),
         });
@@ -57,7 +58,7 @@ export class AttendanceService {
     }
 
     static async restore(id: string) {
-        return fetchClient<AttendanceWithMember>(`${this.BASE_PATH}/id/${id}/restore`, {
+        return fetchClient<Attendance>(`${this.BASE_PATH}/id/${id}/restore`, {
             method: "POST",
         });
     }

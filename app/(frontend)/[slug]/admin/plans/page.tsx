@@ -2,14 +2,14 @@ import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import PlansViewPage from "./components/view-page";
 import { PlansService } from "@/lib/services/plans.service";
 import { planKeys } from "@/lib/react-query/query-keys";
-import { makeQueryClient } from "@/lib/react-query/client-config";
+import { getQueryClient } from "@/lib/react-query/client-config";
 
 interface PageProps {
     searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
 export default async function PlansPage({ searchParams }: PageProps) {
-    const queryClient = makeQueryClient();
+    const queryClient = getQueryClient();
     const params = await searchParams;
 
     const page = Number(params.page) || 1;

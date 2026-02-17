@@ -10,10 +10,7 @@ import {
 import { PageableRequest, PageableResponse } from "@/server/shared/common/pagination";
 import { MembershipMapper } from "../mappers/memberships.mapper";
 
-type MembershipWithRelations = Membership & {
-  member?: { firstName: string; lastName: string };
-  plan?: { name: string };
-};
+
 
 export class MembershipsRepository
   extends BaseRepository<
@@ -93,18 +90,18 @@ export class MembershipsRepository
 
   async findAll(
     request: PageableRequest<MembershipsFilters> = { page: 1, limit: 10 },
-  ): Promise<PageableResponse<MembershipWithRelations>> {
+  ): Promise<PageableResponse<Membership>> {
     const { page = 1, limit = 10, filters } = request;
 
     const safePage = page < 1 ? 1 : page;
     const skip = (safePage - 1) * limit;
 
-    let where: Prisma.MembershipWhereInput = {};
+    let where: Prisma.MembershipWhereInput = { deletedAt: null };
     let orderBy: Prisma.MembershipOrderByWithRelationInput = { createdAt: "desc" };
 
     if (filters) {
       const [whereClause, orderByClause] = await this.buildPrismaClauses(filters);
-      where = whereClause;
+      where = { ...where, ...whereClause };
       orderBy = orderByClause;
     }
 
@@ -121,7 +118,7 @@ export class MembershipsRepository
         orderBy,
         include: {
           member: {
-            select: { firstName: true, lastName: true },
+            select: { firstName: true, lastName: true, image: true, docNumber: true },
           },
           plan: {
             select: { name: true },
@@ -164,5 +161,12 @@ export class MembershipsRepository
 
     if (!result) return null;
     return this.mapper.toDomain(result);
+  }
+
+  async cancel(id: string): Promise<void> {
+    await this.model.update({
+      where: { id, organizationId: this.organizationId },
+      data: { status: "CANCELLED" },
+    });
   }
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -14,14 +14,16 @@ import {
     AlertTriangle,
     ArrowRight,
     Dumbbell,
-    Loader2,
     UserCheck,
-    TrendingUp,
+    Clock,
+    Activity,
+    BarChart3,
+    CheckCircle2
 } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { PageHeader } from "@/components/ui/page-header";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -36,8 +38,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { cn } from "@/lib/utils";
 import { useDashboardMetrics } from "@/hooks/dashboard/use-dashboard";
 import StatCard from "./stat-card";
-import getPlanBadgeVariant from "../utils/get-plan-badge-variant";
-import { makeQueryClient } from "@/lib/react-query/client-config";
+import { getQueryClient } from "@/lib/react-query/client-config";
 import { historicStartDateKeys } from "@/lib/react-query/query-keys";
 import { AttendanceModal } from "./attendance-modal";
 import { DashboardService } from "@/lib/services/dashboard.service";
@@ -45,20 +46,45 @@ import { StatCardSkeleton } from "@/components/ui/skeletons/stat-card-skeleton";
 import { ChartSkeleton } from "@/components/ui/skeletons/chart-skeleton";
 import { ListSkeleton } from "@/components/ui/skeletons/list-skeleton";
 
-export default function DashboardViewPage() {
-    const queryClient = makeQueryClient()
+// Helper para encabezados consistentes
+function CardSectionHeader({ title, icon: Icon, colorClass, action }: { title: string, icon: any, colorClass: string, action?: React.ReactNode }) {
+    return (
+        <CardHeader className="pb-4 flex flex-row items-center justify-between space-y-0">
+            <CardTitle className="text-base font-semibold flex items-center gap-3">
+                <div className={cn("p-2 rounded-lg", colorClass)}>
+                    <Icon className="w-4 h-4" />
+                </div>
+                {title}
+            </CardTitle>
+            {action}
+        </CardHeader>
+    )
+}
 
+export default function DashboardViewPage() {
+    const queryClient = getQueryClient()
     const params = useParams();
     const slug = params.slug as string;
 
-    // Date Range State
+    // Estado de Fechas
     const [date, setDate] = useState<DateRange | undefined>({
         from: startOfMonth(new Date()),
         to: endOfMonth(new Date()),
     });
     const [grouping, setGrouping] = useState<'day' | 'month' | 'year'>('day');
 
-    // Fetch Metrics using Hook
+    // Estado para el Scroll (Efecto Flotante)
+    const [isScrolled, setIsScrolled] = useState(false);
+
+    useEffect(() => {
+        const handleScroll = () => {
+            setIsScrolled(window.scrollY > 80);
+        };
+        window.addEventListener("scroll", handleScroll);
+        return () => window.removeEventListener("scroll", handleScroll);
+    }, []);
+
+    // Fetch Metrics
     const { data: metrics, isLoading } = useDashboardMetrics({
         from: date?.from?.toISOString(),
         to: date?.to?.toISOString(),
@@ -68,6 +94,7 @@ export default function DashboardViewPage() {
     const loading = isLoading;
     const [selectedPreset, setSelectedPreset] = useState<string | undefined>("thisMonth")
 
+    // --- Lógica de Agrupación de Fechas ---
     const getAvailableGroupings = (from: Date, to: Date) => {
         const days = differenceInDays(to, from);
         const options: ('day' | 'month' | 'year')[] = ['day'];
@@ -81,67 +108,23 @@ export default function DashboardViewPage() {
         let newDate: DateRange | undefined;
 
         switch (preset) {
-            case "today":
-                newDate = { from: now, to: now };
-                break;
-            case "yesterday":
-                const yesterday = subDays(now, 1);
-                newDate = { from: yesterday, to: yesterday };
-                break;
-            case "thisWeek":
-                newDate = { from: startOfWeek(now, { weekStartsOn: 1 }), to: endOfWeek(now, { weekStartsOn: 1 }) };
-                break;
-            case "lastWeek":
-                const lastWeek = subDays(now, 7);
-                newDate = { from: startOfWeek(lastWeek, { weekStartsOn: 1 }), to: endOfWeek(lastWeek, { weekStartsOn: 1 }) };
-                break;
-            case "last7days":
-                newDate = { from: subDays(now, 6), to: now };
-                break;
-            case "thisMonth":
-                newDate = { from: startOfMonth(now), to: endOfMonth(now) };
-                break;
-            case "lastMonth":
-                const lastMonth = subMonths(now, 1);
-                newDate = { from: startOfMonth(lastMonth), to: endOfMonth(lastMonth) };
-                break;
+            case "today": newDate = { from: now, to: now }; break;
+            case "yesterday": const yesterday = subDays(now, 1); newDate = { from: yesterday, to: yesterday }; break;
+            case "thisWeek": newDate = { from: startOfWeek(now, { weekStartsOn: 1 }), to: endOfWeek(now, { weekStartsOn: 1 }) }; break;
+            case "lastWeek": const lastWeek = subDays(now, 7); newDate = { from: startOfWeek(lastWeek, { weekStartsOn: 1 }), to: endOfWeek(lastWeek, { weekStartsOn: 1 }) }; break;
+            case "last7days": newDate = { from: subDays(now, 6), to: now }; break;
+            case "thisMonth": newDate = { from: startOfMonth(now), to: endOfMonth(now) }; break;
+            case "lastMonth": const lastMonth = subMonths(now, 1); newDate = { from: startOfMonth(lastMonth), to: endOfMonth(lastMonth) }; break;
             case "thisSemester":
-                // Obtenemos el mes actual (0-11)
                 const currentMonth = now.getMonth();
-
-                if (currentMonth < 6) {
-                    // Estamos en el primer semestre (Ene - Jun)
-                    newDate = {
-                        from: startOfYear(now),
-                        to: endOfMonth(setMonth(now, 5)) // Junio es el mes 5
-                    };
-                } else {
-                    // Estamos en el segundo semestre (Jul - Dic)
-                    newDate = {
-                        from: startOfMonth(setMonth(now, 6)), // Julio es el mes 6
-                        to: endOfYear(now)
-                    };
-                }
+                if (currentMonth < 6) { newDate = { from: startOfYear(now), to: endOfMonth(setMonth(now, 5)) }; }
+                else { newDate = { from: startOfMonth(setMonth(now, 6)), to: endOfYear(now) }; }
                 setGrouping("month")
                 break;
-
             case "lastSemester":
                 const currentMonthLast = now.getMonth();
-
-                if (currentMonthLast < 6) {
-                    // Si estamos en el S1 (Ene-Jun), el anterior fue el S2 del AÑO PASADO (Jul-Dic)
-                    const lastYear = subYears(now, 1);
-                    newDate = {
-                        from: startOfMonth(setMonth(lastYear, 6)), // Julio del año pasado
-                        to: endOfYear(lastYear) // Diciembre del año pasado
-                    };
-                } else {
-                    // Si estamos en el S2 (Jul-Dic), el anterior fue el S1 de ESTE AÑO (Ene-Jun)
-                    newDate = {
-                        from: startOfYear(now),
-                        to: endOfMonth(setMonth(now, 5)) // Junio de este año
-                    };
-                }
+                if (currentMonthLast < 6) { const lastYear = subYears(now, 1); newDate = { from: startOfMonth(setMonth(lastYear, 6)), to: endOfYear(lastYear) }; }
+                else { newDate = { from: startOfYear(now), to: endOfMonth(setMonth(now, 5)) }; }
                 setGrouping("month")
                 break;
             case "allTime":
@@ -151,14 +134,9 @@ export default function DashboardViewPage() {
                         queryFn: () => DashboardService.getHistoricStartDate(),
                         staleTime: Infinity,
                     });
-
                     setGrouping("month")
-
-                    if (historicDate) {
-                        newDate = { from: new Date(historicDate), to: now };
-                    } else {
-                        newDate = { from: subYears(now, 5), to: now };
-                    }
+                    if (historicDate) { newDate = { from: new Date(historicDate), to: now }; }
+                    else { newDate = { from: subYears(now, 5), to: now }; }
                 } catch (error) {
                     console.error("Error fetching historic date", error);
                     newDate = { from: subYears(now, 5), to: now };
@@ -169,286 +147,272 @@ export default function DashboardViewPage() {
         if (newDate && newDate.from && newDate.to) {
             setDate(newDate);
             setSelectedPreset(preset);
-
             const available = getAvailableGroupings(newDate.from, newDate.to);
-            if (!available.includes(grouping)) {
-                setGrouping('day');
-            }
+            if (!available.includes(grouping)) { setGrouping('day'); }
         }
     };
 
-    const handleGroupingChange = (value: 'day' | 'month' | 'year') => {
-        setGrouping(value);
-    };
-
     return (
-        <DashboardLayout
-            breadcrumbs={[{ label: "Admin" }, { label: "Panel" }]}
-        >
-            <div className="flex flex-col space-y-4 sm:space-y-6 pb-4">
-                <PageHeader
-                    title={`Bienvenido al panel de ${slug} 👋`}
-                    description={`Métricas generales del gimnasio`}
-                    actions={
-                        <Popover>
-                            <PopoverTrigger asChild>
-                                <Button
-                                    id="date"
-                                    variant={"outline"}
-                                    size="sm"
-                                    className={cn(
-                                        "w-auto justify-start text-left font-normal shadow-sm hover:bg-muted/50 transition-all",
-                                        "fixed top-16 sm:top-30 right-6 z-50 shadow-2xl bg-background/95 backdrop-blur-sm border-primary/20",
-                                        !date && "text-muted-foreground"
-                                    )}
-                                >
-                                    <CalendarIcon className="mr-2 h-4 w-4 text-primary" />
-                                    {date?.from ? (
-                                        date.to ? (
-                                            <span className="font-medium text-foreground">
-                                                {format(date.from, "LLL dd, y", { locale: es })} -{" "}
-                                                {format(date.to, "LLL dd, y", { locale: es })}
-                                            </span>
-                                        ) : (
-                                            format(date.from, "LLL dd, y", { locale: es })
-                                        )
+        <DashboardLayout breadcrumbs={[{ label: "Admin" }, { label: "Panel General" }]}>
+            <div className="space-y-8 pb-10 relative">
+
+                {/* HEADER & FILTERS */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 min-h-[50px]">
+                    <PageHeader
+                        title={`Hola, ${slug} 👋`}
+                        description="Resumen de actividad y rendimiento del gimnasio."
+                    />
+
+                    {/* Placeholder div to maintain layout space when button goes fixed */}
+                    <div className={cn("hidden sm:block w-[280px]", isScrolled ? "opacity-0 pointer-events-none" : "opacity-0 hidden")} />
+
+                    <Popover>
+                        <PopoverTrigger asChild>
+                            <Button
+                                id="date"
+                                variant="outline"
+                                className={cn(
+                                    "justify-start text-left font-normal transition-all duration-500 ease-in-out z-50",
+                                    // Estado Normal
+                                    !isScrolled && "w-full sm:w-[280px] bg-background shadow-sm border-input hover:bg-muted/50 h-11 relative",
+                                    // Estado Flotante (Sticky)
+                                    isScrolled && "fixed top-4 right-4 sm:right-8 w-auto shadow-xl bg-background/80 backdrop-blur-md border-primary/20 hover:bg-background/90 hover:border-primary/40 rounded-full px-4 h-10 animate-in fade-in slide-in-from-top-2",
+                                    !date && "text-muted-foreground"
+                                )}
+                            >
+                                <CalendarIcon className={cn("h-4 w-4 opacity-70", isScrolled ? "mr-2" : "mr-2")} />
+                                {date?.from ? (
+                                    date.to ? (
+                                        <span className="text-sm font-medium truncate">
+                                            {format(date.from, "dd MMM", { locale: es })} - {format(date.to, "dd MMM, yyyy", { locale: es })}
+                                        </span>
                                     ) : (
-                                        <span>Seleccionar fechas</span>
-                                    )}
-                                </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-[250px] sm:w-[400px] p-0" align="end">
-                                <div className="flex flex-col sm:flex-row">
-                                    <Calendar
-                                        autoFocus
-                                        mode="range"
-                                        defaultMonth={date?.from}
-                                        selected={date}
-                                        numberOfMonths={1}
-                                        onSelect={(range) => {
-                                            setDate(range);
-                                            setSelectedPreset(undefined);
-                                            if (range?.from && range?.to) {
-                                                const available = getAvailableGroupings(range.from, range.to);
-                                                if (!available.includes(grouping)) {
-                                                    setGrouping('day');
-                                                }
-                                            }
-                                        }}
-                                    />
-                                    <div className="p-3 border-t sm:border-t-0 sm:border-l space-y-1 min-w-[140px] bg-muted/20">
-                                        <div id="date-presets" className="space-y-1">
-                                            <Button variant={selectedPreset === "today" ? "secondary" : "ghost"} className={cn("w-full justify-start text-xs font-normal", selectedPreset === "today" && "font-semibold")} onClick={() => handlePresetSelect("today")}>
-                                                Hoy
-                                            </Button>
-                                            <Button variant={selectedPreset === "yesterday" ? "secondary" : "ghost"} className={cn("w-full justify-start text-xs font-normal", selectedPreset === "yesterday" && "font-semibold")} onClick={() => handlePresetSelect("yesterday")}>
-                                                Ayer
-                                            </Button>
-                                            <Button variant={selectedPreset === "thisWeek" ? "secondary" : "ghost"} className={cn("w-full justify-start text-xs font-normal", selectedPreset === "thisWeek" && "font-semibold")} onClick={() => handlePresetSelect("thisWeek")}>
-                                                Esta semana
-                                            </Button>
-                                            <Button variant={selectedPreset === "lastWeek" ? "secondary" : "ghost"} className={cn("w-full justify-start text-xs font-normal", selectedPreset === "lastWeek" && "font-semibold")} onClick={() => handlePresetSelect("lastWeek")}>
-                                                Semana pasada
-                                            </Button>
-                                            <Button variant={selectedPreset === "last7days" ? "secondary" : "ghost"} className={cn("w-full justify-start text-xs font-normal", selectedPreset === "last7days" && "font-semibold")} onClick={() => handlePresetSelect("last7days")}>
-                                                Últimos 7 días
-                                            </Button>
-                                            <Button variant={selectedPreset === "thisMonth" ? "secondary" : "ghost"} className={cn("w-full justify-start text-xs font-normal", selectedPreset === "thisMonth" && "font-semibold")} onClick={() => handlePresetSelect("thisMonth")}>
-                                                Este mes
-                                            </Button>
-                                            <Button variant={selectedPreset === "lastMonth" ? "secondary" : "ghost"} className={cn("w-full justify-start text-xs font-normal", selectedPreset === "lastMonth" && "font-semibold")} onClick={() => handlePresetSelect("lastMonth")}>
-                                                Mes pasado
-                                            </Button>
-                                            <Button variant={selectedPreset === "thisSemester" ? "secondary" : "ghost"} className={cn("w-full justify-start text-xs font-normal", selectedPreset === "thisSemester" && "font-semibold")} onClick={() => handlePresetSelect("thisSemester")}>
-                                                Este semestre
-                                            </Button>
-                                            <Button variant={selectedPreset === "lastSemester" ? "secondary" : "ghost"} className={cn("w-full justify-start text-xs font-normal", selectedPreset === "lastSemester" && "font-semibold")} onClick={() => handlePresetSelect("lastSemester")}>
-                                                Semestre pasado
-                                            </Button>
-                                            <Button variant={selectedPreset === "allTime" ? "secondary" : "ghost"} className={cn("w-full justify-start text-xs font-normal", selectedPreset === "allTime" && "font-semibold")} onClick={() => handlePresetSelect("allTime")}>
-                                                Máximo histórico
-                                            </Button>
-                                        </div>
-                                    </div>
+                                        format(date.from, "PPP", { locale: es })
+                                    )
+                                ) : (
+                                    <span>Seleccionar periodo</span>
+                                )}
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="end">
+                            <div className="flex flex-col sm:flex-row">
+                                <Calendar
+                                    autoFocus
+                                    mode="range"
+                                    defaultMonth={date?.from}
+                                    selected={date}
+                                    onSelect={(range) => {
+                                        setDate(range);
+                                        setSelectedPreset(undefined);
+                                        if (range?.from && range?.to) {
+                                            const available = getAvailableGroupings(range.from, range.to);
+                                            if (!available.includes(grouping)) setGrouping('day');
+                                        }
+                                    }}
+                                    numberOfMonths={1}
+                                    locale={es}
+                                />
+                                <div className="p-3 border-b sm:border-b-0 sm:border-r space-y-1 w-[165px] bg-muted/10">
+                                    <span className="text-xs font-semibold text-muted-foreground px-2 mb-2 block">Rangos Rápidos</span>
+                                    {["today", "yesterday", "thisWeek", "lastWeek", "thisMonth", "lastMonth"].map((preset) => (
+                                        <Button
+                                            key={preset}
+                                            variant={selectedPreset === preset ? "secondary" : "ghost"}
+                                            className={cn("w-full justify-start text-xs h-8", selectedPreset === preset && "bg-primary/10 text-primary hover:bg-primary/15")}
+                                            onClick={() => handlePresetSelect(preset)}
+                                        >
+                                            {preset === "today" && "Hoy"}
+                                            {preset === "yesterday" && "Ayer"}
+                                            {preset === "thisWeek" && "Esta semana"}
+                                            {preset === "lastWeek" && "Semana pasada"}
+                                            {preset === "thisMonth" && "Este mes"}
+                                            {preset === "lastMonth" && "Mes pasado"}
+                                        </Button>
+                                    ))}
+                                    <div className="h-px bg-border/50 my-2" />
+                                    {["thisSemester", "allTime"].map((preset) => (
+                                        <Button
+                                            key={preset}
+                                            variant={selectedPreset === preset ? "secondary" : "ghost"}
+                                            className={cn("w-full justify-start text-xs h-8", selectedPreset === preset && "bg-primary/10 text-primary")}
+                                            onClick={() => handlePresetSelect(preset)}
+                                        >
+                                            {preset === "thisSemester" && "Este Semestre"}
+                                            {preset === "allTime" && "Todo el historial"}
+                                        </Button>
+                                    ))}
                                 </div>
-                            </PopoverContent>
-                        </Popover>
-                    }
-                />
+                            </div>
+                        </PopoverContent>
+                    </Popover>
+                </div>
 
-                {/* Quick Actions - Con profundidad y efecto hover */}
-                <Card className="border-none shadow-md bg-linear-to-br from-card to-muted/30">
-                    <CardContent className="px-4 sm:px-6 py-4">
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                            <Link href={`/${slug}/admin/members/new`}>
-                                <Button variant="outline" className="w-full h-auto py-5 flex flex-col gap-2 border-dashed border-2 hover:border-primary hover:bg-primary/5 hover:text-primary transition-all duration-300 shadow-sm hover:shadow-md">
-                                    <div className="p-2 bg-primary/10 rounded-full">
-                                        <UserPlus className="h-5 w-5 text-primary" />
-                                    </div>
-                                    <span className="text-xs sm:text-sm font-medium">Nuevo Miembro</span>
-                                </Button>
-                            </Link>
-                            <AttendanceModal>
-                                <Button variant="outline" className="w-full h-auto py-5 flex flex-col gap-2 border-dashed border-2 hover:border-primary hover:bg-primary/5 hover:text-primary transition-all duration-300 shadow-sm hover:shadow-md">
-                                    <div className="p-2 bg-primary/10 rounded-full">
-                                        <UserCheck className="h-5 w-5 text-primary" />
-                                    </div>
-                                    <span className="text-xs sm:text-sm font-medium">Asistencia rápida</span>
-                                </Button>
-                            </AttendanceModal>
-                            <Link href={`/${slug}/admin/sales`}>
-                                <Button variant="outline" className="w-full h-auto py-5 flex flex-col gap-2 border-dashed border-2 hover:border-primary hover:bg-primary/5 hover:text-primary transition-all duration-300 shadow-sm hover:shadow-md">
-                                    <div className="p-2 bg-primary/10 rounded-full">
-                                        <CreditCard className="h-5 w-5 text-primary" />
-                                    </div>
-                                    <span className="text-xs sm:text-sm font-medium">Venta rápida</span>
-                                </Button>
-                            </Link>
-                            <Link href={`/${slug}/admin/memberships`}>
-                                <Button variant="outline" className="w-full h-auto py-5 flex flex-col gap-2 border-dashed border-2 hover:border-primary hover:bg-primary/5 hover:text-primary transition-all duration-300 shadow-sm hover:shadow-md">
-                                    <div className="p-2 bg-primary/10 rounded-full">
-                                        <Dumbbell className="h-5 w-5 text-primary" />
-                                    </div>
-                                    <span className="text-xs sm:text-sm font-medium">Renovar membresía</span>
-                                </Button>
-                            </Link>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                {/* KPI Stats Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
+                {/* KPI CARDS */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {loading ? (
-                        <StatCardSkeleton />
+                        <>
+                            <StatCardSkeleton />
+                            <StatCardSkeleton />
+                            <StatCardSkeleton />
+                        </>
                     ) : (
-                        <StatCard
-                            title="Miembros Activos"
-                            value={metrics?.activeMembers.value ?? 0}
-                            change={metrics?.activeMembers.percentageChange ?? 0}
-                            icon={Users}
-                            isLoading={loading}
-                        />
-                    )}
-                    {loading ? (
-                        <StatCardSkeleton />
-                    ) : (
-                        <StatCard
-                            title="Ingresos"
-                            value={metrics?.revenue.value.toLocaleString('es-ES', { style: 'currency', currency: metrics?.currency || 'PEN' }) ?? 0}
-                            change={metrics?.revenue.percentageChange ?? 0}
-                            icon={DollarSign}
-                            isLoading={loading}
-                        />
-                    )}
-                    {loading ? (
-                        <StatCardSkeleton />
-                    ) : (
-                        <StatCard
-                            title="Por Vencer (7d)"
-                            value={metrics?.expiringSoon ?? 0}
-                            change={0}
-                            icon={AlertTriangle}
-                            isLoading={loading}
-                        />
+                        <>
+                            <StatCard
+                                title="Miembros Activos"
+                                value={metrics?.activeMembers.value ?? 0}
+                                change={metrics?.activeMembers.percentageChange ?? 0}
+                                icon={Users}
+                                isLoading={loading}
+                            />
+                            <StatCard
+                                title="Ingresos del Periodo"
+                                value={metrics?.revenue.value.toLocaleString('es-PE', { style: 'currency', currency: metrics?.currency || 'PEN', maximumFractionDigits: 0 }) ?? 0}
+                                change={metrics?.revenue.percentageChange ?? 0}
+                                icon={DollarSign}
+                                isLoading={loading}
+                            />
+                            <StatCard
+                                title="Vencen en 7 días"
+                                value={metrics?.expiringSoon ?? 0}
+                                change={0}
+                                icon={AlertTriangle}
+                                isLoading={loading}
+                            />
+                        </>
                     )}
                 </div>
 
-                {/* Main Content Grid */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+                {/* QUICK ACTIONS */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    <Link href={`/${slug}/admin/members/new`} className="group">
+                        <Card className="h-full border-none shadow-sm hover:shadow-md bg-linear-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/20 dark:to-blue-900/10 transition-all cursor-pointer group-hover:-translate-y-1 duration-300">
+                            <CardContent className="p-6 flex flex-col items-center justify-center gap-4 text-center h-full">
+                                <div className="p-3 rounded-xl bg-blue-500 text-white shadow-lg shadow-blue-500/20 group-hover:scale-110 transition-transform">
+                                    <UserPlus className="w-6 h-6" />
+                                </div>
+                                <span className="text-sm font-semibold text-blue-900 dark:text-blue-100">Nuevo Miembro</span>
+                            </CardContent>
+                        </Card>
+                    </Link>
 
-                    {/* 1. REVENUE CHART: Destacado con sombra más fuerte y un tono sutil */}
-                    <Card className="lg:col-span-3 shadow-lg border-primary/10 bg-linear-to-b from-card to-muted/10">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 border-b border-border/50">
-                            <div className="flex flex-col gap-1">
-                                <CardTitle className="text-base sm:text-lg font-bold flex items-center gap-2">
-                                    <div className="p-1.5 bg-green-100 dark:bg-green-900/30 rounded-md">
-                                        <TrendingUp className="h-4 w-4 text-green-600 dark:text-green-400" />
+                    <AttendanceModal>
+                        <div className="group h-full cursor-pointer">
+                            <Card className="h-full border-none shadow-sm hover:shadow-md bg-linear-to-br from-emerald-50 to-emerald-100/50 dark:from-emerald-950/20 dark:to-emerald-900/10 transition-all group-hover:-translate-y-1 duration-300">
+                                <CardContent className="p-6 flex flex-col items-center justify-center gap-4 text-center h-full">
+                                    <div className="p-3 rounded-xl bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 group-hover:scale-110 transition-transform">
+                                        <UserCheck className="w-6 h-6" />
                                     </div>
-                                    Ingresos Totales
+                                    <span className="text-sm font-semibold text-emerald-900 dark:text-emerald-100">Asistencia Rápida</span>
+                                </CardContent>
+                            </Card>
+                        </div>
+                    </AttendanceModal>
+
+                    <Link href={`/${slug}/admin/sales`} className="group">
+                        <Card className="h-full border-none shadow-sm hover:shadow-md bg-linear-to-br from-purple-50 to-purple-100/50 dark:from-purple-950/20 dark:to-purple-900/10 transition-all cursor-pointer group-hover:-translate-y-1 duration-300">
+                            <CardContent className="p-6 flex flex-col items-center justify-center gap-4 text-center h-full">
+                                <div className="p-3 rounded-xl bg-purple-500 text-white shadow-lg shadow-purple-500/20 group-hover:scale-110 transition-transform">
+                                    <CreditCard className="w-6 h-6" />
+                                </div>
+                                <span className="text-sm font-semibold text-purple-900 dark:text-purple-100">Nueva Venta</span>
+                            </CardContent>
+                        </Card>
+                    </Link>
+
+                    <Link href={`/${slug}/admin/memberships`} className="group">
+                        <Card className="h-full border-none shadow-sm hover:shadow-md bg-linear-to-br from-orange-50 to-orange-100/50 dark:from-orange-950/20 dark:to-orange-900/10 transition-all cursor-pointer group-hover:-translate-y-1 duration-300">
+                            <CardContent className="p-6 flex flex-col items-center justify-center gap-4 text-center h-full">
+                                <div className="p-3 rounded-xl bg-orange-500 text-white shadow-lg shadow-orange-500/20 group-hover:scale-110 transition-transform">
+                                    <Dumbbell className="w-6 h-6" />
+                                </div>
+                                <span className="text-sm font-semibold text-orange-900 dark:text-orange-100">Membresías</span>
+                            </CardContent>
+                        </Card>
+                    </Link>
+                </div>
+
+                {/* MAIN GRID */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+                    {/* CHART SECTION */}
+                    <Card className="lg:col-span-3 border-none shadow-lg bg-linear-to-b from-card to-muted/30 relative overflow-hidden">
+                        {/* Decoración de fondo */}
+                        <div className="absolute top-0 right-0 -mt-20 -mr-20 w-80 h-80 bg-primary/5 rounded-full blur-3xl pointer-events-none"></div>
+
+                        <CardHeader className="flex flex-row items-center justify-between pb-4 border-b border-border/40 relative z-10">
+                            <div className="space-y-1">
+                                <CardTitle className="flex items-center gap-3">
+                                    <div className="p-2.5 bg-primary/10 text-primary rounded-xl">
+                                        <BarChart3 className="w-5 h-5" />
+                                    </div>
+                                    Ingresos Financieros
                                 </CardTitle>
-                                <p className="text-xs text-muted-foreground">Evolución financiera en el tiempo seleccionado</p>
+                                <CardDescription>Comportamiento de ventas en el periodo seleccionado</CardDescription>
                             </div>
-                            <Select value={grouping} onValueChange={(v) => handleGroupingChange(v as "day" | "month" | "year")}>
-                                <SelectTrigger className="w-[130px] h-8 text-xs bg-background shadow-sm">
-                                    <SelectValue placeholder="Agrupar por" />
+                            <Select value={grouping} onValueChange={(v) => setGrouping(v as "day" | "month" | "year")}>
+                                <SelectTrigger className="w-[140px] bg-background shadow-sm h-10 text-sm border-input">
+                                    <SelectValue placeholder="Agrupar" />
                                 </SelectTrigger>
                                 <SelectContent align="end">
-                                    <SelectItem value="day">Por Día</SelectItem>
-                                    {date?.from && date?.to && differenceInDays(date.to, date.from) >= 60 && (
-                                        <SelectItem value="month">Por Mes</SelectItem>
-                                    )}
-                                    {date?.from && date?.to && differenceInDays(date.to, date.from) >= 365 && (
-                                        <SelectItem value="year">Por Año</SelectItem>
-                                    )}
+                                    <SelectItem value="day">Diario</SelectItem>
+                                    {date?.from && date?.to && differenceInDays(date.to, date.from) >= 60 && <SelectItem value="month">Mensual</SelectItem>}
+                                    {date?.from && date?.to && differenceInDays(date.to, date.from) >= 365 && <SelectItem value="year">Anual</SelectItem>}
                                 </SelectContent>
                             </Select>
                         </CardHeader>
-                        <CardContent className="pl-0 pt-6 pr-6">
-                            {loading ? (
-                                <div className="h-[300px] w-full">
-                                    <ChartSkeleton />
-                                </div>
-                            ) : (
-                                <div className="h-[300px] w-full">
+                        <CardContent className="pt-8 pl-2 pr-6 relative z-10">
+                            {loading ? <div className="h-[350px]"><ChartSkeleton /></div> : (
+                                <div className="h-[350px] w-full">
                                     <ResponsiveContainer width="100%" height="100%">
-                                        <BarChart data={metrics?.revenueOverTime || []} margin={{ top: 5, right: 0, left: 0, bottom: 0 }}>
-                                            {/* Grilla sutil */}
-                                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" opacity={0.4} />
+                                        <BarChart data={metrics?.revenueOverTime || []} margin={{ top: 10, right: 0, left: 0, bottom: 0 }}>
+                                            <defs>
+                                                <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                                                    <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.8} />
+                                                    <stop offset="95%" stopColor="var(--primary)" stopOpacity={0.05} />
+                                                </linearGradient>
+                                            </defs>
+                                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" opacity={0.5} />
                                             <XAxis
                                                 dataKey="month"
                                                 tickFormatter={(val) => {
                                                     const d = new Date(val);
                                                     if (grouping === 'day') return format(d, "dd MMM", { locale: es });
-                                                    if (grouping === 'month') return format(d, "MMM yy", { locale: es });
+                                                    if (grouping === 'month') return format(d, "MMM", { locale: es });
                                                     return format(d, "yyyy");
                                                 }}
-                                                stroke="#888888"
                                                 fontSize={12}
                                                 tickLine={false}
                                                 axisLine={false}
                                                 dy={10}
+                                                tick={{ fill: 'var(--muted-foreground)' }}
+                                                fontWeight={500}
                                             />
                                             <YAxis
-                                                width={80}
-                                                stroke="#888888"
+                                                tickFormatter={(val) => new Intl.NumberFormat('es-PE', { currency: metrics?.currency || 'PEN', style: 'currency', maximumFractionDigits: 0 }).format(val)}
                                                 fontSize={12}
                                                 tickLine={false}
                                                 axisLine={false}
-                                                tickFormatter={(value) => value.toLocaleString('es-ES', { style: 'currency', currency: metrics?.currency || 'PEN', maximumFractionDigits: 0 })}
+                                                tick={{ fill: 'var(--muted-foreground)' }}
+                                                width={90}
+                                                fontWeight={500}
+                                                dx={-10}
                                             />
                                             <Tooltip
-                                                cursor={{ fill: "var(--muted)", opacity: 0.2 }}
+                                                // CORRECCIÓN: 'fill' para el fondo del hover en modo claro. opacity muy baja para que sea sutil.
+                                                cursor={{ fill: 'var(--foreground)', opacity: 0.05, radius: 6 }}
                                                 content={({ active, payload }) => {
                                                     if (active && payload && payload.length) {
-                                                        const data = payload[0].payload;
-                                                        let dateLabel = "";
-                                                        try {
-                                                            const dateObj = new Date(data.month)
-                                                            if (grouping === 'day') {
-                                                                dateLabel = format(dateObj, "dd 'de' MMMM, yyyy", { locale: es });
-                                                            } else if (grouping === 'month') {
-                                                                dateLabel = format(dateObj, "MMMM yyyy", { locale: es });
-                                                            } else if (grouping === 'year') {
-                                                                dateLabel = format(dateObj, "yyyy", { locale: es });
-                                                            }
-                                                        } catch (e) {
-                                                            dateLabel = data.month;
-                                                        }
-
                                                         return (
-                                                            <div className="rounded-xl border bg-background/95 backdrop-blur-md p-3 shadow-xl ring-1 ring-border/50">
-                                                                <div className="flex flex-col gap-1">
-                                                                    <div className="border-b pb-1 mb-1 border-border/50">
-                                                                        <span className="text-xs font-semibold text-foreground capitalize">
-                                                                            {dateLabel}
-                                                                        </span>
-                                                                    </div>
-                                                                    <span className="text-[0.65rem] uppercase text-muted-foreground font-medium tracking-wider">
-                                                                        Ingresos
-                                                                    </span>
-                                                                    <span className="font-bold text-xl text-primary">
-                                                                        {payload[0]?.value?.toLocaleString('es-ES', { style: 'currency', currency: metrics?.currency || 'PEN' })}
-                                                                    </span>
+                                                            // Tooltip estilo "Frosted Glass"
+                                                            <div className="bg-background/80 backdrop-blur-md border border-border/50 p-4 rounded-2xl shadow-xl">
+                                                                <p className="text-sm font-medium text-muted-foreground mb-2">
+                                                                    {format(new Date(payload[0].payload.month), grouping === 'year' ? 'yyyy' : 'PPP', { locale: es })}
+                                                                </p>
+                                                                <div className="flex items-center gap-2">
+                                                                    <div className="w-3 h-3 rounded-full bg-primary"></div>
+                                                                    <p className="text-2xl font-bold text-foreground">
+                                                                        {payload[0].value?.toLocaleString('es-PE', { style: 'currency', currency: metrics?.currency || 'PEN' })}
+                                                                    </p>
                                                                 </div>
                                                             </div>
                                                         );
@@ -458,10 +422,9 @@ export default function DashboardViewPage() {
                                             />
                                             <Bar
                                                 dataKey="revenue"
-                                                fill="currentColor"
-                                                radius={[6, 6, 0, 0]}
-                                                className="fill-primary/90 hover:fill-primary transition-all duration-300"
-                                                barSize={grouping === 'day' ? undefined : 40}
+                                                fill="url(#colorRevenue)"
+                                                radius={[8, 8, 2, 2]}
+                                                maxBarSize={60}
                                             />
                                         </BarChart>
                                     </ResponsiveContainer>
@@ -470,156 +433,141 @@ export default function DashboardViewPage() {
                         </CardContent>
                     </Card>
 
-                    {/* 2. POPULAR PLANS: Tinte sutil azulado/primary */}
-                    <Card className="lg:col-span-1 shadow-md border-l-4 border-l-primary bg-linear-to-br from-card to-primary/5">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-                            <CardTitle className="text-base sm:text-lg font-semibold flex items-center gap-2">
-                                <Dumbbell className="h-4 w-4 text-primary" />
-                                Planes Populares
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
-                            {loading ? (
-                                <ListSkeleton itemCount={5} />
-                            ) : (
-                                <div className="space-y-5">
-                                    {metrics?.salesByPlan.sort((a, b) => b.count - a.count).map((plan) => {
-                                        const totalCount = metrics.salesByPlan.reduce((acc, p) => acc + p.count, 0);
-                                        const percentage = totalCount > 0 ? (plan.count / totalCount) * 100 : 0;
+                    {/* POPULAR PLANS */}
+                    <Card className="lg:col-span-1 shadow-md border-l-[6px] border-l-primary bg-linear-to-br from-card to-primary/5 overflow-hidden">
+                        <CardSectionHeader
+                            title="Planes Populares"
+                            icon={Activity}
+                            colorClass="bg-primary/10 text-primary"
+                        />
+                        <CardContent className="space-y-6">
+                            {loading ? <ListSkeleton itemCount={4} /> : (
+                                metrics?.salesByPlan.sort((a, b) => b.count - a.count).slice(0, 5).map((plan) => {
+                                    const total = metrics.salesByPlan.reduce((acc, curr) => acc + curr.count, 0);
+                                    const percent = total > 0 ? (plan.count / total) * 100 : 0;
 
-                                        return (
-                                            <div key={plan.planName} className="space-y-2 group">
-                                                <div className="flex items-center justify-between text-sm">
-                                                    <span className="font-medium text-foreground group-hover:text-primary transition-colors">{plan.planName}</span>
-                                                    <span className="text-xs font-mono text-muted-foreground bg-background px-2 py-0.5 rounded-full border shadow-sm">
-                                                        {plan.count} ventas
-                                                    </span>
-                                                </div>
-                                                <div className="h-2.5 rounded-full bg-muted/50 overflow-hidden shadow-inner">
-                                                    <div
-                                                        className={`h-full rounded-full bg-linear-to-r from-primary to-primary/70 transition-all duration-1000 ease-out`}
-                                                        style={{ width: `${percentage}%` }}
-                                                    />
-                                                </div>
-                                            </div>
-                                        )
-                                    })}
-                                    {metrics?.salesByPlan.length === 0 && (
-                                        <p className="text-sm text-muted-foreground text-center py-8">
-                                            No hay datos registrados.
-                                        </p>
-                                    )}
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
-
-                    {/* 3. UPCOMING EXPIRATIONS: Tinte sutil naranja/alerta */}
-                    <Card className="lg:col-span-1 shadow-md border-l-4 border-l-orange-500 bg-linear-to-br from-card to-orange-500/5">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-                            <CardTitle className="text-base sm:text-lg font-semibold flex items-center gap-2">
-                                <AlertTriangle className="h-4 w-4 text-orange-500" />
-                                Próximos Vencimientos
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
-                            {loading ? (
-                                <ListSkeleton itemCount={5} />
-                            ) : (
-                                <div className="space-y-3">
-                                    {metrics?.upcomingExpirations?.map((member) => (
-                                        <div
-                                            key={member.id}
-                                            className="flex items-center justify-between gap-3 p-3 rounded-xl bg-background/50 border border-transparent hover:border-orange-200 hover:bg-orange-50/50 dark:hover:bg-orange-950/20 transition-all duration-200 group cursor-pointer"
-                                        >
-                                            <div className="flex items-center gap-3 min-w-0">
-                                                <Avatar className="h-9 w-9 shrink-0 ring-2 ring-background group-hover:ring-orange-200 transition-all">
-                                                    <AvatarImage src={member.avatar || undefined} alt={member.name} />
-                                                    <AvatarFallback className="bg-orange-100 text-orange-600 text-xs font-bold">
-                                                        {member.name.split(" ").map((n) => n[0]).join("")}
-                                                    </AvatarFallback>
-                                                </Avatar>
-                                                <div className="min-w-0">
-                                                    <Link href={`/${slug}/admin/members/${member.id}`} className="text-sm font-semibold text-foreground group-hover:text-orange-700 transition-colors truncate block">
-                                                        {member.name}
-                                                    </Link>
-                                                    <p className="text-xs text-muted-foreground truncate flex items-center gap-1">
-                                                        <span className={cn("w-1.5 h-1.5 rounded-full", member.daysUntil === 0 ? "bg-red-500 animate-pulse" : "bg-orange-400")} />
-                                                        {member.daysUntil === 0 ? `Vence hoy` :
-                                                            member.daysUntil === 1 ? `Vence mañana` :
-                                                                `Vence en ${member.daysUntil} días`}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            <div className="flex items-center gap-2 shrink-0">
-                                                <Badge variant="outline" className="text-[10px] sm:text-xs border-orange-200 text-orange-700 bg-orange-50 dark:bg-orange-950/30 dark:text-orange-400 dark:border-orange-800">
-                                                    {format(new Date(member.endDate), "dd MMM", { locale: es })}
+                                    return (
+                                        <div key={plan.planName} className="group">
+                                            <div className="flex justify-between items-center text-sm mb-2">
+                                                <span className="font-semibold text-foreground group-hover:text-primary transition-colors">{plan.planName}</span>
+                                                <Badge variant="secondary" className="font-mono shadow-none bg-primary/5 text-primary border-primary/20">
+                                                    {plan.count} ventas
                                                 </Badge>
                                             </div>
+                                            <div className="h-2.5 w-full bg-muted rounded-full overflow-hidden shadow-inner">
+                                                <div
+                                                    className="h-full bg-linear-to-r from-primary to-primary/80 rounded-full transition-all duration-1000 ease-out group-hover:shadow-[0_0_10px_var(--primary)]"
+                                                    style={{ width: `${percent}%` }}
+                                                />
+                                            </div>
                                         </div>
-                                    ))}
-                                    {(!metrics?.upcomingExpirations || metrics.upcomingExpirations.length === 0) && (
-                                        <p className="text-sm text-muted-foreground text-center py-8">
-                                            No hay vencimientos próximos.
-                                        </p>
-                                    )}
+                                    )
+                                })
+                            )}
+                            {!loading && metrics?.salesByPlan.length === 0 && (
+                                <div className="h-full flex flex-col items-center justify-center text-muted-foreground py-8 opacity-70">
+                                    <Activity className="w-10 h-10 mb-2 stroke-1" />
+                                    <p className="text-sm">Sin datos de ventas</p>
                                 </div>
                             )}
                         </CardContent>
                     </Card>
 
-                    {/* 4. RECENT MEMBERS: Tinte sutil neutral/slate */}
-                    <Card className="lg:col-span-1 shadow-md border-l-4 border-l-blue-500 bg-linear-to-br from-card to-blue-500/5">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-                            <CardTitle className="text-base sm:text-lg font-semibold flex items-center gap-2">
-                                <Users className="h-4 w-4 text-blue-500" />
-                                Miembros Recientes
-                            </CardTitle>
-                            <Link href={`/${slug}/admin/members`}>
-                                <Button variant="ghost" size="sm" className="gap-1 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950/30 h-8 px-2">
-                                    <span className="text-xs">Ver todos</span>
-                                    <ArrowRight className="h-3 w-3" />
+                    {/* UPCOMING EXPIRATIONS */}
+                    <Card className="lg:col-span-1 shadow-md border-l-[6px] border-l-orange-500 bg-linear-to-br from-card to-orange-500/5 overflow-hidden">
+                        <CardSectionHeader
+                            title="Próximos Vencimientos"
+                            icon={Clock}
+                            colorClass="bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400"
+                        />
+                        <CardContent className="space-y-4">
+                            {loading ? <ListSkeleton itemCount={4} /> : (
+                                metrics?.upcomingExpirations?.slice(0, 5).map((member) => (
+                                    <Link href={`/${slug}/admin/members/${member.id}`} key={member.id} className="block group">
+                                        <div className="flex items-center gap-3 p-3 rounded-xl border border-transparent bg-background/50 hover:bg-orange-50/80 dark:hover:bg-orange-900/10 hover:border-orange-200/50 dark:hover:border-orange-800/50 transition-all shadow-xs hover:shadow-sm">
+                                            <Avatar className="h-10 w-10 border-2 border-orange-100 dark:border-orange-900 group-hover:border-orange-300 transition-colors">
+                                                <AvatarImage src={member.avatar || undefined} />
+                                                <AvatarFallback className="bg-linear-to-br from-orange-100 to-amber-100 text-orange-700 text-xs font-bold">
+                                                    {member.name.substring(0, 2).toUpperCase()}
+                                                </AvatarFallback>
+                                            </Avatar>
+                                            <div className="flex-1 min-w-0 py-1">
+                                                <p className="text-sm font-semibold truncate text-foreground group-hover:text-orange-800 dark:group-hover:text-orange-300 transition-colors">
+                                                    {member.name}
+                                                </p>
+                                                <div className="flex items-center gap-2 mt-1">
+                                                    <Badge variant="outline" className={cn(
+                                                        "text-[10px] font-medium border py-0.5 px-2 rounded-md shadow-none",
+                                                        member.daysUntil <= 2
+                                                            ? "bg-red-50 text-red-700 border-red-200 animate-pulse dark:bg-red-900/30 dark:text-red-400 dark:border-red-800"
+                                                            : "bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-800"
+                                                    )}>
+                                                        {member.daysUntil === 0 ? "Vence hoy" : member.daysUntil === 1 ? "Vence mañana" : `${member.daysUntil} días`}
+                                                    </Badge>
+                                                </div>
+                                            </div>
+                                            <div className="text-right">
+                                                <span className="text-xs font-mono text-muted-foreground font-medium block">
+                                                    {format(new Date(member.endDate), "dd")}
+                                                </span>
+                                                <span className="text-[10px] text-muted-foreground uppercase">
+                                                    {format(new Date(member.endDate), "MMM")}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </Link>
+                                ))
+                            )}
+                            {!loading && (!metrics?.upcomingExpirations || metrics.upcomingExpirations.length === 0) && (
+                                <div className="h-full flex flex-col items-center justify-center text-muted-foreground py-8 opacity-70">
+                                    <CheckCircle2 className="w-10 h-10 mb-2 stroke-1 text-green-500" />
+                                    <p className="text-sm">Todo al día 🎉</p>
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+
+                    {/* RECENT MEMBERS */}
+                    <Card className="lg:col-span-1 shadow-md border-l-[6px] border-l-blue-500 bg-linear-to-br from-card to-blue-500/5 overflow-hidden">
+                        <CardSectionHeader
+                            title="Actividad Reciente"
+                            icon={Users}
+                            colorClass="bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
+                            action={
+                                <Button variant="ghost" size="sm" className="h-8 px-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20" asChild>
+                                    <Link href={`/${slug}/admin/members`}>Ver todos <ArrowRight className="ml-1 w-3 h-3" /></Link>
                                 </Button>
-                            </Link>
-                        </CardHeader>
-                        <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
-                            {loading ? (
-                                <ListSkeleton itemCount={5} />
-                            ) : (
-                                <div className="space-y-3">
-                                    {metrics?.recentActivity.map((member) => (
-                                        <div
-                                            key={member.id}
-                                            className="flex items-center justify-between gap-3 p-3 rounded-xl bg-background/50 border border-transparent hover:border-blue-200 hover:bg-blue-50/50 dark:hover:bg-blue-950/20 transition-all duration-200 group"
-                                        >
-                                            <div className="flex items-center gap-3 min-w-0">
-                                                <Avatar className="h-9 w-9 shrink-0 ring-2 ring-background group-hover:ring-blue-200 transition-all">
-                                                    <AvatarImage src={member.avatar || undefined} alt={member.name} />
-                                                    <AvatarFallback className="bg-blue-100 text-blue-600 text-xs font-bold">
-                                                        {member.name.split(" ").map((n) => n[0]).join("")}
-                                                    </AvatarFallback>
-                                                </Avatar>
-                                                <div className="min-w-0">
-                                                    <p className="text-sm font-semibold text-foreground group-hover:text-blue-700 transition-colors truncate">
-                                                        {member.name}
+                            }
+                        />
+                        <CardContent className="space-y-4">
+                            {loading ? <ListSkeleton itemCount={4} /> : (
+                                metrics?.recentActivity.slice(0, 5).map((member) => (
+                                    <Link href={`/${slug}/admin/members/${member.id}`} key={member.id} className="block group">
+                                        <div className="flex items-center gap-3 p-3 rounded-xl border border-transparent bg-background/50 hover:bg-blue-50/80 dark:hover:bg-blue-900/10 hover:border-blue-200/50 dark:hover:border-blue-800/50 transition-all shadow-xs hover:shadow-sm">
+                                            <Avatar className="h-10 w-10 border-2 border-blue-100 dark:border-blue-900 group-hover:border-blue-300 transition-colors">
+                                                <AvatarImage src={member.avatar || undefined} />
+                                                <AvatarFallback className="bg-linear-to-br from-blue-100 to-indigo-100 text-blue-700 text-xs font-bold">
+                                                    {member.name.substring(0, 2).toUpperCase()}
+                                                </AvatarFallback>
+                                            </Avatar>
+                                            <div className="flex-1 min-w-0 py-1">
+                                                <p className="text-sm font-semibold truncate text-foreground group-hover:text-blue-800 dark:group-hover:text-blue-300 transition-colors">
+                                                    {member.name}
+                                                </p>
+                                                {member.planName && (
+                                                    <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1">
+                                                        <CreditCard className="w-3 h-3 opacity-70" /> {member.planName}
                                                     </p>
-                                                    <p className="text-xs text-muted-foreground truncate">
-                                                        {member.email}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            <div className="flex items-center gap-2 shrink-0">
-                                                <Badge variant={getPlanBadgeVariant(member.planName || "")} className="hidden sm:flex shadow-sm">
-                                                    {member.planName}
-                                                </Badge>
+                                                )}
                                             </div>
                                         </div>
-                                    ))}
-                                    {metrics?.recentActivity.length === 0 && (
-                                        <p className="text-sm text-muted-foreground text-center py-8">
-                                            No hay actividad reciente.
-                                        </p>
-                                    )}
+                                    </Link>
+                                ))
+                            )}
+                            {!loading && metrics?.recentActivity.length === 0 && (
+                                <div className="h-full flex flex-col items-center justify-center text-muted-foreground py-8 opacity-70">
+                                    <Users className="w-10 h-10 mb-2 stroke-1" />
+                                    <p className="text-sm">Sin actividad reciente</p>
                                 </div>
                             )}
                         </CardContent>

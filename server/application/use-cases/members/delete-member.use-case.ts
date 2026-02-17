@@ -1,24 +1,17 @@
 import { IMembersRepository } from "@/server/application/repositories/members.repository.interface";
-import { Member } from "@/server/domain/entities/Member";
-
-export interface IDeleteMemberUseCase {
-  execute(id: string): Promise<Member>;
-}
 
 import { ConflictError, NotFoundError } from "@/server/domain/errors/common";
 
-export class DeleteMemberUseCase implements IDeleteMemberUseCase {
+export class DeleteMemberUseCase {
   constructor(private readonly membersRepo: IMembersRepository) { }
 
-  async execute(id: string): Promise<Member> {
-    // 1. Check if member exists and get memberships
+  async execute(id: string): Promise<void> {
     const member = await this.membersRepo.findByIdWithMemberships(id);
 
     if (!member) {
       throw new NotFoundError("Miembro no encontrado");
     }
 
-    // 2. Validate: Cannot delete if has active or pending memberships
     const hasActiveOrPending = member.memberships?.some(
       (m) => m.status === "ACTIVE" || m.status === "PENDING"
     );
@@ -29,7 +22,8 @@ export class DeleteMemberUseCase implements IDeleteMemberUseCase {
       );
     }
 
-    // 3. Hard Delete
-    return this.membersRepo.delete(id);
+    await this.membersRepo.delete(id);
   }
 }
+
+export type IDeleteMemberUseCase = InstanceType<typeof DeleteMemberUseCase>

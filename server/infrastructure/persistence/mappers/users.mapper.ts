@@ -1,4 +1,5 @@
 import { User } from "@/server/domain/entities/User";
+import { EntityStatus } from "@/server/domain/entities/_base";
 import { IMapperInterface } from "./IMapper.interface";
 
 export class UserMapper implements IMapperInterface<User> {
@@ -8,7 +9,7 @@ export class UserMapper implements IMapperInterface<User> {
             raw.organizationId,
             raw.createdAt,
             raw.updatedAt,
-            raw.status,
+            raw.isActive ? EntityStatus.ACTIVE : EntityStatus.INACTIVE, // Derived status
             raw.deletedAt,
             raw.firstName,
             raw.lastName,

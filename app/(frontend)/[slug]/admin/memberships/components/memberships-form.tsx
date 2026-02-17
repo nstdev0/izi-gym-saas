@@ -40,12 +40,12 @@ interface MembershipFormProps {
         endDate: Date | string;
         pricePaid: number;
         status: string;
-        member?: Member;
+        member?: Partial<Member>;
     };
     isEdit?: boolean;
     redirectUrl: string;
     plans: SelectablePlan[];
-    member?: Member;
+    member?: Partial<Member>;
 }
 
 export default function MembershipForm({
@@ -138,7 +138,11 @@ export default function MembershipForm({
                                         field.onChange(val);
                                     }}
                                     disabled={isEdit}
-                                    initialMember={initialMember}
+                                    initialMember={initialMember ? {
+                                        id: initialMember.id!,
+                                        firstName: initialMember.firstName!,
+                                        lastName: initialMember.lastName!
+                                    } : null}
                                     placeholder="Buscar por nombre o DNI..."
                                 />
                                 {fieldState.invalid && fieldState.error && (

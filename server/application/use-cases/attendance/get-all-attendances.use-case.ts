@@ -5,15 +5,15 @@ import {
 import {
     IAttendanceRepository,
     AttendanceFilters,
-    AttendanceWithMember,
 } from "@/server/application/repositories/attendance.repository.interface";
+import { Attendance } from "@/server/domain/entities/Attendance";
 
 export class GetAllAttendancesUseCase {
     constructor(private readonly repository: IAttendanceRepository) { }
 
     async execute(
         request: PageableRequest<AttendanceFilters>,
-    ): Promise<PageableResponse<AttendanceWithMember>> {
+    ): Promise<PageableResponse<Attendance>> {
         return await this.repository.findAll(request);
     }
 }

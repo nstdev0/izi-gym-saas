@@ -3,14 +3,15 @@ import { DeleteProductUseCase } from "@/server/application/use-cases/products/de
 import { Product } from "@/server/domain/entities/Product";
 import { BadRequestError } from "@/server/domain/errors/common";
 
-export class DeleteProductController implements ControllerExecutor<void, Product> {
+export class DeleteProductController implements ControllerExecutor<void, void> {
   constructor(private readonly useCase: DeleteProductUseCase) { }
 
-  async execute(_input: void, id?: string) {
+  async execute(_input: void, id?: string): Promise<void> {
     if (!id) {
       throw new BadRequestError("No se proporcionó un id");
     }
-    const product = await this.useCase.execute(id);
-    return product;
+    await this.useCase.execute(id);
   }
 }
+
+export type IDeleteProductController = InstanceType<typeof DeleteProductController>

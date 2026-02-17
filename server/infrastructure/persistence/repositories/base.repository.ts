@@ -103,12 +103,11 @@ export abstract class BaseRepository<
     return this.mapper.toDomain(entity)
   }
 
-  async update(id: string, data: TUpdate): Promise<TEntity> {
-    const entity = await this.model.update({
+  async update(id: string, data: TUpdate): Promise<void> {
+    await this.model.update({
       data: { ...data, organizationId: this.organizationId } as any,
       where: { id },
     })
-    return this.mapper.toDomain(entity)
   }
 
   async delete(id: string): Promise<void> {

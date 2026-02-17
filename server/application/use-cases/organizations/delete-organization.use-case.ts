@@ -4,8 +4,8 @@ import { Organization } from "@/server/domain/entities/Organization";
 export class DeleteOrganizationUseCase {
   constructor(private readonly repository: IOrganizationRepository) { }
 
-  async execute(id: string): Promise<Organization> {
-    return this.repository.delete(id);
+  async execute(id: string): Promise<void> {
+    await this.repository.delete(id);
   }
 }
 

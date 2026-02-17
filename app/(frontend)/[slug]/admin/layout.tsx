@@ -1,4 +1,3 @@
-import { ReactQueryProvider } from "@/components/react-query-provider";
 import { Sidebar } from "@/components/sidebar";
 import { Header } from "@/components/header";
 import { DashboardProvider } from "@/components/dashboard/dashboard-provider";
@@ -42,18 +41,16 @@ export default async function AdminLayout({
   }
 
   return (
-    <ReactQueryProvider>
-      <DashboardProvider>
-        <div className="grid h-full w-full md:grid-cols-[auto_1fr] overflow-hidden bg-muted/40">
-          <Sidebar slug={slug} className="hidden border-r bg-muted/40 md:flex" />
-          <div className="flex flex-col h-full min-h-0 overflow-hidden">
-            <Header slug={slug} mode="organization" />
-            <main className="flex-1 overflow-y-auto p-4 scrollbar-hide bg-muted/10">
-              {children}
-            </main>
-          </div>
+    <DashboardProvider>
+      <div className="grid h-full w-full md:grid-cols-[auto_1fr] overflow-hidden bg-muted/40">
+        <Sidebar slug={slug} className="hidden border-r bg-muted/40 md:flex" />
+        <div className="flex flex-col h-full min-h-0 overflow-hidden">
+          <Header slug={slug} mode="organization" />
+          <main className="flex-1 overflow-y-auto p-4 scrollbar-hide bg-muted/10">
+            {children}
+          </main>
         </div>
-      </DashboardProvider>
-    </ReactQueryProvider>
+      </div>
+    </DashboardProvider>
   );
 }

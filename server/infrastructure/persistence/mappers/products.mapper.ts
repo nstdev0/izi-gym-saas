@@ -8,6 +8,7 @@ export class ProductMapper implements IMapperInterface<Product> {
             raw.organizationId,
             raw.createdAt,
             raw.updatedAt,
+            raw.status,
             raw.deletedAt,
             raw.sku,
             raw.name,

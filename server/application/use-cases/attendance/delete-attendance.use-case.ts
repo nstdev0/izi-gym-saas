@@ -1,13 +1,11 @@
 import { IAttendanceRepository } from "@/server/application/repositories/attendance.repository.interface";
 
-export interface IDeleteAttendanceUseCase {
-    execute(id: string): Promise<void>;
-}
-
-export class DeleteAttendanceUseCase implements IDeleteAttendanceUseCase {
+export class DeleteAttendanceUseCase {
     constructor(private readonly repository: IAttendanceRepository) { }
 
     async execute(id: string): Promise<void> {
-        return this.repository.delete(id);
+        await this.repository.delete(id);
     }
 }
+
+export type IDeleteAttendanceUseCase = InstanceType<typeof DeleteAttendanceUseCase>

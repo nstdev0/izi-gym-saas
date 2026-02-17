@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   PageableRequest,
   PageableResponse,
@@ -24,7 +23,7 @@ export interface IBaseRepository<
   ): Promise<PageableResponse<TEntity>>;
   findUnique(args: Partial<TEntity>): Promise<TEntity | null>;
   create(data: TCreate): Promise<TEntity>;
-  update(id: string, data: TUpdate): Promise<TEntity>;
+  update(id: string, data: TUpdate): Promise<void>;
   delete(id: string): Promise<void>;
   restore(id: string): Promise<void>;
 }

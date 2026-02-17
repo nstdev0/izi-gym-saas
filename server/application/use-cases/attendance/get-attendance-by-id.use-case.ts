@@ -1,13 +1,12 @@
-import { IAttendanceRepository, AttendanceWithMember } from "@/server/application/repositories/attendance.repository.interface";
+import { IAttendanceRepository } from "@/server/application/repositories/attendance.repository.interface";
+import { Attendance } from "@/server/domain/entities/Attendance";
 
-export interface IGetAttendanceByIdUseCase {
-    execute(id: string): Promise<AttendanceWithMember | null>;
-}
-
-export class GetAttendanceByIdUseCase implements IGetAttendanceByIdUseCase {
+export class GetAttendanceByIdUseCase {
     constructor(private readonly repository: IAttendanceRepository) { }
 
-    async execute(id: string): Promise<AttendanceWithMember | null> {
+    async execute(id: string): Promise<Attendance | null> {
         return this.repository.findById(id);
     }
 }
+
+export type IGetAttendanceByIdUseCase = InstanceType<typeof GetAttendanceByIdUseCase>

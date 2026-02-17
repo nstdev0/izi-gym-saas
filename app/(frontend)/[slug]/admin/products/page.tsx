@@ -2,7 +2,7 @@ import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import ProductsViewPage from "./components/view-page";
 import { ProductsService } from "@/lib/services/products.service";
 import { productKeys } from "@/lib/react-query/query-keys";
-import { makeQueryClient } from "@/lib/react-query/client-config";
+import { getQueryClient } from "@/lib/react-query/client-config";
 import { productsCache } from "@/lib/nuqs/search-params/products";
 
 interface PageProps {
@@ -12,7 +12,7 @@ interface PageProps {
 export default async function ProductsPage({ searchParams }: PageProps) {
     const { page, limit, ...filters } = await productsCache.parse(searchParams);
 
-    const queryClient = makeQueryClient();
+    const queryClient = getQueryClient();
 
     await queryClient.prefetchQuery({
         queryKey: productKeys.list({

@@ -48,6 +48,8 @@ import { DeletePlanUseCase } from "@/server/application/use-cases/plans/delete-p
 import { GetPlanByIdController } from "@/server/interface-adapters/controllers/plans/get-plan-by-id.controller";
 import { UpdatePlanController } from "@/server/interface-adapters/controllers/plans/update-plan.controller";
 import { DeletePlanController } from "@/server/interface-adapters/controllers/plans/delete-plan.controller";
+import { RestorePlanController } from "@/server/interface-adapters/controllers/plans/restore-plan.controller";
+import { RestorePlanUseCase } from "@/server/application/use-cases/plans/restore-plan.use-case";
 
 // --- Imports: Products ---
 import { ProductsRepository } from "../infrastructure/persistence/repositories/products.repository";
@@ -61,6 +63,8 @@ import { DeleteProductUseCase } from "@/server/application/use-cases/products/de
 import { GetProductByIdController } from "@/server/interface-adapters/controllers/products/get-product-by-id.controller";
 import { UpdateProductController } from "@/server/interface-adapters/controllers/products/update-product.controller";
 import { DeleteProductController } from "@/server/interface-adapters/controllers/products/delete-product.controller";
+import { RestoreProductController } from "@/server/interface-adapters/controllers/products/restore-product.controller";
+import { RestoreProductUseCase } from "@/server/application/use-cases/products/restore-product.use-case";
 
 // --- Imports: Memberships ---
 import { MembershipsRepository } from "../infrastructure/persistence/repositories/memberships.repository";
@@ -74,6 +78,8 @@ import { DeleteMembershipUseCase } from "@/server/application/use-cases/membersh
 import { GetMembershipByIdController } from "@/server/interface-adapters/controllers/memberships/get-membership-by-id.controller";
 import { UpdateMembershipController } from "@/server/interface-adapters/controllers/memberships/update-membership.controller";
 import { DeleteMembershipController } from "@/server/interface-adapters/controllers/memberships/delete-membership.controller";
+import { RestoreMembershipController } from "@/server/interface-adapters/controllers/memberships/restore-membership.controller";
+import { RestoreMembershipUseCase } from "../application/use-cases/memberships/restore-membership.use-case";
 
 // --- Imports: Users ---
 import { UsersRepository } from "../infrastructure/persistence/repositories/users.repository";
@@ -83,10 +89,12 @@ import { GetAllUsersController } from "../interface-adapters/controllers/users/g
 import { CreateUserController } from "../interface-adapters/controllers/users/create-user.controller";
 import { GetUserByIdUseCase } from "../application/use-cases/users/get-user-by-id.use-case";
 import { UpdateUserUseCase } from "../application/use-cases/users/update-user.use-case";
-import { DeleteUserUseCase } from "../application/use-cases/users/delete-user.use-case";
+import { DeleteUserUseCase } from "@/server/application/use-cases/users/delete-user.use-case";
 import { GetUserByIdController } from "../interface-adapters/controllers/users/get-user-by-id.controller";
 import { UpdateUserController } from "../interface-adapters/controllers/users/update-user.controller";
-import { DeleteUserController } from "../interface-adapters/controllers/users/delete-user.controller";
+import { DeleteUserController } from "@/server/interface-adapters/controllers/users/delete-user.controller";
+import { RestoreUserController } from "@/server/interface-adapters/controllers/users/restore-user.controller";
+import { RestoreUserUseCase } from "@/server/application/use-cases/users/restore-user.use-case";
 import { ClerkAuthService } from "../infrastructure/services/clerk-auth.service";
 
 // --- Imports: Dashboard ---
@@ -135,6 +143,8 @@ import { GetMemberByQrCodeController } from "../interface-adapters/controllers/m
 import { GetMemberByQrCodeUseCase } from "../application/use-cases/members/get-member-by-qr.use-case";
 import { TransactionManager } from "../infrastructure/persistence/repositories/transaction-manager";
 import { OrganizationMapper } from "../infrastructure/persistence/mappers/organizations.mapper";
+import { CancelMembershipUseCase } from "../application/use-cases/memberships/cancel-membership.use-case";
+import { CancelMembershipController } from "../interface-adapters/controllers/memberships/cancel-membership.controller";
 
 
 // Factory function "memoizada" por request
@@ -249,6 +259,9 @@ export const getContainer = cache(async () => {
   const deletePlanController = new DeletePlanController(
     new DeletePlanUseCase(plansRepository),
   );
+  const restorePlanController = new RestorePlanController(
+    new RestorePlanUseCase(plansRepository),
+  );
 
   // ===========================================================================
   // 4. PRODUCTS
@@ -274,6 +287,9 @@ export const getContainer = cache(async () => {
   const deleteProductController = new DeleteProductController(
     new DeleteProductUseCase(productsRepository),
   );
+  const restoreProductController = new RestoreProductController(
+    new RestoreProductUseCase(productsRepository),
+  );
 
   // ===========================================================================
   // 5. MEMBERSHIPS
@@ -290,6 +306,8 @@ export const getContainer = cache(async () => {
   const createMembershipUseCase = new CreateMembershipUseCase(
     membershipsRepository,
   );
+  const restoreMembershipUseCase = new RestoreMembershipUseCase(membershipsRepository)
+  const cancelMembershipUseCase = new CancelMembershipUseCase(membershipsRepository)
   // Controllers
   const getAllMembershipsController = new GetAllMembershipsController(
     getAllMembershipsUseCase,
@@ -306,6 +324,12 @@ export const getContainer = cache(async () => {
   const deleteMembershipController = new DeleteMembershipController(
     new DeleteMembershipUseCase(membershipsRepository),
   );
+  const restoreMembershipController = new RestoreMembershipController(
+    restoreMembershipUseCase,
+  );
+  const cancelMembershipController = new CancelMembershipController(
+    cancelMembershipUseCase,
+  );
 
   // ===========================================================================
   // 6. USERS
@@ -314,19 +338,20 @@ export const getContainer = cache(async () => {
   const usersRepository = new UsersRepository(prisma.user, tenantId);
   // Services
   const clerkAuthService = new ClerkAuthService();
-
   // Use Cases
   const getAllUsersUseCase = new GetAllUsersUseCase(usersRepository);
   const createUserUseCase = new CreateUserUseCase(usersRepository, clerkAuthService);
   const getUserByIdUseCase = new GetUserByIdUseCase(usersRepository);
   const updateUserUseCase = new UpdateUserUseCase(usersRepository);
   const deleteUserUseCase = new DeleteUserUseCase(usersRepository);
+  const restoreUserUseCase = new RestoreUserUseCase(usersRepository)
   // Controllers
   const getAllUsersController = new GetAllUsersController(getAllUsersUseCase);
   const createUserController = new CreateUserController(createUserUseCase);
   const getUserByIdController = new GetUserByIdController(getUserByIdUseCase);
   const updateUserController = new UpdateUserController(updateUserUseCase);
   const deleteUserController = new DeleteUserController(deleteUserUseCase);
+  const restoreUserController = new RestoreUserController(restoreUserUseCase)
 
   // ===========================================================================
   // 7. DASHBOARD
@@ -420,24 +445,29 @@ export const getContainer = cache(async () => {
     getPlanByIdController,
     updatePlanController,
     deletePlanController,
+    restorePlanController,
     // Products
     getAllProductsController,
     createProductController,
     getProductByIdController,
     updateProductController,
     deleteProductController,
+    restoreProductController,
     // Memberships
     getAllMembershipsController,
     createMembershipController,
     getMembershipByIdController,
     updateMembershipController,
     deleteMembershipController,
+    restoreMembershipController,
+    cancelMembershipController,
     // Users
     getAllUsersController,
     createUserController,
     getUserByIdController,
     updateUserController,
     deleteUserController,
+    restoreUserController,
     // Dashboard
     getDashboardMetricsController,
     getHistoricStartDateController,

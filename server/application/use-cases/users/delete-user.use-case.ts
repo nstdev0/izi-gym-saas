@@ -1,14 +1,11 @@
 import { IUsersRepository } from "@/server/application/repositories/users.repository.interface";
-import { User } from "@/server/domain/entities/User";
 
-export interface IDeleteUserUseCase {
-  execute(id: string): Promise<User>;
-}
+export class DeleteUserUseCase {
+  constructor(private readonly repository: IUsersRepository) { }
 
-export class DeleteUserUseCase implements IDeleteUserUseCase {
-  constructor(private readonly repository: IUsersRepository) {}
-
-  async execute(id: string): Promise<User> {
-    return this.repository.delete(id);
+  async execute(id: string): Promise<void> {
+    await this.repository.delete(id);
   }
 }
+
+export type IDeleteUserUseCase = InstanceType<typeof DeleteUserUseCase>;

@@ -1,4 +1,5 @@
 import { BaseEntity, EntityStatus } from "./_base";
+import { Member } from "./Member";
 
 export class Attendance extends BaseEntity {
     constructor(
@@ -11,7 +12,7 @@ export class Attendance extends BaseEntity {
         public memberId: string,
         public date: Date,
         public method: string,
-        public member?: Record<string, unknown>
+        public member?: Member
     ) {
         super(id, organizationId, createdAt, updatedAt, status, deletedAt);
     }

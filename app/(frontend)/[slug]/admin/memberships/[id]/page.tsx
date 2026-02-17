@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { makeQueryClient } from "@/lib/react-query/client-config";
+import { getQueryClient } from "@/lib/react-query/client-config";
 
 import { membershipKeys } from "@/lib/react-query/query-keys";
 import { MembershipsService } from "@/lib/services/memberships.service";
@@ -17,7 +17,7 @@ interface PageProps {
 }
 
 export default async function MembershipsDetail({ params, searchParams }: PageProps) {
-    const queryClient = makeQueryClient();
+    const queryClient = getQueryClient();
 
     const { id } = await params; // params is a Promise now
 

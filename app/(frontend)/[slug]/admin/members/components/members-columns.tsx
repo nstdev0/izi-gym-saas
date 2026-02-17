@@ -2,7 +2,7 @@
 
 import { ColumnDef } from "@tanstack/react-table";
 import { Member } from "@/server/domain/entities/Member";
-import { Users, Mail, Phone, Trash2, Eye, PlusCircle } from "lucide-react";
+import { Mail, Phone, Trash2, Eye, PlusCircle, MoreHorizontal, User, CalendarDays, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -13,68 +13,108 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import Image from "next/image";
 import { useDeleteMember, useRestoreMember } from "@/hooks/members/use-members";
 import { toast } from "sonner";
 import { useState } from "react";
+import { cn } from "@/lib/utils";
 
-// Component for the Member Name cell to correctly use hooks
+// --- HELPERS ---
+function formatDate(date: Date | string): string {
+  return new Date(date).toLocaleDateString("es-PE", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+}
+
+// --- CELDAS PERSONALIZADAS ---
+
 const MemberCell = ({ member }: { member: Member }) => {
   const params = useParams();
   const slug = params.slug as string;
 
   return (
-    <div className="flex items-center gap-3">
-      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-        {member.image ? (
-          <Image
-            src={member.image}
-            alt={`${member.firstName} ${member.lastName}`}
-            width={32}
-            height={32}
-            className="rounded-full"
-          />
-        ) : (
-          <Users className="w-4 h-4 text-primary" />
-        )}
-      </div>
-      <div>
+    <div className="flex items-center gap-3 group">
+      <Avatar className="h-9 w-9 border border-border/50 bg-background transition-transform group-hover:scale-105">
+        <AvatarImage src={member.image || undefined} alt={member.firstName} />
+        <AvatarFallback className="text-xs font-bold bg-linear-to-br from-blue-500/10 to-indigo-500/10 text-blue-600 dark:text-blue-400">
+          {member.firstName[0]}{member.lastName[0]}
+        </AvatarFallback>
+      </Avatar>
+      <div className="flex flex-col">
         <Link
           href={`/${slug}/admin/members/${member.id}`}
-          className="font-medium text-foreground hover:underline"
+          className="font-medium text-sm text-foreground hover:text-primary transition-colors"
         >
           {member.firstName} {member.lastName}
         </Link>
+        <span className="text-[10px] text-muted-foreground font-mono">
+          ID: {member.docNumber || "N/A"}
+        </span>
       </div>
     </div>
   );
 };
 
-// Component for the Plan cell to correctly use hooks
 const PlanCell = ({ member }: { member: Member }) => {
   const params = useParams();
   const slug = params.slug as string;
-  const memberWithMembership = member as Member & {
-    memberships?: Array<{ plan?: { name: string } }>;
-  };
-  const activePlan = memberWithMembership.memberships?.[0]?.plan?.name;
 
-  if (activePlan) {
-    return <div className="text-foreground font-medium">{activePlan}</div>;
+  const memberWithMembership = member as Member & {
+    memberships?: Array<{ plan?: { name: string }; status: string }>;
+  };
+
+  const activeMembership = memberWithMembership.memberships?.find(m => m.status === 'ACTIVE' || m.status === 'PENDING');
+  const planName = activeMembership?.plan?.name;
+
+  if (planName) {
+    return (
+      <Badge variant="outline" className="bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-900/30 dark:text-purple-400 dark:border-purple-800 shadow-xs font-normal">
+        <ShieldCheck className="w-3 h-3 mr-1.5" />
+        {planName}
+      </Badge>
+    );
   }
 
   return (
-    <Link
-      href={`/${slug}/admin/memberships/new?memberId=${member.id}`}
-      className="flex items-center gap-1.5 text-muted-foreground hover:text-primary transition-colors"
-    >
-      <span>Sin plan</span>
-      <PlusCircle className="w-4 h-4" />
-    </Link>
+    <Button variant="ghost" size="sm" className="h-7 px-2 text-xs text-muted-foreground hover:text-emerald-600 hover:bg-emerald-50" asChild>
+      <Link href={`/${slug}/admin/memberships/new?memberId=${member.id}`}>
+        <PlusCircle className="w-3.5 h-3.5 mr-1.5" />
+        Asignar Plan
+      </Link>
+    </Button>
+  );
+};
+
+const ContactCell = ({ member }: { member: Member }) => {
+  return (
+    <div className="flex flex-col gap-1 text-xs">
+      <div className="flex items-center gap-2 text-muted-foreground">
+        <Mail className={cn("w-3 h-3", member.email ? "text-foreground" : "opacity-50")} />
+        <span className={cn("truncate max-w-[140px]", member.email ? "text-foreground" : "italic opacity-50")}>
+          {member.email || "Sin email"}
+        </span>
+      </div>
+      <div className="flex items-center gap-2 text-muted-foreground">
+        <Phone className={cn("w-3 h-3", member.phone ? "text-foreground" : "opacity-50")} />
+        <span className={cn("font-mono", member.phone ? "text-foreground" : "italic opacity-50")}>
+          {member.phone || "Sin teléfono"}
+        </span>
+      </div>
+    </div>
   );
 };
 
@@ -83,18 +123,16 @@ const MemberActions = ({ member }: { member: Member }) => {
   const slug = params.slug?.toString();
   const { mutate: deleteMember, isPending } = useDeleteMember();
   const { mutate: restoreMember } = useRestoreMember();
-  const [open, setOpen] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   const handleDelete = () => {
     deleteMember(member.id, {
       onSuccess: () => {
-        setOpen(false);
+        setShowDeleteDialog(false);
         toast.success("Miembro eliminado", {
           action: {
             label: "Deshacer",
-            onClick: () => {
-              restoreMember(member.id);
-            },
+            onClick: () => restoreMember(member.id),
           },
         });
       },
@@ -102,44 +140,58 @@ const MemberActions = ({ member }: { member: Member }) => {
   };
 
   return (
-    <div className="flex justify-center">
-      <Link href={`/${slug}/admin/members/${member.id}`}>
-        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-          <Eye className="w-4 h-4" />
+    <>
+      <div className="flex items-center justify-end">
+        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-blue-600 hover:bg-blue-50" asChild>
+          <Link href={`/${slug}/admin/members/${member.id}`}>
+            <Eye className="w-4 h-4" />
+          </Link>
         </Button>
-      </Link>
-      {/* <Link href={`/${slug}/admin/members/${member.id}/edit`}>
-        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-          <Edit className="w-4 h-4" />
-        </Button>
-      </Link> */}
-      <AlertDialog open={open} onOpenChange={setOpen}>
-        <AlertDialogTrigger asChild>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-8 w-8 p-0 text-red-500 hover:text-red-600 hover:bg-red-50"
-          >
-            <Trash2 className="w-4 h-4" />
-          </Button>
-        </AlertDialogTrigger>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
+              <MoreHorizontal className="w-4 h-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem asChild>
+              <Link href={`/${slug}/admin/members/${member.id}`} className="cursor-pointer">
+                <User className="mr-2 h-4 w-4" /> Ver Perfil Completo
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href={`/${slug}/admin/memberships/new?memberId=${member.id}`} className="cursor-pointer">
+                <PlusCircle className="mr-2 h-4 w-4" /> Nueva Membresía
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={() => setShowDeleteDialog(true)}
+              className="text-red-600 focus:text-red-700 focus:bg-red-50 cursor-pointer"
+            >
+              <Trash2 className="mr-2 h-4 w-4" /> Eliminar Miembro
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+            <AlertDialogTitle className="text-destructive flex items-center gap-2">
+              <Trash2 className="w-5 h-5" /> Eliminar miembro
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              Esta acción no se puede deshacer. Esto eliminará permanentemente al
-              miembro
-              <span className="font-medium text-foreground">
-                {" "}
-                {member.firstName} {member.lastName}
-              </span>{" "}
-              y todos sus datos asociados.
+              Esta acción marcará al miembro como eliminado. Podrás restaurarlo brevemente, pero sus accesos serán revocados inmediatamente.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={isPending}>Cancelar</AlertDialogCancel>
             <AlertDialogAction
-              className="bg-red-500 hover:bg-red-600 focus:ring-red-500"
+              className="bg-destructive hover:bg-destructive/90"
               onClick={(e) => {
                 e.preventDefault();
                 handleDelete();
@@ -151,7 +203,7 @@ const MemberActions = ({ member }: { member: Member }) => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </>
   );
 };
 
@@ -164,46 +216,26 @@ export const columns: ColumnDef<Member>[] = [
   {
     accessorKey: "contact",
     header: "Contacto",
-    cell: ({ row }) => {
-      const member = row.original;
-      return (
-        <div className="space-y-0.5">
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <Mail className={`w-3 h-3 ${member.email ? "text-primary" : "text-muted-foreground"}`} />
-            <span className={`${member.email ? "text-foreground" : "text-muted-foreground"}`}>
-              {member.email ? member.email : "No registrado"}
-            </span>
-          </div>
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <Phone className={`w-3 h-3 ${member.phone ? "text-primary" : "text-muted-foreground"}`} />
-            <span className={`${member.phone ? "text-foreground" : "text-muted-foreground"}`}>
-              {member.phone ? member.phone : "No registrado"}
-            </span>
-          </div>
-        </div>
-      );
-    },
+    cell: ({ row }) => <ContactCell member={row.original} />,
   },
   {
     accessorKey: "plan",
-    header: "Plan",
+    header: "Plan Actual",
     cell: ({ row }) => <PlanCell member={row.original} />,
   },
   {
     accessorKey: "createdAt",
-    header: "Desde",
-    cell: ({ row }) => {
-      return (
-        <div className="text-muted-foreground">
-          {new Date(row.getValue("createdAt")).toLocaleDateString("es-ES")}
-        </div>
-      );
-    },
+    header: "Registrado",
+    cell: ({ row }) => (
+      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+        <CalendarDays className="w-3.5 h-3.5 opacity-70" />
+        <span className="font-mono">{formatDate(row.getValue("createdAt"))}</span>
+      </div>
+    ),
   },
   {
     id: "actions",
-    enableHiding: false,
-    header: () => <div className="text-center">Acciones</div>,
+    header: () => <div className="text-right">Acciones</div>,
     cell: ({ row }) => <MemberActions member={row.original} />,
   },
 ];

@@ -2,7 +2,7 @@ import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import MembersViewPage from "./components/view-page";
 import { MembersService } from "@/lib/services/members.service";
 import { memberKeys } from "@/lib/react-query/query-keys";
-import { makeQueryClient } from "@/lib/react-query/client-config";
+import { getQueryClient } from "@/lib/react-query/client-config";
 import { membersSearchParamsCache } from "@/lib/nuqs/search-params/members";
 
 interface PageProps {
@@ -10,7 +10,7 @@ interface PageProps {
 }
 
 export default async function MembersPage({ searchParams }: PageProps) {
-  const queryClient = makeQueryClient();
+  const queryClient = getQueryClient();
 
   const { page, limit, search, sort, status } = await membersSearchParamsCache.parse(searchParams);
 

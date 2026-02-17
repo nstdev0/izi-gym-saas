@@ -2,9 +2,9 @@ import { IProductsRepository } from "@/server/application/repositories/products.
 import { Product } from "@/server/domain/entities/Product";
 
 export class DeleteProductUseCase {
-  constructor(private readonly repository: IProductsRepository) {}
+  constructor(private readonly repository: IProductsRepository) { }
 
-  async execute(id: string): Promise<Product> {
-    return this.repository.delete(id);
+  async execute(id: string): Promise<void> {
+    await this.repository.delete(id);
   }
 }

@@ -22,6 +22,8 @@ export class Membership extends BaseEntity {
     public deletedAt?: Date | null,
     public memberName?: string,
     public planName?: string,
+    public member?: { firstName: string; lastName: string; image: string | null; docNumber: string; },
+    public plan?: { name: string; },
   ) {
     super(id, organizationId, createdAt, updatedAt, status, deletedAt);
   }

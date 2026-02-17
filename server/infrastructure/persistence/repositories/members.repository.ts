@@ -38,7 +38,7 @@ export class MembersRepository
     const safePage = page < 1 ? 1 : page;
     const skip = (safePage - 1) * limit;
 
-    let where: Prisma.MemberWhereInput = { deletedAt: null };
+    let where: Prisma.MemberWhereInput = { deletedAt: null, isActive: true };
     let orderBy: Prisma.MemberOrderByWithRelationInput = { createdAt: "desc" };
 
     if (filters) {
@@ -76,7 +76,6 @@ export class MembersRepository
     const totalPages = Math.ceil(totalRecords / limit);
 
     const mappedRecords = records.map((record) => {
-      // @ts-ignore - Prisma include types are complex, but the mapper handles the structure
       return this.mapper.toDomain(record);
     });
 
@@ -231,6 +230,11 @@ export class MembersRepository
   async findByQrCode(qrCode: string): Promise<Member | null> {
     const record = await this.model.findUnique({
       where: { qr_organizationId: { qr: qrCode, organizationId: this.organizationId! } },
+      include: {
+        memberships: {
+          select: { status: true },
+        },
+      },
     });
     if (!record) return null;
     return this.mapper.toDomain(record);

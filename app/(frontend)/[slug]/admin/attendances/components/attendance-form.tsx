@@ -1,6 +1,5 @@
 "use client";
 
-import { AttendanceWithMember } from "@/server/application/repositories/attendance.repository.interface";
 import { UpdateAttendanceInput } from "@/server/application/dtos/attendance.dto";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -19,9 +18,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
+import { Attendance } from "@/server/domain/entities/Attendance";
 
 interface AttendanceFormProps {
-    data: AttendanceWithMember;
+    data: Attendance;
 }
 
 export function AttendanceForm({ data }: AttendanceFormProps) {
@@ -61,21 +61,21 @@ export function AttendanceForm({ data }: AttendanceFormProps) {
                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                         <div className="flex items-center gap-4">
                             <Avatar className="h-16 w-16 border-2 border-background shadow-sm ring-2 ring-blue-100">
-                                <AvatarImage src={member.image || undefined} alt={member.firstName} />
+                                <AvatarImage src={member?.image || undefined} alt={member?.firstName || ""} />
                                 <AvatarFallback className="bg-blue-100 text-blue-600 text-xl font-bold">
-                                    {member.firstName.charAt(0)}{member.lastName.charAt(0)}
+                                    {member?.firstName.charAt(0)}{member?.lastName.charAt(0)}
                                 </AvatarFallback>
                             </Avatar>
                             <div>
                                 <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
-                                    {member.firstName} {member.lastName}
+                                    {member?.firstName} {member?.lastName}
                                     <Badge variant="secondary" className="text-[10px] bg-blue-100 text-blue-700 hover:bg-blue-200 border-none">
                                         MIEMBRO
                                     </Badge>
                                 </h3>
                             </div>
                         </div>
-                        <Link href={`/${slug}/admin/members/${member.id}`}>
+                        <Link href={`/${slug}/admin/members/${member?.id}`}>
                             <Button variant="ghost" className="group text-blue-600 hover:text-blue-700 hover:bg-blue-50">
                                 Ver Perfil <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                             </Button>

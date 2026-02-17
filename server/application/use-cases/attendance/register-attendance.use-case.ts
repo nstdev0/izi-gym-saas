@@ -10,18 +10,18 @@ export class RegisterAttendanceUseCase {
     ) { }
 
     async execute(input: RegisterAttendanceInput) {
-        // 1. Validate Member exists and is active
         const member = await this.membersRepository.findUnique({ id: input.memberId });
 
         if (!member) {
-            throw new NotFoundError("Member not found");
+            throw new NotFoundError("Miembro no encontrado");
         }
 
         if (!member.isActive) {
-            throw new ValidationError("Member is not active");
+            throw new ValidationError("Miembro no activo");
         }
 
-        // 2. Register Attendance
         return this.attendanceRepository.create(input);
     }
 }
+
+export type IRegisterAttendanceUseCase = InstanceType<typeof RegisterAttendanceUseCase>
