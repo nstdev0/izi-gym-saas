@@ -8,7 +8,7 @@
     "build": "prisma migrate deploy && next build",
     "start": "next start",
     "lint": "eslint",
-    "postinstall": "prisma migrate deploy && prisma generate && tsx seeds/organization-plans.ts"
+    "postinstall": "prisma migrate deploy && prisma generate"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
