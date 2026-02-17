@@ -9,7 +9,6 @@ import {
     CreditCard,
     BarChart3,
     Shield,
-    Smartphone,
     Zap,
     Star,
     ChevronRight,
@@ -247,6 +246,92 @@ export function LandingPage({ dashboardUrl, isLoggedIn }: { dashboardUrl?: strin
                 </div>
             </section>
 
+            {/* Pricing */}
+            <section id="pricing" className="py-20 sm:py-32">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="text-center mb-16">
+                        <h2 className="text-3xl sm:text-4xl font-bold">
+                            Precios simples, sin sorpresas
+                        </h2>
+                        <p className="mt-4 text-lg text-muted-foreground">
+                            Empieza gratis, escala cuando crezcas
+                        </p>
+                    </div>
+
+                    <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+                        {[
+                            {
+                                name: "Prueba gratis",
+                                price: "$0",
+                                desc: "Para gimnasios que recién comienzan",
+                                features: ["Hasta 25 miembros", "Hasta 5 planes", "Gestión básica", "1 usuario admin"],
+                                cta: "Comenzar Gratis",
+                                popular: false,
+                                slug: "free-trial"
+                            },
+                            {
+                                name: "Pro",
+                                price: "$49",
+                                period: "/mes",
+                                desc: "Para gimnasios en crecimiento",
+                                features: ["Hasta 500 miembros", "Cobros automáticos", "Control de acceso", "Reportes avanzados", "5 usuarios admin", "Soporte prioritario"],
+                                cta: "Prueba 14 días gratis",
+                                popular: true,
+                                slug: "pro-monthly"
+                            },
+                            {
+                                name: "Enterprise",
+                                price: "Contáctanos",
+                                desc: "Para cadenas de gimnasios",
+                                features: ["Miembros ilimitados", "Multi-sucursal", "API personalizada", "Onboarding dedicado", "SLA garantizado"],
+                                cta: "Contactar Ventas",
+                                popular: false,
+                                slug: "enterprise-monthly"
+                            },
+                        ].map((plan, i) => (
+                            <div
+                                key={i}
+                                className={`relative p-6 sm:p-8 rounded-2xl border transition-all duration-300 ${plan.popular
+                                    ? "border-primary/50 bg-linear-to-b from-primary/10 to-background shadow-lg shadow-primary/10 scale-105"
+                                    : "border-border/50 bg-background/50 hover:bg-muted/30 hover:border-border"
+                                    }`}
+                            >
+                                {plan.popular && (
+                                    <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                                        <span className="bg-primary text-primary-foreground text-xs font-semibold px-3 py-1 rounded-full">
+                                            Más Popular
+                                        </span>
+                                    </div>
+                                )}
+                                <div className="text-lg font-semibold">{plan.name}</div>
+                                <div className="mt-4">
+                                    <span className="text-4xl font-bold">{plan.price}</span>
+                                    {plan.period && <span className="text-muted-foreground">{plan.period}</span>}
+                                </div>
+                                <p className="mt-2 text-sm text-muted-foreground">{plan.desc}</p>
+                                <ul className="mt-6 space-y-3">
+                                    {plan.features.map((feature, j) => (
+                                        <li key={j} className="flex items-center gap-3 text-sm">
+                                            <Check className="h-4 w-4 text-primary shrink-0" />
+                                            <span>{feature}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                                <Link href={`/sign-up?plan=${plan.slug}`} className="block mt-8">
+                                    <Button
+                                        className="w-full"
+                                        variant={plan.popular ? "default" : "outline"}
+                                    >
+                                        {plan.cta}
+                                        <ChevronRight className="ml-1 h-4 w-4" />
+                                    </Button>
+                                </Link>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
             {/* Testimonials */}
             <section id="testimonials" className="py-20 bg-muted/30">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -294,92 +379,6 @@ export function LandingPage({ dashboardUrl, isLoggedIn }: { dashboardUrl?: strin
                                         <div className="text-sm text-muted-foreground">{testimonial.role}</div>
                                     </div>
                                 </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </section>
-
-            {/* Pricing */}
-            <section id="pricing" className="py-20 sm:py-32">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="text-center mb-16">
-                        <h2 className="text-3xl sm:text-4xl font-bold">
-                            Precios simples, sin sorpresas
-                        </h2>
-                        <p className="mt-4 text-lg text-muted-foreground">
-                            Empieza gratis, escala cuando crezcas
-                        </p>
-                    </div>
-
-                    <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-                        {[
-                            {
-                                name: "Starter",
-                                price: "Gratis",
-                                desc: "Para gimnasios que recién comienzan",
-                                features: ["Hasta 50 miembros", "Gestión básica", "1 usuario admin", "Soporte por email"],
-                                cta: "Comenzar Gratis",
-                                popular: false,
-                                slug: "free-trial"
-                            },
-                            {
-                                name: "Pro",
-                                price: "$49",
-                                period: "/mes",
-                                desc: "Para gimnasios en crecimiento",
-                                features: ["Hasta 500 miembros", "Cobros automáticos", "Control de acceso", "Reportes avanzados", "5 usuarios admin", "Soporte prioritario"],
-                                cta: "Prueba 14 días gratis",
-                                popular: true,
-                                slug: "pro-monthly"
-                            },
-                            {
-                                name: "Enterprise",
-                                price: "Custom",
-                                desc: "Para cadenas de gimnasios",
-                                features: ["Miembros ilimitados", "Multi-sucursal", "API personalizada", "Onboarding dedicado", "SLA garantizado"],
-                                cta: "Contactar Ventas",
-                                popular: false,
-                                slug: "enterprise-monthly"
-                            },
-                        ].map((plan, i) => (
-                            <div
-                                key={i}
-                                className={`relative p-6 sm:p-8 rounded-2xl border transition-all duration-300 ${plan.popular
-                                    ? "border-primary/50 bg-linear-to-b from-primary/10 to-background shadow-lg shadow-primary/10 scale-105"
-                                    : "border-border/50 bg-background/50 hover:bg-muted/30 hover:border-border"
-                                    }`}
-                            >
-                                {plan.popular && (
-                                    <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                                        <span className="bg-primary text-primary-foreground text-xs font-semibold px-3 py-1 rounded-full">
-                                            Más Popular
-                                        </span>
-                                    </div>
-                                )}
-                                <div className="text-lg font-semibold">{plan.name}</div>
-                                <div className="mt-4">
-                                    <span className="text-4xl font-bold">{plan.price}</span>
-                                    {plan.period && <span className="text-muted-foreground">{plan.period}</span>}
-                                </div>
-                                <p className="mt-2 text-sm text-muted-foreground">{plan.desc}</p>
-                                <ul className="mt-6 space-y-3">
-                                    {plan.features.map((feature, j) => (
-                                        <li key={j} className="flex items-center gap-3 text-sm">
-                                            <Check className="h-4 w-4 text-primary shrink-0" />
-                                            <span>{feature}</span>
-                                        </li>
-                                    ))}
-                                </ul>
-                                <Link href={`/sign-up?plan=${plan.slug}`} className="block mt-8">
-                                    <Button
-                                        className="w-full"
-                                        variant={plan.popular ? "default" : "outline"}
-                                    >
-                                        {plan.cta}
-                                        <ChevronRight className="ml-1 h-4 w-4" />
-                                    </Button>
-                                </Link>
                             </div>
                         ))}
                     </div>
