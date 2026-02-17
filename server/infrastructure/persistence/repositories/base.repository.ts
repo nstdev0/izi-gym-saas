@@ -46,17 +46,18 @@ export abstract class BaseRepository<
     const safePage = page < 1 ? 1 : page
     const skip = (safePage - 1) * limit;
 
-    let where = undefined
-    let orderBy = { createdAt: "desc" }
+    let where: any = { deletedAt: null }
+    let orderBy: any = { createdAt: "desc" }
+
+    if (this.organizationId) {
+      where.organizationId = this.organizationId;
+    }
 
     if (filters) {
       const [whereClause, orderByClause] = await this.buildPrismaClauses(filters);
-      where = whereClause
-      orderBy = orderByClause
-    }
+      where = { ...where, ...whereClause }
 
-    if (this.organizationId) {
-      where = { ...where, organizationId: this.organizationId };
+      if (orderByClause) orderBy = orderByClause
     }
 
     const [totalRecords, records] = await Promise.all([

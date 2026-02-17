@@ -1,6 +1,7 @@
 import { BadRequestError, ConflictError, NotFoundError } from "@/server/domain/errors/common";
+import { Role } from "@/shared/types/users.types";
+import { SubscriptionStatus } from "@/shared/types/subscription.types";
 import { CreateOrganizationInput } from "@/server/domain/types/organizations";
-import { clerkClient } from "@clerk/nextjs/server";
 import { IOrganizationRepository } from "../../repositories/organizations.repository.interface";
 import { IPlansRepository } from "../../repositories/plans.repository.interface";
 import { IUsersRepository } from "../../repositories/users.repository.interface";
@@ -37,7 +38,7 @@ export class CreateOrganizationUseCase {
     await this.subscriptionRepo.create({
       organizationId: org.id,
       planId: plan.id,
-      status: "TRIALING",
+      status: SubscriptionStatus.TRIALING,
       pricePaid: 0,
       currentPeriodEnd: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
     })
@@ -53,14 +54,14 @@ export class CreateOrganizationUseCase {
         id: userId,
         email: authUser.email,
         image: authUser.imageUrl,
-        role: "OWNER",
+        role: Role.OWNER,
         organizationId: org.id,
         isActive: true,
       })
     } else {
       await this.userRepo.update(userId, {
         organizationId: org.id,
-        role: "OWNER",
+        role: Role.OWNER,
       })
     }
   }

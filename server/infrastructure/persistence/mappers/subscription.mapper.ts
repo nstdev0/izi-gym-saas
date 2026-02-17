@@ -1,4 +1,5 @@
 import { Subscription } from "@/server/domain/entities/Subscription";
+import { SubscriptionStatus } from "@/shared/types/subscription.types";
 import { Subscription as PrismaSubscription, Prisma } from "@/generated/prisma/client";
 import { IMapperInterface } from "./IMapper.interface";
 import { EntityStatus } from "@/server/domain/entities/_base";
@@ -16,7 +17,7 @@ export class SubscriptionMapper implements IMapperInterface<Subscription, Prisma
             raw.organizationPlanId,
             raw.stripeCustomerId,
             raw.stripeSubscriptionId,
-            raw.status,
+            raw.status as unknown as SubscriptionStatus,
             raw.currentPeriodEnd,
             raw.pricePaid.toNumber()
         );

@@ -1,11 +1,5 @@
 import { BaseEntity } from "./_base";
-
-export enum MembershipStatus {
-  ACTIVE = "ACTIVE",
-  EXPIRED = "EXPIRED",
-  PENDING = "PENDING",
-  CANCELLED = "CANCELLED",
-}
+import { MembershipStatus } from "@/shared/types/memberships.types";
 
 export class Membership extends BaseEntity {
   constructor(

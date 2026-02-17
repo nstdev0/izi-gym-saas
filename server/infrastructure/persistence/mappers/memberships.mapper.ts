@@ -1,5 +1,6 @@
 import { Membership as PrismaMembership, Prisma } from "@/generated/prisma/client";
-import { Membership, MembershipStatus } from "@/server/domain/entities/Membership";
+import { Membership } from "@/server/domain/entities/Membership";
+import { MembershipStatus } from "@/shared/types/memberships.types";
 import { IMapperInterface } from "./IMapper.interface";
 
 type PrismaMembershipWithRelations = PrismaMembership & {

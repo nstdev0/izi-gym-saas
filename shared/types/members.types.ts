@@ -1,6 +1,6 @@
 import { BaseEntity } from "./common.types";
 import { z } from "zod";
-import capitalizeText from "../utils/text.utils";
+import { capitalizeText } from "../utils/text.utils";
 import { Membership } from "./memberships.types";
 
 export enum Gender {

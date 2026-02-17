@@ -1,4 +1,4 @@
-import { MembershipStatus } from "@/generated/prisma/client";
+import { MembershipStatus } from "@/shared/types/memberships.types";
 
 export interface CreateMembershipInput {
   startDate: Date;

@@ -1,7 +1,7 @@
 import { GetDashboardMetricsUseCase } from "@/server/application/use-cases/dashboard/get-dashboard-metrics.use-case";
-import { ControllerExecutor } from "@/server/lib/api-handler";
-import { DashboardMetrics } from "@/server/domain/entities/dashboard-metrics";
 import { GetDashboardMetricsInput } from "@/server/domain/types/dashboard";
+import { ControllerExecutor } from "@/server/lib/api-handler";
+import { DashboardMetrics } from "@/shared/types/dashboard.types";
 
 export class GetDashboardMetricsController implements ControllerExecutor<GetDashboardMetricsInput, DashboardMetrics> {
     constructor(private getDashboardMetricsUseCase: GetDashboardMetricsUseCase) { }

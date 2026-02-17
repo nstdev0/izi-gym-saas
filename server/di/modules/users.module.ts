@@ -19,7 +19,7 @@ export function createUsersModule(prisma: PrismaClient, tenantId: string) {
     const clerkAuthService = new ClerkAuthService();
 
     const getAllUsersUseCase = new GetAllUsersUseCase(usersRepository);
-    const createUserUseCase = new CreateUserUseCase(usersRepository, clerkAuthService);
+    const createUserUseCase = new CreateUserUseCase(clerkAuthService);
     const getUserByIdUseCase = new GetUserByIdUseCase(usersRepository);
     const updateUserUseCase = new UpdateUserUseCase(usersRepository);
     const deleteUserUseCase = new DeleteUserUseCase(usersRepository);

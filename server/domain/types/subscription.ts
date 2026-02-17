@@ -1,4 +1,4 @@
-import { SubscriptionStatus } from "@/generated/prisma/client";
+import { SubscriptionStatus } from "@/shared/types/subscription.types";
 
 export interface CreateSubscriptionInput {
     organizationId: string;

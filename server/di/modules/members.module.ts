@@ -59,7 +59,6 @@ export function createMembersModule(prisma: PrismaClient, tenantId: string) {
         deleteMemberController,
         restoreMemberController,
         getMemberByQrCodeController,
-        // Export repository for use in other modules (e.g. Attendance)
         membersRepository,
     };
 }

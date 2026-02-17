@@ -2,7 +2,7 @@ import { BaseRepository } from "./base.repository";
 import { IMembersRepository } from "@repositories/members.repository.interface";
 import { Member } from "@entities/Member";
 import { MembersFilters } from "@repositories/members.repository.interface";
-import { Prisma, PrismaClient, DocType } from "@/generated/prisma/client";
+import { Prisma, DocType } from "@/generated/prisma/client";
 import {
   CreateMemberInput,
   UpdateMemberInput,
@@ -121,7 +121,7 @@ export class MembersRepository
   }
 
 
-  async buildPrismaClauses(
+  protected async buildPrismaClauses(
     filters: MembersFilters,
   ): Promise<[Prisma.MemberWhereInput, Prisma.MemberOrderByWithRelationInput]> {
     const ALLOWED_SORT_FIELDS = ["createdAt", "firstName", "lastName", "gender"] as const

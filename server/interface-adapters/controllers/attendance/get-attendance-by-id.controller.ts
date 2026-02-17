@@ -1,7 +1,7 @@
 import { IGetAttendanceByIdUseCase } from "@/server/application/use-cases/attendance/get-attendance-by-id.use-case";
 import { BadRequestError, NotFoundError } from "@/server/domain/errors/common";
 import { ControllerExecutor } from "@/server/lib/api-handler";
-import { Attendance } from "@/server/domain/entities/Attendance";
+import { Attendance } from "@/shared/types/attendance.types";
 
 export class GetAttendanceByIdController implements ControllerExecutor<void, Attendance | null> {
     constructor(private readonly useCase: IGetAttendanceByIdUseCase) { }

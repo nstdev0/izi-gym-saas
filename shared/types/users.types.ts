@@ -2,6 +2,7 @@ import { BaseEntity } from "./common.types";
 import { z } from "zod";
 
 export enum Role {
+    GOD = "GOD",
     OWNER = "OWNER",
     ADMIN = "ADMIN",
     STAFF = "STAFF",
@@ -18,14 +19,14 @@ export interface User extends BaseEntity {
     preferences: Record<string, unknown> | null;
 }
 
-const AllowedRoles = z.enum(["OWNER", "ADMIN", "STAFF", "TRAINER"]);
+const AllowedRoles = z.nativeEnum(Role);
 
 export const CreateUserSchema = z.object({
     id: z.string().optional(),
     firstName: z.string().optional(),
     lastName: z.string().optional(),
     email: z.string().email("Email inválido"),
-    role: AllowedRoles.default("STAFF"),
+    role: AllowedRoles.default(Role.STAFF),
     isActive: z.boolean().default(true),
     image: z.string().url("URL inválida").optional().or(z.literal("")),
     organizationId: z.string().optional(),

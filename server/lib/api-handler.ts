@@ -141,7 +141,21 @@ export const createContext = <TInput = void, TResult = unknown>(
         );
       }
 
-      // 3. Error No Controlado (Crash) pero verificando si es Prisma
+      // 3. Prisma Unique Constraint Error
+      // @ts-expect-error: Handling Prisma error code dynamically
+      if (error?.code === 'P2002') {
+        // Prisma devuelve el campo que falló en error.meta.target
+        const target = (error as any).meta?.target;
+        return NextResponse.json(
+          {
+            message: `El valor ingresado ya existe (${target}).`,
+            code: "CONFLICT_ERROR",
+          },
+          { status: 409 }
+        );
+      }
+
+      // 4. Error No Controlado (Crash) pero verificando si es Prisma
       // @ts-expect-error: Handling Prisma error code dynamically
       if (error?.code === 'P2003') {
         return NextResponse.json(

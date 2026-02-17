@@ -1,5 +1,5 @@
 import { BaseEntity, EntityStatus } from "./_base";
-import { SubscriptionStatus } from "@/generated/prisma/client";
+import { SubscriptionStatus } from "@/shared/types/subscription.types";
 
 export class Subscription extends BaseEntity {
     constructor(

@@ -22,4 +22,5 @@ export interface IMembersRepository extends IBaseRepository<
   restore(id: string): Promise<void>;
   delete(id: string): Promise<void>;
   findByIdWithMemberships(id: string): Promise<Member | null>;
+  findByQrCode(qrCode: string): Promise<Member | null>;
 }

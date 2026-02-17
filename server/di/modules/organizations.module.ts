@@ -31,6 +31,7 @@ export function createOrganizationsModule(prisma: PrismaClient, tenantId: string
     const plansRepository = new PlansRepository(prisma.plan, tenantId);
     const subscriptionRepository = new SubscriptionRepository(prisma.subscription, tenantId);
     const usersRepository = new UsersRepository(prisma.user, tenantId);
+
     const authProvider = new ClerkAuthService();
 
     const createOrganizationUseCase = new CreateOrganizationUseCase(
@@ -43,6 +44,10 @@ export function createOrganizationsModule(prisma: PrismaClient, tenantId: string
     const upgradeOrganizationPlanUseCase = new UpgradeOrganizationPlanUseCase(
         organizationsRepository,
     );
+    const updateOrganizationSettingsUseCase = new UpdateOrganizationSettingsUseCase(
+        organizationsRepository,
+        authProvider,
+    )
 
     const getAllOrganizationsController = new GetAllOrganizationsController(
         getAllOrganizationsUseCase,
@@ -63,7 +68,7 @@ export function createOrganizationsModule(prisma: PrismaClient, tenantId: string
         new DeleteOrganizationUseCase(organizationsRepository),
     );
     const updateOrganizationSettingsController = new UpdateOrganizationSettingsController(
-        new UpdateOrganizationSettingsUseCase(organizationsRepository),
+        updateOrganizationSettingsUseCase,
     );
     const upgradeOrganizationPlanController = new UpgradeOrganizationPlanController(
         upgradeOrganizationPlanUseCase,

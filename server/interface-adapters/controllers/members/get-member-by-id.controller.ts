@@ -1,7 +1,7 @@
 import { IGetMemberByIdUseCase } from "@/server/application/use-cases/members/get-member-by-id.use-case";
-import { Member } from "@/server/domain/entities/Member";
 import { BadRequestError, NotFoundError } from "@/server/domain/errors/common";
 import { ControllerExecutor } from "@/server/lib/api-handler";
+import { Member } from "@/shared/types/members.types";
 
 export class GetMemberByIdController implements ControllerExecutor<void, Member | null> {
   constructor(private readonly useCase: IGetMemberByIdUseCase) { }
@@ -15,7 +15,6 @@ export class GetMemberByIdController implements ControllerExecutor<void, Member 
     if (!member) {
       throw new NotFoundError("Miembro no encontrado");
     }
-
     return member;
   }
 }

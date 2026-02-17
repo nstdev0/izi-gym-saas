@@ -1,12 +1,23 @@
 import { UpdateOrganizationSettingsInput } from "../../dtos/organizations.dto";
-import { clerkClient } from "@clerk/nextjs/server";
 import { IOrganizationRepository } from "@/server/application/repositories/organizations.repository.interface";
+import { IAuthProvider } from "../../services/auth-provider.interface";
 
 export class UpdateOrganizationSettingsUseCase {
-    constructor(private readonly repository: IOrganizationRepository) { }
+    constructor(
+        private readonly repository: IOrganizationRepository,
+        private readonly authService: IAuthProvider
+    ) { }
 
-    async execute(organizationId: string, input: UpdateOrganizationSettingsInput): Promise<void> {
+    async execute(input: UpdateOrganizationSettingsInput): Promise<void> {
         const { name, image, config } = input;
+
+        const session = await this.authService.getSession();
+
+        const organizationId = session?.orgId;
+
+        if (!session?.userId || !organizationId) {
+            throw new Error("No autenticado o sin organización");
+        }
 
         const currentOrg = await this.repository.findUnique({ id: organizationId });
 
@@ -156,7 +167,7 @@ export class UpdateOrganizationSettingsUseCase {
         // Sync with Clerk
         if (name && name !== currentOrg.name) {
             try {
-                const clerk = await clerkClient();
+                const clerk = await this.authService.getClient();
                 await clerk.organizations.updateOrganization(organizationId, {
                     name: name,
                     slug: undefined

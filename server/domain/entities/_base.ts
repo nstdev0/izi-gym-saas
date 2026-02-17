@@ -1,4 +1,4 @@
-import { MembershipStatus } from "./Membership";
+import { MembershipStatus } from "@/shared/types/memberships.types";
 
 export enum EntityStatus {
   ACTIVE = "ACTIVE",

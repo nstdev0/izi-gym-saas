@@ -44,7 +44,7 @@ export class OrganizationsRepository
     return this.mapper.toDomain(org);
   }
 
-  async buildPrismaClauses(
+  protected async buildPrismaClauses(
     filters: OrganizationsFilters,
   ): Promise<[Prisma.OrganizationWhereInput, Prisma.OrganizationOrderByWithRelationInput]> {
     const whereClause: Prisma.OrganizationWhereInput = {};

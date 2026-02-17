@@ -1,13 +1,13 @@
-import { IMembersRepository } from "../../repositories/members.repository.interface";
-import { CreateMemberInput } from "../../dtos/members.dto";
+import { IMembersRepository } from "@/server/application/repositories/members.repository.interface";
+import { CreateMemberInput } from "@/server/application/dtos/members.dto";
 import { ConflictError } from "@/server/domain/errors/common";
-import { IMCCalculator } from "@/server/infrastructure/services/imc-calculator.service";
 import { generateMemberQrToken } from "@/shared/utils/token-generator";
+import { IIMCCalculator } from "@/server/application/services/imc-calculator.interface";
 
 export class CreateMemberUseCase {
   constructor(
     private readonly repo: IMembersRepository,
-    private readonly imcCalculator: IMCCalculator
+    private readonly imcCalculator: IIMCCalculator
   ) { }
 
   async execute(input: CreateMemberInput): Promise<void> {

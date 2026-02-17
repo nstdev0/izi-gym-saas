@@ -15,6 +15,7 @@ export interface Organization extends BaseEntity {
 
 export const createOrganizationSchema = z.object({
     name: z.string().min(3),
+    userId: z.string().optional(),
     slug: z
         .string()
         .min(3)

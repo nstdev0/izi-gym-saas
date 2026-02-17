@@ -1,15 +1,26 @@
 import { IAuthProvider } from "@/server/application/services/auth-provider.interface";
-import { clerkClient, createClerkClient } from "@clerk/nextjs/server";
+import { auth, clerkClient, createClerkClient } from "@clerk/nextjs/server";
+import { Role } from "@/shared/types/users.types";
 
 const clerk = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY });
 
 export class ClerkAuthService implements IAuthProvider {
+    async getSession(): Promise<{ userId: string; orgId: string; } | null> {
+        const session = await auth();
+        if (!session?.userId || !session?.orgId) {
+            return null;
+        }
+        return {
+            userId: session.userId,
+            orgId: session.orgId,
+        };
+    }
     async inviteUserToOrganization(data: {
         email: string;
-        role: "ADMIN" | "STAFF" | "TRAINER";
+        role: Role;
         organizationId: string;
         inviterUserId: string;
-    }) {
+    }): Promise<void> {
         try {
             console.log(`🚀 Sending Org Invitation: ${data.email} to ${data.organizationId} by ${data.inviterUserId}`);
 
@@ -23,7 +34,7 @@ export class ClerkAuthService implements IAuthProvider {
 
             console.log(`🔗 Redirect Target: /${slug}/admin/dashboard`);
 
-            const invitation = await clerk.organizations.createOrganizationInvitation({
+            await clerk.organizations.createOrganizationInvitation({
                 organizationId: data.organizationId,
                 emailAddress: data.email,
                 role: clerkRole,
@@ -34,8 +45,6 @@ export class ClerkAuthService implements IAuthProvider {
                 },
             });
 
-            return invitation;
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (error: any) {
             console.error("❌ Org Invitation Error:", JSON.stringify(error, null, 2));
             if (error.errors?.[0]?.code === "resource_not_found") {
@@ -58,5 +67,9 @@ export class ClerkAuthService implements IAuthProvider {
             email: user.emailAddresses[0]?.emailAddress ?? null,
             imageUrl: user.imageUrl,
         }
+    }
+
+    async getClient() {
+        return clerkClient();
     }
 }

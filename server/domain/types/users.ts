@@ -1,4 +1,4 @@
-import { Role } from "@/generated/prisma/client";
+import { Role } from "@/shared/types/users.types";
 
 export interface CreateUserInput {
   id?: string;
@@ -6,7 +6,7 @@ export interface CreateUserInput {
   firstName?: string;
   lastName?: string;
   email: string;
-  password?: string; // Optional because validation handles it, but logic needs it
+  password?: string;
   role: Role;
   isActive: boolean;
   image?: string | null;

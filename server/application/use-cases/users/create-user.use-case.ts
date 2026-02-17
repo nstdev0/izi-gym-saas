@@ -1,7 +1,6 @@
 import { IUsersRepository } from "@/server/application/repositories/users.repository.interface";
 import { CreateUserInput } from "@/server/domain/types/users";
-import { User } from "@/server/domain/entities/User";
-import { ClerkAuthService } from "@/server/infrastructure/services/clerk-auth.service";
+import { IAuthProvider } from "../../services/auth-provider.interface";
 
 export interface ICreateUserUseCase {
   execute(input: CreateUserInput, organizationId?: string, inviterId?: string): Promise<void>;
@@ -12,8 +11,7 @@ export interface ICreateUserUseCase {
 // Lo más limpio es ajustar el tipo de retorno aquí y en el controller, pero para esta iteración devolvemos un "User" dummy.
 export class CreateUserUseCase implements ICreateUserUseCase {
   constructor(
-    private repository: IUsersRepository,
-    private authService: ClerkAuthService
+    private authService: IAuthProvider
   ) { }
 
   async execute(input: CreateUserInput, organizationId?: string, inviterId?: string): Promise<void> {
