@@ -1,8 +1,8 @@
 import { fetchClient } from "@/lib/fetch-client";
-import { CreateUserInput, UpdateUserInput } from "@/server/application/dtos/users.dto";
-import { User } from "@/server/domain/entities/User";
-import { PageableRequest, PageableResponse } from "@/server/shared/common/pagination";
-import { UsersFilters } from "@/server/domain/types/users";
+import { CreateUserInput, UpdateUserInput } from "@/shared/types/users.types";
+import { User } from "@/shared/types/users.types";
+import { PageableRequest, PageableResponse } from "@/shared/types/pagination.types";
+import { UsersFilters } from "@/shared/types/users.types";
 
 const BASE_API_PATH = "/api/users";
 

@@ -2,9 +2,9 @@ import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tansta
 import { usersApi } from "@/lib/api-client/users.api";
 import { userKeys } from "@/lib/react-query/query-keys";
 import { toast } from "sonner";
-import { CreateUserInput, UpdateUserInput } from "@/server/application/dtos/users.dto";
-import { PageableRequest } from "@/server/shared/common/pagination";
-import { UsersFilters } from "@/server/domain/types/users";
+import { CreateUserInput, UpdateUserInput } from "@/shared/types/users.types";
+import { PageableRequest } from "@/shared/types/pagination.types";
+import { UsersFilters } from "@/shared/types/users.types";
 
 export const useUsersList = (params: PageableRequest<UsersFilters>) => {
     return useQuery({

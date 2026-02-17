@@ -1,8 +1,8 @@
-import { CreateMemberSchema } from "@/server/application/dtos/members.dto";
-import { MembersFilters } from "@/server/application/repositories/members.repository.interface";
+import { CreateMemberSchema } from "@/shared/types/members.types";
+import { MembersFilters } from "@/shared/types/members.types";
 import { createContext } from "@/server/lib/api-handler";
-import { PageableRequest } from "@/server/shared/common/pagination";
-import { parsePagination } from "@/server/shared/utils/pagination-parser";
+import { PageableRequest } from "@/shared/types/pagination.types";
+import { parsePagination } from "@/shared/utils/pagination-parser";
 
 export const GET = createContext(
   (c) => c.getAllMembersController,

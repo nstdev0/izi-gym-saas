@@ -1,8 +1,8 @@
 import { createContext } from "@/server/lib/api-handler";
-import { PageableRequest } from "@/server/shared/common/pagination";
+import { PageableRequest } from "@/shared/types/pagination.types";
 import { ProductsFilters } from "@/server/application/repositories/products.repository.interface";
-import { parsePagination } from "@/server/shared/utils/pagination-parser";
-import { createProductSchema } from "@/server/application/dtos/products.dto";
+import { parsePagination } from "@/shared/utils/pagination-parser";
+import { createProductSchema } from "@/shared/types/products.types";
 
 export const GET = createContext(
   (container) => container.getAllProductsController,

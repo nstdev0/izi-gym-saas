@@ -1,8 +1,8 @@
 import { fetchClient } from "@/lib/fetch-client";
-import { AttendanceFilters } from "@/server/application/repositories/attendance.repository.interface";
-import { UpdateAttendanceInput } from "@/server/application/dtos/attendance.dto";
-import { PageableRequest, PageableResponse } from "@/server/shared/common/pagination";
-import { Attendance } from "@/server/domain/entities/Attendance";
+import { AttendanceFilters } from "@/shared/types/attendance.types";
+import { UpdateAttendanceInput } from "@/shared/types/attendance.types";
+import { PageableRequest, PageableResponse } from "@/shared/types/pagination.types";
+import { Attendance } from "@/shared/types/attendance.types";
 
 export interface RegisterAttendanceInput {
     memberId: string;

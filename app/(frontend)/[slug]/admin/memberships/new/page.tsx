@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import MembershipForm from "../components/memberships-form";
 import { Metadata } from "next";
 import { getContainer } from "@/server/di/container";
-import { Member } from "@/server/domain/entities/Member";
+import { Member } from "@/shared/types/members.types";
 
 export const metadata: Metadata = {
     title: "Nueva Membresía",

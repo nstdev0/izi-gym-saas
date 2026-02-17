@@ -1,7 +1,7 @@
 import { UsersFilters } from "@/server/application/repositories/users.repository.interface";
 import { createContext } from "@/server/lib/api-handler";
-import { PageableRequest } from "@/server/shared/common/pagination";
-import { parsePagination } from "@/server/shared/utils/pagination-parser";
+import { PageableRequest } from "@/shared/types/pagination.types";
+import { parsePagination } from "@/shared/utils/pagination-parser";
 
 export const GET = createContext(
   (container) => container.getAllUsersController,
@@ -21,7 +21,7 @@ export const GET = createContext(
   },
 );
 
-import { CreateUserSchema } from "@/server/application/dtos/users.dto";
+import { CreateUserSchema } from "@/shared/types/users.types";
 
 export const POST = createContext(
   (container) => container.createUserController,

@@ -1,7 +1,7 @@
 import { fetchClient } from "@/lib/fetch-client";
-import { CreateOrganizationSchema, UpdateOrganizationSchema } from "@/server/application/dtos/organizations.dto";
-import { Organization } from "@/server/domain/entities/Organization";
-import { PageableResponse } from "@/server/shared/common/pagination";
+import { CreateOrganizationInput, UpdateOrganizationInput } from "@/shared/types/organizations.types";
+import { Organization } from "@/shared/types/organizations.types";
+import { PageableResponse } from "@/shared/types/pagination.types";
 
 export interface OrganizationPaginationParams {
     page?: number;
@@ -34,14 +34,14 @@ export const organizationsApi = {
         return fetchClient<Organization>(`${BASE_API_PATH}/${id}`);
     },
 
-    create: (data: CreateOrganizationSchema) => {
+    create: (data: CreateOrganizationInput) => {
         return fetchClient<Organization>(BASE_API_PATH, {
             method: "POST",
             body: JSON.stringify(data),
         });
     },
 
-    update: (id: string, data: UpdateOrganizationSchema) => {
+    update: (id: string, data: UpdateOrganizationInput) => {
         return fetchClient<Organization>(`${BASE_API_PATH}/${id}`, {
             method: "PATCH",
             body: JSON.stringify(data),

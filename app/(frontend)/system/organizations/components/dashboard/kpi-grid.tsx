@@ -1,7 +1,7 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { SystemStats } from "@/server/domain/types/system";
+import { SystemStats } from "@/shared/types/system.types";
 import { DollarSign, Users, Building2, UserPlus } from "lucide-react";
 
 interface KpiGridProps {

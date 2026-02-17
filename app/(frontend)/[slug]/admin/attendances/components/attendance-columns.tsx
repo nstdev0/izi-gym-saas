@@ -27,7 +27,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useDeleteAttendance } from "@/hooks/attendance/use-attendance";
 import { useState } from "react";
-import { Attendance } from "@/server/domain/entities/Attendance";
+import { Attendance } from "@/shared/types/attendance.types";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 

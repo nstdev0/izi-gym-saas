@@ -77,4 +77,12 @@ export class PlansRepository
 
     return [WhereClause, OrderByClause];
   }
+
+  async findBySlug(slug: string): Promise<Plan | null> {
+    const record = await this.model.findUnique({
+      where: { slug },
+    });
+
+    return record ? this.mapper.toDomain(record) : null;
+  }
 }

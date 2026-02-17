@@ -1,4 +1,4 @@
-import { Membership as PrismaMembership } from "@/generated/prisma/client";
+import { Membership as PrismaMembership, Prisma } from "@/generated/prisma/client";
 import { Membership, MembershipStatus } from "@/server/domain/entities/Membership";
 import { IMapperInterface } from "./IMapper.interface";
 
@@ -7,8 +7,8 @@ type PrismaMembershipWithRelations = PrismaMembership & {
     plan?: { name: string } | null;
 };
 
-export class MembershipMapper implements IMapperInterface<Membership> {
-    toDomain(raw: PrismaMembershipWithRelations): Membership {
+export class MembershipMapper implements IMapperInterface<Membership, Prisma.MembershipUncheckedCreateInput> {
+    toDomain(raw: any): Membership {
         const domainEntity = new Membership(
             raw.id,
             raw.organizationId,
@@ -41,5 +41,21 @@ export class MembershipMapper implements IMapperInterface<Membership> {
         }
 
         return domainEntity;
+    }
+
+    toPersistence(domain: Membership): Prisma.MembershipUncheckedCreateInput {
+        return {
+            id: domain.id,
+            organizationId: domain.organizationId,
+            createdAt: domain.createdAt,
+            updatedAt: domain.updatedAt,
+            status: domain.status as MembershipStatus,
+            startDate: domain.startDate,
+            endDate: domain.endDate,
+            pricePaid: domain.pricePaid,
+            memberId: domain.memberId,
+            planId: domain.planId,
+            deletedAt: domain.deletedAt,
+        }
     }
 }

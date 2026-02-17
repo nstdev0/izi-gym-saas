@@ -1,8 +1,8 @@
-import { createOrganizationSchema } from "@/server/application/dtos/organizations.dto";
+import { createOrganizationSchema } from "@/shared/types/organizations.types";
 import { OrganizationsFilters } from "@/server/application/repositories/organizations.repository.interface";
 import { createContext } from "@/server/lib/api-handler";
-import { PageableRequest } from "@/server/shared/common/pagination";
-import { parsePagination } from "@/server/shared/utils/pagination-parser";
+import { PageableRequest } from "@/shared/types/pagination.types";
+import { parsePagination } from "@/shared/utils/pagination-parser";
 import { auth } from "@clerk/nextjs/server";
 
 export const GET = createContext(

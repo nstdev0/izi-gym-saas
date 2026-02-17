@@ -1,7 +1,7 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { User } from "@/server/domain/entities/User";
+import { User } from "@/shared/types/users.types";
 import { Trash2, Shield, CheckCircle, XCircle, Eye, MoreHorizontal, UserCog, Calendar, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {

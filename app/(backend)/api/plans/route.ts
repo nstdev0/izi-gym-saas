@@ -1,8 +1,8 @@
-import { createPlanSchema } from "@/server/application/dtos/plans.dto";
+import { createPlanSchema } from "@/shared/types/plans.types";
 import { PlansFilters } from "@/server/application/repositories/plans.repository.interface";
 import { createContext } from "@/server/lib/api-handler";
-import { PageableRequest } from "@/server/shared/common/pagination";
-import { parsePagination } from "@/server/shared/utils/pagination-parser";
+import { PageableRequest } from "@/shared/types/pagination.types";
+import { parsePagination } from "@/shared/utils/pagination-parser";
 
 export const GET = createContext(
   (c) => c.getAllPlansController,

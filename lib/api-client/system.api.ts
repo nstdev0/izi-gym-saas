@@ -1,7 +1,7 @@
 import { fetchClient } from "@/lib/fetch-client";
-import { SystemStats } from "@/server/domain/types/system";
-import { Organization } from "@/server/domain/entities/Organization";
-import { PageableResponse } from "@/server/shared/common/pagination";
+import { SystemStats } from "@/shared/types/system.types";
+import { Organization } from "@/shared/types/organizations.types";
+import { PageableResponse } from "@/shared/types/pagination.types";
 import { OrganizationPaginationParams } from "./organizations.api";
 
 const BASE_API_PATH = "/api/system";

@@ -18,7 +18,7 @@ import { StatCardSkeleton } from "@/components/ui/skeletons/stat-card-skeleton";
 import { DataTableSkeleton } from "@/components/ui/skeletons/data-table-skeleton";
 import { useQueryStates } from "nuqs";
 import { usersParsers } from "@/lib/nuqs/search-params/users";
-import { User } from "@/server/domain/entities/User";
+import { User } from "@/shared/types/users.types";
 import {
     getCoreRowModel,
     useReactTable,

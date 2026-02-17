@@ -12,12 +12,12 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { CreateUserSchema } from "@/server/application/dtos/users.dto";
+import { CreateUserSchema } from "@/shared/types/users.types";
 import { Loader2, Save, User, Mail, Shield, CheckCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { ApiError } from "@/lib/api";
 import { toast } from "sonner";
-import { User as UserEntity } from "@/server/domain/entities/User";
+import { User as UserEntity } from "@/shared/types/users.types";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { AvatarUploader } from "@/components/avatar-uploader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

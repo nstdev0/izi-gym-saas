@@ -1,7 +1,7 @@
 import {
   PageableRequest,
   PageableResponse,
-} from "@/server/shared/common/pagination";
+} from "@/shared/common/pagination";
 import {
   IOrganizationRepository,
   OrganizationsFilters,
@@ -11,7 +11,7 @@ import { Organization } from "@/server/domain/entities/Organization";
 export class GetAllOrganizationsUseCase {
   constructor(
     private readonly organizationsRepository: IOrganizationRepository,
-  ) {}
+  ) { }
 
   async execute(
     params: PageableRequest<OrganizationsFilters>,

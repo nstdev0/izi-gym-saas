@@ -2,9 +2,9 @@ import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tansta
 import { organizationsApi } from "@/lib/api-client/organizations.api";
 import { organizationKeys } from "@/lib/react-query/query-keys";
 import { toast } from "sonner";
-import { CreateOrganizationSchema, UpdateOrganizationSchema } from "@/server/application/dtos/organizations.dto";
-import { PageableRequest } from "@/server/shared/common/pagination";
-import { OrganizationsFilters } from "@/server/application/repositories/organizations.repository.interface";
+import { CreateOrganizationInput, UpdateOrganizationInput } from "@/shared/types/organizations.types";
+import { PageableRequest } from "@/shared/types/pagination.types";
+import { OrganizationsFilters } from "@/shared/types/organizations.types";
 
 export const useOrganizationsList = (params: PageableRequest<OrganizationsFilters>) => {
     return useQuery({
@@ -25,7 +25,7 @@ export const useOrganizationDetail = (id: string, enabled = true) => {
 export const useCreateOrganization = () => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (data: CreateOrganizationSchema) => organizationsApi.create(data),
+        mutationFn: (data: CreateOrganizationInput) => organizationsApi.create(data),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: organizationKeys.lists() });
             toast.success("Organización creada exitosamente");
@@ -39,7 +39,7 @@ export const useCreateOrganization = () => {
 export const useUpdateOrganization = () => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: ({ id, data }: { id: string; data: UpdateOrganizationSchema }) => organizationsApi.update(id, data),
+        mutationFn: ({ id, data }: { id: string; data: UpdateOrganizationInput }) => organizationsApi.update(id, data),
         onMutate: async ({ id, data }) => {
             await queryClient.cancelQueries({ queryKey: organizationKeys.lists() });
             await queryClient.cancelQueries({ queryKey: organizationKeys.detail(id) });

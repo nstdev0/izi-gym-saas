@@ -1,4 +1,4 @@
-import { UpdatePlanSchema } from "@/server/application/dtos/plans.dto";
+import { UpdatePlanSchema } from "@/shared/types/plans.types";
 import { createContext } from "@/server/lib/api-handler";
 
 export const GET = createContext(

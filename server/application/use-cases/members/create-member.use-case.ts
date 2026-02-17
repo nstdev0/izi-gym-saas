@@ -1,12 +1,14 @@
-import { Member } from "@/server/domain/entities/Member";
 import { IMembersRepository } from "../../repositories/members.repository.interface";
 import { CreateMemberInput } from "../../dtos/members.dto";
 import { ConflictError } from "@/server/domain/errors/common";
-import { IMCCalculator } from "@/server/application/services/imc-calculator.service";
-import { generateMemberQrToken } from "@/server/shared/utils/token-generator";
+import { IMCCalculator } from "@/server/infrastructure/services/imc-calculator.service";
+import { generateMemberQrToken } from "@/shared/utils/token-generator";
 
 export class CreateMemberUseCase {
-  constructor(private readonly repo: IMembersRepository) { }
+  constructor(
+    private readonly repo: IMembersRepository,
+    private readonly imcCalculator: IMCCalculator
+  ) { }
 
   async execute(input: CreateMemberInput): Promise<void> {
     const errors: string[] = [];
@@ -25,7 +27,7 @@ export class CreateMemberUseCase {
     }
 
     if (input.height && input.weight) {
-      const imc = IMCCalculator.calculate(input.weight, input.height);
+      const imc = this.imcCalculator.calculate(input.weight, input.height);
       if (imc) input.imc = imc;
     }
 

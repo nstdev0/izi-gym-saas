@@ -7,7 +7,7 @@ import {
   UpdateMembershipInput,
   MembershipsFilters,
 } from "@/server/domain/types/memberships";
-import { PageableRequest, PageableResponse } from "@/server/shared/common/pagination";
+import { PageableRequest, PageableResponse } from "@/shared/common/pagination";
 import { MembershipMapper } from "../mappers/memberships.mapper";
 
 

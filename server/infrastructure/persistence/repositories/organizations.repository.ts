@@ -1,4 +1,5 @@
 import { Prisma } from "@/generated/prisma/client";
+import { prisma } from "@/server/infrastructure/persistence/prisma";
 import { BaseRepository } from "./base.repository";
 import { IOrganizationRepository } from "@/server/application/repositories/organizations.repository.interface";
 import {
@@ -86,9 +87,49 @@ export class OrganizationsRepository
 
   // }
 
-  // async upgradePlan(planSlug: string): Promise<Organization> {
+  async upgradePlan(slug: string): Promise<Organization> {
+    if (!this.organizationId) throw new Error("Organization Context required");
 
-  // }
+    // 1. Find the plan
+    const plan = await prisma.organizationPlan.findUnique({
+      where: { slug },
+    });
+
+    if (!plan) {
+      throw new Error(`El plan '${slug}' no es válido o no existe.`);
+    }
+
+    // 2. Execute transaction
+    await prisma.$transaction(async (tx) => {
+      await tx.organization.update({
+        where: { id: this.organizationId },
+        data: {
+          organizationPlanId: plan.id,
+          organizationPlan: plan.name
+        }
+      });
+
+      await tx.subscription.update({
+        where: { organizationId: this.organizationId },
+        data: {
+          pricePaid: plan.price
+        },
+      });
+    });
+
+    // 3. Return updated organization
+    const updatedOrg = await this.organizationModel.findUnique({
+      where: { id: this.organizationId },
+      include: {
+        config: true,
+        plan: true
+      }
+    });
+
+    if (!updatedOrg) throw new Error("Organization not found after upgrade");
+
+    return this.mapper.toDomain(updatedOrg);
+  }
 
   async updateSettings(id: string, settings: any): Promise<Organization> {
     const { name, image, config } = settings;
@@ -133,5 +174,13 @@ export class OrganizationsRepository
     if (!updatedOrg) throw new Error("Organization not found after update");
 
     return this.mapper.toDomain(updatedOrg);
+  }
+
+  async findBySlug(slug: string): Promise<Organization | null> {
+    const record = await this.organizationModel.findUnique({
+      where: { slug },
+    });
+
+    return record ? this.mapper.toDomain(record) : null;
   }
 }

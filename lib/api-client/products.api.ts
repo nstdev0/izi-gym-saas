@@ -1,8 +1,8 @@
 import { fetchClient } from "@/lib/fetch-client";
-import { CreateProductSchema, UpdateProductSchema } from "@/server/application/dtos/products.dto";
-import { Product } from "@/server/domain/entities/Product";
-import { PageableRequest, PageableResponse } from "@/server/shared/common/pagination";
-import { ProductsFilters } from "@/server/domain/types/products";
+import { CreateProductInput, UpdateProductInput } from "@/shared/types/products.types";
+import { Product } from "@/shared/types/products.types";
+import { PageableRequest, PageableResponse } from "@/shared/types/pagination.types";
+import { ProductsFilters } from "@/shared/types/products.types";
 
 const BASE_API_PATH = "/api/products";
 
@@ -31,14 +31,14 @@ export const productsApi = {
         return fetchClient<Product>(`${BASE_API_PATH}/${id}`);
     },
 
-    create: (data: CreateProductSchema) => {
+    create: (data: CreateProductInput) => {
         return fetchClient<Product>(BASE_API_PATH, {
             method: "POST",
             body: JSON.stringify(data),
         });
     },
 
-    update: (id: string, data: UpdateProductSchema) => {
+    update: (id: string, data: UpdateProductInput) => {
         return fetchClient<Product>(`${BASE_API_PATH}/${id}`, {
             method: "PATCH",
             body: JSON.stringify(data),

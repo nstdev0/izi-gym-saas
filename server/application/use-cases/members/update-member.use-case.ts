@@ -1,10 +1,13 @@
 import { UpdateMemberInput } from "@/server/domain/types/members";
 import { IMembersRepository } from "@/server/application/repositories/members.repository.interface";
-import { IMCCalculator } from "@/server/application/services/imc-calculator.service";
+import { IMCCalculator } from "@/server/infrastructure/services/imc-calculator.service";
 import { ConflictError } from "@/server/domain/errors/common";
 
 export class UpdateMemberUseCase {
-  constructor(private readonly repository: IMembersRepository) { }
+  constructor(
+    private readonly repository: IMembersRepository,
+    private readonly imcCalculator: IMCCalculator
+  ) { }
 
   async execute(id: string, data: UpdateMemberInput): Promise<void> {
     if (data.email) {
@@ -22,7 +25,7 @@ export class UpdateMemberUseCase {
       const newWeight = data.weight ?? currentMember.weight;
 
       if (newHeight && newWeight) {
-        const imc = IMCCalculator.calculate(newWeight, newHeight);
+        const imc = this.imcCalculator.calculate(newWeight, newHeight);
         if (imc) {
           data.imc = imc;
         }

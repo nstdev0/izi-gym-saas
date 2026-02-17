@@ -3,7 +3,7 @@
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Suspense, useState } from "react";
-import { Organization } from "@/server/domain/entities/Organization";
+import { Organization } from "@/shared/types/organizations.types";
 import { SearchInput } from "@/components/ui/search-input";
 import { Pagination } from "@/components/ui/pagination";
 import Loading from "../loading";

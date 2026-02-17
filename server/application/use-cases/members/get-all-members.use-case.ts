@@ -1,7 +1,7 @@
 import {
   PageableRequest,
   PageableResponse,
-} from "@/server/shared/common/pagination";
+} from "@/shared/common/pagination";
 import { Member } from "@entities/Member";
 import {
   IMembersRepository,

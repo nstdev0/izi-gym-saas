@@ -1,4 +1,4 @@
-import { UpdateAttendanceSchema } from "@/server/application/dtos/attendance.dto";
+import { UpdateAttendanceSchema } from "@/shared/types/attendance.types";
 import { createContext } from "@/server/lib/api-handler";
 
 export const GET = createContext(

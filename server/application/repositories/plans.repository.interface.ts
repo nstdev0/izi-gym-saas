@@ -14,4 +14,6 @@ export interface IPlansRepository extends IBaseRepository<
   CreatePlanInput,
   UpdatePlanInput,
   PlansFilters
-> {}
+> {
+  findBySlug(slug: string): Promise<Plan | null>;
+}

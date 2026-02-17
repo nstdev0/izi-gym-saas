@@ -18,10 +18,10 @@ import { api, ApiError } from "@/lib/api";
 import { toast } from "sonner";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { MembershipStatus } from "@/server/domain/entities/Membership";
+import { MembershipStatus } from "@/shared/types/memberships.types";
 import { MemberCombobox } from "./member-combobox";
-import { Member } from "@/server/domain/entities/Member";
-import { CreateMembershipInput, createMembershipSchema } from "@/server/application/dtos/memberships.dto";
+import { Member } from "@/shared/types/members.types";
+import { CreateMembershipInput, createMembershipSchema } from "@/shared/types/memberships.types";
 import { useCreateMembership, useUpdateMembership } from "@/hooks/memberships/use-memberships";
 
 export interface SelectablePlan {

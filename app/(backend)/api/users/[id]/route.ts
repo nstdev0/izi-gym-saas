@@ -1,4 +1,4 @@
-import { UpdateUserSchema } from "@/server/application/dtos/users.dto";
+import { UpdateUserSchema } from "@/shared/types/users.types";
 import { createContext } from "@/server/lib/api-handler";
 
 export const GET = createContext(

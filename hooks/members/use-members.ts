@@ -2,10 +2,10 @@ import { useQuery, useMutation, useQueryClient, keepPreviousData, QueryKey } fro
 import { membersApi } from "@/lib/api-client/members.api";
 import { memberKeys } from "@/lib/react-query/query-keys";
 import { toast } from "sonner";
-import { CreateMemberInput, UpdateMemberInput } from "@/server/application/dtos/members.dto";
-import { PageableRequest, PageableResponse } from "@/server/shared/common/pagination";
-import { MembersFilters } from "@/server/application/repositories/members.repository.interface";
-import { Member } from "@/server/domain/entities/Member";
+import { CreateMemberInput, UpdateMemberInput } from "@/shared/types/members.types";
+import { PageableRequest, PageableResponse } from "@/shared/types/pagination.types";
+import { MembersFilters } from "@/shared/types/members.types";
+import { Member } from "@/shared/types/members.types";
 
 export const useMembersList = (params: PageableRequest<MembersFilters>) => {
     return useQuery({

@@ -37,8 +37,6 @@ export class Member extends BaseEntity {
     public imc?: number | null,
     public image?: string | null,
     public memberships?: Membership[],
-    public oldEmail?: string | null,
-    public oldDocNumber?: string | null,
   ) {
     super(id, organizationId, createdAt, updatedAt, status, deletedAt);
   }

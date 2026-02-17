@@ -1,12 +1,12 @@
 import { removeEmptyParams } from "@/lib/utils";
-import { MembersFilters } from "@/server/application/repositories/members.repository.interface";
-import { AttendanceFilters } from "@/server/application/repositories/attendance.repository.interface";
-import { MembershipsFilters } from "@/server/domain/types/memberships";
-import { OrganizationsFilters } from "@/server/domain/types/organizations";
-import { PlansFilters } from "@/server/domain/types/plans";
-import { ProductsFilters } from "@/server/domain/types/products";
-import { UsersFilters } from "@/server/domain/types/users";
-import { PageableRequest } from "@/server/shared/common/pagination";
+import { AttendanceFilters } from "@/shared/types/attendance.types";
+import { MembersFilters } from "@/shared/types/members.types";
+import { MembershipsFilters } from "@/shared/types/memberships.types";
+import { OrganizationsFilters } from "@/shared/types/organizations.types";
+import { PlansFilters } from "@/shared/types/plans.types";
+import { ProductsFilters } from "@/shared/types/products.types";
+import { UsersFilters } from "@/shared/types/users.types";
+import { PageableRequest } from "@/shared/common/pagination";
 
 export const attendanceKeys = {
     all: ['attendance'] as const,

@@ -1,5 +1,5 @@
 import { fetchClient } from "@/lib/fetch-client";
-import { DashboardMetrics } from "@/server/domain/entities/dashboard-metrics";
+import { DashboardMetrics } from "@/shared/types/dashboard.types";
 
 export interface DashboardParams {
     from?: string;

@@ -2,10 +2,13 @@ import { useQuery, useMutation, useQueryClient, keepPreviousData, QueryKey } fro
 import { productsApi } from "@/lib/api-client/products.api";
 import { productKeys } from "@/lib/react-query/query-keys";
 import { toast } from "sonner";
-import { CreateProductSchema, UpdateProductSchema } from "@/server/application/dtos/products.dto";
-import { PageableRequest, PageableResponse } from "@/server/shared/common/pagination";
-import { ProductsFilters } from "@/server/domain/types/products";
-import { Product } from "@/server/domain/entities/Product";
+import { CreateProductInput, UpdateProductInput } from "@/shared/types/products.types";
+
+// ... (skipping context match, just targeting specific lines via replace logic)
+// I will use replace_file_content with specific context.
+import { PageableRequest, PageableResponse } from "@/shared/types/pagination.types";
+import { ProductsFilters } from "@/shared/types/products.types";
+import { Product } from "@/shared/types/products.types";
 
 export const useProductsList = (params: PageableRequest<ProductsFilters>) => {
     return useQuery({
@@ -26,7 +29,7 @@ export const useProductDetail = (id: string, enabled = true) => {
 export const useCreateProduct = () => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (data: CreateProductSchema) => productsApi.create(data),
+        mutationFn: (data: CreateProductInput) => productsApi.create(data),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: productKeys.lists() });
             toast.success("Producto creado exitosamente");
@@ -44,8 +47,8 @@ interface ProductsContext {
 
 export const useUpdateProduct = () => {
     const queryClient = useQueryClient();
-    return useMutation<Product, Error, { id: string; data: UpdateProductSchema }, ProductsContext>({
-        mutationFn: ({ id, data }: { id: string; data: UpdateProductSchema }) => productsApi.update(id, data),
+    return useMutation<Product, Error, { id: string; data: UpdateProductInput }, ProductsContext>({
+        mutationFn: ({ id, data }: { id: string; data: UpdateProductInput }) => productsApi.update(id, data),
         onMutate: async ({ id, data }) => {
             await queryClient.cancelQueries({ queryKey: productKeys.lists() });
             await queryClient.cancelQueries({ queryKey: productKeys.detail(id) });

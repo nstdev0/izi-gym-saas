@@ -1,12 +1,12 @@
 import { ControllerExecutor } from "@/server/lib/api-handler";
 import { UpdateProductUseCase } from "@/server/application/use-cases/products/update-product.use-case";
-import { UpdateProductSchema } from "@/server/application/dtos/products.dto";
+import { UpdateProductInput } from "@/server/application/dtos/products.dto";
 import { BadRequestError } from "@/server/domain/errors/common";
 
-export class UpdateProductController implements ControllerExecutor<UpdateProductSchema, void> {
+export class UpdateProductController implements ControllerExecutor<UpdateProductInput, void> {
   constructor(private readonly useCase: UpdateProductUseCase) { }
 
-  async execute(data: UpdateProductSchema, id?: string): Promise<void> {
+  async execute(data: UpdateProductInput, id?: string): Promise<void> {
     if (!id) {
       throw new BadRequestError("No se proporcionó un id");
     }

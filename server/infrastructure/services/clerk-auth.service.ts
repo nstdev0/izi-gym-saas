@@ -1,8 +1,9 @@
-import { createClerkClient } from "@clerk/nextjs/server";
+import { IAuthProvider } from "@/server/application/services/auth-provider.interface";
+import { clerkClient, createClerkClient } from "@clerk/nextjs/server";
 
 const clerk = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY });
 
-export class ClerkAuthService {
+export class ClerkAuthService implements IAuthProvider {
     async inviteUserToOrganization(data: {
         email: string;
         role: "ADMIN" | "STAFF" | "TRAINER";
@@ -47,6 +48,15 @@ export class ClerkAuthService {
                 throw new Error("El usuario ya tiene una invitación pendiente o es miembro.");
             }
             throw error;
+        }
+    }
+
+    async getUserById(id: string): Promise<{ email: string; imageUrl: string; } | null> {
+        const client = await clerkClient()
+        const user = await client.users.getUser(id)
+        return {
+            email: user.emailAddresses[0]?.emailAddress ?? null,
+            imageUrl: user.imageUrl,
         }
     }
 }

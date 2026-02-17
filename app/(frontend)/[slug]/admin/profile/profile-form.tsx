@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Loader2, User, Mail, Upload } from "lucide-react";
-import { UpdateUserSchema, UpdateUserInput } from "@/server/application/dtos/users.dto";
+import { UpdateUserSchema, UpdateUserInput } from "@/shared/types/users.types";
 import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field";
 import { AvatarUploader } from "@/components/avatar-uploader";
 

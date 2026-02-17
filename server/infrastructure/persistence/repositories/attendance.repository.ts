@@ -8,7 +8,7 @@ import { Prisma } from "@/generated/prisma/client";
 import {
     PageableRequest,
     PageableResponse,
-} from "@/server/shared/common/pagination";
+} from "@/shared/common/pagination";
 import { AttendanceMapper } from "../mappers/attendance.mapper";
 import { Attendance } from "@/server/domain/entities/Attendance";
 
@@ -84,8 +84,8 @@ export class AttendanceRepository
         };
     }
 
-    async create(data: RegisterAttendanceInput): Promise<void> {
-        await this.model.create({
+    async create(data: RegisterAttendanceInput): Promise<Attendance> {
+        const record = await this.model.create({
             data: {
                 memberId: data.memberId,
                 date: data.date,
@@ -103,6 +103,7 @@ export class AttendanceRepository
                 },
             },
         });
+        return this.mapper.toDomain(record);
     }
 
     async findById(id: string): Promise<Attendance | null> {
@@ -126,8 +127,8 @@ export class AttendanceRepository
         return this.mapper.toDomain(record);
     }
 
-    async update(id: string, data: UpdateAttendanceInput): Promise<void> {
-        await this.model.update({
+    async update(id: string, data: UpdateAttendanceInput): Promise<Attendance> {
+        const record = await this.model.update({
             where: { id, organizationId: this.organizationId },
             data,
             include: {
@@ -141,6 +142,7 @@ export class AttendanceRepository
                 },
             },
         });
+        return this.mapper.toDomain(record);
     }
 
     protected async buildPrismaClauses(

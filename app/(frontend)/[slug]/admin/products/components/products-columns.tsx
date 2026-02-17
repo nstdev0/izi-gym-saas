@@ -1,7 +1,7 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { Product, ProductType } from "@/server/domain/entities/Product";
+import { Product, ProductType } from "@/shared/types/products.types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Trash2, Eye, Box, Tag, Coffee, Shirt, Dumbbell, Sparkles, MoreHorizontal, AlertTriangle, CheckCircle, XCircle, Edit } from "lucide-react";

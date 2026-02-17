@@ -1,5 +1,3 @@
-// Placeholder to avoid empty replacement error while I verify pagination file location
-// I will check the file location first in next step.
 import {
   IBaseRepository,
   PrismaDelegate,
@@ -8,7 +6,7 @@ import { NotFoundError } from "@/server/domain/errors/common";
 import {
   PageableRequest,
   PageableResponse,
-} from "@/server/shared/common/pagination";
+} from "@/shared/common/pagination";
 import { IMapperInterface } from "../mappers/IMapper.interface";
 
 export abstract class BaseRepository<
@@ -20,7 +18,7 @@ export abstract class BaseRepository<
 > implements IBaseRepository<TEntity, TCreate, TUpdate, TFilters> {
   constructor(
     protected readonly model: D,
-    protected readonly mapper: IMapperInterface<TEntity>,
+    protected readonly mapper: IMapperInterface<TEntity, any>,
     protected readonly organizationId?: string,
   ) { }
 
@@ -96,17 +94,19 @@ export abstract class BaseRepository<
     return entity ? this.mapper.toDomain(entity) : null
   }
 
-  async create(data: TCreate): Promise<void> {
-    await this.model.create({
+  async create(data: TCreate): Promise<TEntity> {
+    const entity = await this.model.create({
       data: { ...data, organizationId: this.organizationId } as any,
     })
+    return this.mapper.toDomain(entity)
   }
 
-  async update(id: string, data: TUpdate): Promise<void> {
-    await this.model.update({
+  async update(id: string, data: TUpdate): Promise<TEntity> {
+    const entity = await this.model.update({
       data: { ...data, organizationId: this.organizationId } as any,
       where: { id },
     })
+    return this.mapper.toDomain(entity)
   }
 
   async delete(id: string): Promise<void> {

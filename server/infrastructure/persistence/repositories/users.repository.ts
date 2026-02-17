@@ -22,7 +22,7 @@ export class UsersRepository
   constructor(model: Prisma.UserDelegate, organizationId: string) {
     super(model, new UserMapper(), organizationId);
   }
-  async create(data: CreateUserInput): Promise<void> {
+  async create(data: CreateUserInput): Promise<User> {
     const { password, id, ...rest } = data;
     // Si viene ID (de Clerk), lo usamos.
     const prismaData = {
@@ -31,22 +31,24 @@ export class UsersRepository
       passwordHash: password,
     };
 
-    await this.model.create({
+    const entity = await this.model.create({
       data: { ...prismaData, organizationId: this.organizationId },
     });
+    return this.mapper.toDomain(entity);
   }
 
-  async update(id: string, data: UpdateUserInput): Promise<void> {
+  async update(id: string, data: UpdateUserInput): Promise<User> {
     const { password, ...rest } = data;
     const prismaData: any = { ...rest };
     if (password) {
       prismaData.passwordHash = password;
     }
 
-    await this.model.update({
+    const entity = await this.model.update({
       data: { ...prismaData, organizationId: this.organizationId } as any,
       where: { id },
     });
+    return this.mapper.toDomain(entity);
   }
 
   protected async buildPrismaClauses(

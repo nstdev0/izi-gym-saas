@@ -2,6 +2,7 @@ import { Role } from "@/generated/prisma/client";
 
 export interface CreateUserInput {
   id?: string;
+  organizationId?: string;
   firstName?: string;
   lastName?: string;
   email: string;

@@ -1,6 +1,6 @@
 "use client";
 
-import { UpdateAttendanceInput } from "@/server/application/dtos/attendance.dto";
+import { UpdateAttendanceInput } from "@/shared/types/attendance.types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Users, QrCode, Hand, CalendarDays, Loader2, Save, Clock, Calendar as CalendarIcon, UserCheck, ArrowRight } from "lucide-react";
@@ -18,7 +18,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { Attendance } from "@/server/domain/entities/Attendance";
+import { Attendance } from "@/shared/types/attendance.types";
 
 interface AttendanceFormProps {
     data: Attendance;

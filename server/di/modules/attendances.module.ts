@@ -14,11 +14,12 @@ import { DeleteAttendanceController } from "@/server/interface-adapters/controll
 import { PrismaClient } from "@/generated/prisma/client";
 
 export function createAttendanceModule(prisma: PrismaClient, tenantId: string) {
-    // Repository
+    // Repositories
     const attendanceRepository = new AttendanceRepository(prisma.attendance, tenantId);
+    const membersRepository = new MembersRepository(prisma.member, tenantId);
 
     // Use-cases
-    const registerAttendanceUseCase = new RegisterAttendanceUseCase(prisma);
+    const registerAttendanceUseCase = new RegisterAttendanceUseCase(attendanceRepository, membersRepository);
     const getAllAttendancesUseCase = new GetAllAttendancesUseCase(attendanceRepository);
     const getAttendanceByIdUseCase = new GetAttendanceByIdUseCase(attendanceRepository);
     const updateAttendanceUseCase = new UpdateAttendanceUseCase(attendanceRepository);

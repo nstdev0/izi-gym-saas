@@ -1,6 +1,6 @@
 import { UsersFilters } from "@/server/domain/types/users";
 import { IGetAllUsersUseCase } from "@/server/application/use-cases/users/get-all-users.use-case";
-import { PageableRequest } from "@/server/shared/common/pagination";
+import { PageableRequest } from "@/shared/common/pagination";
 
 export class GetAllUsersController {
   constructor(private useCase: IGetAllUsersUseCase) { }

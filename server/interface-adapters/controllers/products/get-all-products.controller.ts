@@ -1,9 +1,9 @@
 import { ProductsFilters } from "@/server/domain/types/products";
 import { GetAllProductsUseCase } from "@/server/application/use-cases/products/get-all-products.use-case";
-import { PageableRequest } from "@/server/shared/common/pagination";
+import { PageableRequest } from "@/shared/common/pagination";
 
 export class GetAllProductsController {
-  constructor(private useCase: GetAllProductsUseCase) {}
+  constructor(private useCase: GetAllProductsUseCase) { }
 
   async execute(request: PageableRequest<ProductsFilters>) {
     return await this.useCase.execute(

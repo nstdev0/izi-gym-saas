@@ -10,7 +10,7 @@ import {
 import {
   PageableRequest,
   PageableResponse,
-} from "@/server/shared/common/pagination";
+} from "@/shared/common/pagination";
 import { NotFoundError } from "@/server/domain/errors/common";
 import { MemberMapper } from "../mappers/members.mapper";
 

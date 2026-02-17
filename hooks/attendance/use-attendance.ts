@@ -1,9 +1,9 @@
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { attendanceApi } from "@/lib/api-client/attendance.api";
 import { attendanceKeys } from "@/lib/react-query/query-keys";
-import { PageableRequest } from "@/server/shared/common/pagination";
-import { AttendanceFilters } from "@/server/application/repositories/attendance.repository.interface";
-import { UpdateAttendanceInput } from "@/server/application/dtos/attendance.dto";
+import { PageableRequest } from "@/shared/types/pagination.types";
+import { AttendanceFilters } from "@/shared/types/attendance.types";
+import { UpdateAttendanceInput } from "@/shared/types/attendance.types";
 import { toast } from "sonner";
 
 export const useAttendanceList = (params: PageableRequest<AttendanceFilters>) => {

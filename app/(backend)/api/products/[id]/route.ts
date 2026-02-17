@@ -1,5 +1,5 @@
 import { createContext } from "@/server/lib/api-handler";
-import { UpdateProductSchema } from "@/server/application/dtos/products.dto";
+import { UpdateProductSchema } from "@/shared/types/products.types";
 
 export const GET = createContext(
   (container) => container.getProductByIdController,

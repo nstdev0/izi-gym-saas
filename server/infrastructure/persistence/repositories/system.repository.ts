@@ -4,7 +4,7 @@ import { SystemStats, RevenueStats, SystemConfig } from "@/server/domain/types/s
 import { Organization } from "@/server/domain/entities/Organization";
 import { OrganizationPlan } from "@/server/domain/entities/OrganizationPlan";
 
-import { PageableRequest, PageableResponse } from "@/server/shared/common/pagination";
+import { PageableRequest, PageableResponse } from "@/shared/common/pagination";
 import { OrganizationsFilters } from "@/server/domain/types/organizations";
 import { CreatePlanInput, UpdatePlanInput } from "@/server/domain/types/plans";
 import { Prisma } from "@/generated/prisma/client";

@@ -23,7 +23,7 @@ import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
 import Link from "next/link";
 import { useMembershipsList } from "@/hooks/memberships/use-memberships";
-import { Membership } from "@/server/domain/entities/Membership";
+import { Membership } from "@/shared/types/memberships.types";
 import { membershipsParsers } from "@/lib/nuqs/search-params/memberships";
 import { useQueryStates } from "nuqs";
 import {

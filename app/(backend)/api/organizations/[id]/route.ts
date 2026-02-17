@@ -1,4 +1,4 @@
-import { UpdateOrganizationSchema } from "@/server/application/dtos/organizations.dto";
+import { UpdateOrganizationSchema } from "@/shared/types/organizations.types";
 import { createContext } from "@/server/lib/api-handler";
 
 export const GET = createContext(

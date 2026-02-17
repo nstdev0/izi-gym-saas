@@ -1,7 +1,7 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { Organization } from "@/server/domain/entities/Organization";
+import { Organization } from "@/shared/types/organizations.types";
 import { Edit, Trash2, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {

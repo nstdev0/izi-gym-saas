@@ -3,7 +3,7 @@
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Suspense, useState } from "react";
-import { Product, ProductType } from "@/server/domain/entities/Product";
+import { Product, ProductType } from "@/shared/types/products.types";
 import { SearchInput } from "@/components/ui/search-input";
 import { Pagination } from "@/components/ui/pagination";
 import { FilterConfiguration } from "@/components/ui/smart-filters";

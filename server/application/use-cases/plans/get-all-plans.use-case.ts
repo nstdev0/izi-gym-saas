@@ -5,7 +5,7 @@ import {
 import {
   PageableRequest,
   PageableResponse,
-} from "@/server/shared/common/pagination";
+} from "@/shared/common/pagination";
 import { Plan } from "@/server/domain/entities/Plan";
 
 export class GetAllPlansUseCase {

@@ -1,8 +1,8 @@
-import { createMembershipSchema } from "@/server/application/dtos/memberships.dto";
-import { MembershipsFilters } from "@/server/domain/types/memberships";
+import { createMembershipSchema } from "@/shared/types/memberships.types";
+import { MembershipsFilters } from "@/shared/types/memberships.types";
 import { createContext } from "@/server/lib/api-handler";
-import { PageableRequest } from "@/server/shared/common/pagination";
-import { parsePagination } from "@/server/shared/utils/pagination-parser";
+import { PageableRequest } from "@/shared/types/pagination.types";
+import { parsePagination } from "@/shared/utils/pagination-parser";
 
 export const GET = createContext(
   (c) => c.getAllMembershipsController,

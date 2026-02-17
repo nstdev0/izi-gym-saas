@@ -15,8 +15,8 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Product, ProductType } from "@/server/domain/entities/Product";
-import { createProductSchema } from "@/server/application/dtos/products.dto";
+import { Product, ProductType } from "@/shared/types/products.types";
+import { createProductSchema } from "@/shared/types/products.types";
 import { useCreateProduct, useUpdateProduct } from "@/hooks/products/use-products";
 import { useRouter } from "next/navigation";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";

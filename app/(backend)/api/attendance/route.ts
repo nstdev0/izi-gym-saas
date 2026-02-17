@@ -1,8 +1,8 @@
-import { RegisterAttendanceSchema } from "@/server/application/dtos/attendance.dto";
+import { RegisterAttendanceSchema } from "@/shared/types/attendance.types";
 import { AttendanceFilters } from "@/server/application/repositories/attendance.repository.interface";
 import { createContext } from "@/server/lib/api-handler";
-import { PageableRequest } from "@/server/shared/common/pagination";
-import { parsePagination } from "@/server/shared/utils/pagination-parser";
+import { PageableRequest } from "@/shared/types/pagination.types";
+import { parsePagination } from "@/shared/utils/pagination-parser";
 
 export const GET = createContext(
     (c) => c.getAllAttendancesController,

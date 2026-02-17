@@ -23,6 +23,7 @@ export interface IOrganizationRepository extends IBaseRepository<
   //   userId: string,
   // ): Promise<Organization>;
   findCurrent(): Promise<Organization | null>;
-  // upgradePlan(planSlug: string): Promise<Organization>;
+  upgradePlan(slug: string): Promise<Organization>;
   updateSettings(id: string, settings: any): Promise<Organization>;
+  findBySlug(slug: string): Promise<Organization | null>;
 }

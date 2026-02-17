@@ -1,3 +1,4 @@
-export interface IMapperInterface<TEntity> {
-    toDomain(raw: any): TEntity;
+export interface IMapperInterface<TEntity, TPersistence> {
+    toDomain(raw: TPersistence): TEntity;
+    toPersistence(domain: TEntity): any;
 }

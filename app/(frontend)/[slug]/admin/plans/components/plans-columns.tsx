@@ -1,7 +1,7 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { Plan } from "@/server/domain/entities/Plan";
+import { Plan } from "@/shared/types/plans.types";
 import { Trash2, Eye, CheckCircle, XCircle, MoreHorizontal, Crown, Clock, CreditCard, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {

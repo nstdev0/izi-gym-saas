@@ -1,14 +1,16 @@
 import { RegisterAttendanceInput } from "@/server/application/dtos/attendance.dto";
 import { NotFoundError, ValidationError } from "@/server/domain/errors/common";
-import { PrismaClient } from "@/generated/prisma/client";
+import { IAttendanceRepository } from "@/server/application/repositories/attendance.repository.interface";
+import { IMembersRepository } from "@/server/application/repositories/members.repository.interface";
 
 export class RegisterAttendanceUseCase {
     constructor(
-        private readonly prisma: PrismaClient,
+        private readonly attendanceRepository: IAttendanceRepository,
+        private readonly membersRepository: IMembersRepository,
     ) { }
 
     async execute(input: RegisterAttendanceInput): Promise<void> {
-        const member = await this.prisma.member.findUnique({ where: { id: input.memberId } });
+        const member = await this.membersRepository.findUnique({ id: input.memberId });
 
         if (!member) {
             throw new NotFoundError("Miembro no encontrado");
@@ -18,7 +20,7 @@ export class RegisterAttendanceUseCase {
             throw new ValidationError("Miembro no activo");
         }
 
-        await this.prisma.attendance.create({ data: { ...input, organizationId: member.organizationId } });
+        await this.attendanceRepository.create(input);
     }
 }
 

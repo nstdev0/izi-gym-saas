@@ -1,8 +1,8 @@
 import { fetchClient } from "@/lib/fetch-client";
-import { CreatePlanInput, UpdatePlanInput } from "@/server/application/dtos/plans.dto";
-import { Plan } from "@/server/domain/entities/Plan";
-import { PageableRequest, PageableResponse } from "@/server/shared/common/pagination";
-import { PlansFilters } from "@/server/domain/types/plans";
+import { CreatePlanInput, UpdatePlanInput } from "@/shared/types/plans.types";
+import { Plan } from "@/shared/types/plans.types";
+import { PageableRequest, PageableResponse } from "@/shared/types/pagination.types";
+import { PlansFilters } from "@/shared/types/plans.types";
 
 const BASE_API_PATH = "/api/plans";
 

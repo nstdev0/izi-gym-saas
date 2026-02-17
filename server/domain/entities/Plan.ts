@@ -9,6 +9,7 @@ export class Plan extends BaseEntity {
     status: EntityStatus,
     deletedAt: Date | null,
     public name: string,
+    public slug: string,
     public description: string | null,
     public price: number,
     public durationDays: number,

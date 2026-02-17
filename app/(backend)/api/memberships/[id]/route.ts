@@ -1,4 +1,4 @@
-import { UpdateMembershipSchema } from "@/server/application/dtos/memberships.dto";
+import { UpdateMembershipSchema } from "@/shared/types/memberships.types";
 import { createContext } from "@/server/lib/api-handler";
 
 export const GET = createContext(

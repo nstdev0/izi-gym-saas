@@ -1,8 +1,8 @@
 import { fetchClient } from "@/lib/fetch-client";
-import { CreateMembershipInput, UpdateMembershipInput } from "@/server/application/dtos/memberships.dto";
-import { Membership } from "@/server/domain/entities/Membership";
-import { MembershipsFilters } from "@/server/domain/types/memberships";
-import { PageableRequest, PageableResponse } from "@/server/shared/common/pagination";
+import { CreateMembershipInput, UpdateMembershipInput } from "@/shared/types/memberships.types";
+import { Membership } from "@/shared/types/memberships.types";
+import { MembershipsFilters } from "@/shared/types/memberships.types";
+import { PageableRequest, PageableResponse } from "@/shared/types/pagination.types";
 
 const BASE_API_PATH = "/api/memberships";
 

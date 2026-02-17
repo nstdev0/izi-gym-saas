@@ -2,10 +2,10 @@ import { useQuery, useMutation, useQueryClient, keepPreviousData, QueryKey } fro
 import { plansApi } from "@/lib/api-client/plans.api";
 import { planKeys } from "@/lib/react-query/query-keys";
 import { toast } from "sonner";
-import { CreatePlanInput, UpdatePlanInput } from "@/server/application/dtos/plans.dto";
-import { PageableRequest, PageableResponse } from "@/server/shared/common/pagination";
-import { PlansFilters } from "@/server/domain/types/plans";
-import { Plan } from "@/server/domain/entities/Plan";
+import { CreatePlanInput, UpdatePlanInput } from "@/shared/types/plans.types";
+import { PageableRequest, PageableResponse } from "@/shared/types/pagination.types";
+import { PlansFilters } from "@/shared/types/plans.types";
+import { Plan } from "@/shared/types/plans.types";
 import { ApiError } from "@/lib/api";
 
 export const usePlansList = (params: PageableRequest<PlansFilters>) => {

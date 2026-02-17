@@ -25,7 +25,7 @@ import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
 import Link from "next/link";
 import { useMembersList } from "@/hooks/members/use-members";
-import { Member } from "@/server/domain/entities/Member";
+import { Member } from "@/shared/types/members.types";
 import { membersParsers } from "@/lib/nuqs/search-params/members";
 import { useQueryStates } from "nuqs";
 import {

@@ -2,9 +2,9 @@ import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tansta
 import { membershipsApi } from "@/lib/api-client/memberships.api";
 import { membershipKeys } from "@/lib/react-query/query-keys";
 import { toast } from "sonner";
-import { CreateMembershipInput, UpdateMembershipInput } from "@/server/application/dtos/memberships.dto";
-import { PageableRequest } from "@/server/shared/common/pagination";
-import { MembershipsFilters } from "@/server/application/repositories/memberships.repository.interface";
+import { CreateMembershipInput, UpdateMembershipInput } from "@/shared/types/memberships.types";
+import { PageableRequest } from "@/shared/types/pagination.types";
+import { MembershipsFilters } from "@/shared/types/memberships.types";
 
 export const useMembershipsList = (params: PageableRequest<MembershipsFilters>) => {
     return useQuery({

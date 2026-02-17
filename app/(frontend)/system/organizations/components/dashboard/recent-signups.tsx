@@ -2,7 +2,7 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Organization } from "@/server/domain/entities/Organization";
+import { Organization } from "@/shared/types/organizations.types";
 
 interface RecentSignupsProps {
     signups: Organization[];

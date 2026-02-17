@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Loader2, Building, Settings2, Bell, CreditCard, Calendar, ShieldCheck, Palette, Users } from "lucide-react";
-import { UpdateOrganizationSettingsInput, UpdateOrganizationSettingsSchema } from "@/server/application/dtos/organizations.dto";
+import { UpdateOrganizationSettingsInput, UpdateOrganizationSettingsSchema } from "@/shared/types/organizations.types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AvatarUploader } from "@/components/avatar-uploader";
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field";

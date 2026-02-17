@@ -34,7 +34,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { Organization } from "@/server/domain/entities/Organization";
+import { Organization } from "@/shared/types/organizations.types";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useSuspendOrganization } from "@/hooks/system/use-system";

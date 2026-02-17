@@ -1,7 +1,7 @@
 import {
   PageableRequest,
   PageableResponse,
-} from "@/server/shared/common/pagination";
+} from "@/shared/common/pagination";
 
 export interface PrismaDelegate {
   findMany(args?: any): Promise<unknown[]>;
@@ -22,8 +22,8 @@ export interface IBaseRepository<
     request: PageableRequest<TFilters>,
   ): Promise<PageableResponse<TEntity>>;
   findUnique(args: Partial<TEntity>): Promise<TEntity | null>;
-  create(data: TCreate): Promise<void>;
-  update(id: string, data: TUpdate): Promise<void>;
+  create(data: TCreate): Promise<TEntity>;
+  update(id: string, data: TUpdate): Promise<TEntity>;
   delete(id: string): Promise<void>;
   restore(id: string): Promise<void>;
 }

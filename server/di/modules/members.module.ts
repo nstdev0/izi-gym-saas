@@ -15,14 +15,16 @@ import { DeleteMemberController } from "@/server/interface-adapters/controllers/
 import { RestoreMemberController } from "@/server/interface-adapters/controllers/members/restore-member.controller";
 import { GetMemberByQrCodeController } from "@/server/interface-adapters/controllers/members/get-member-by-qr-code.controller";
 import { PrismaClient } from "@/generated/prisma/client";
+import { IMCCalculator } from "@/server/infrastructure/services/imc-calculator.service";
 
 export function createMembersModule(prisma: PrismaClient, tenantId: string) {
     const membersRepository = new MembersRepository(prisma.member, tenantId);
+    const imcCalculator = new IMCCalculator();
 
     const getAllMembersUseCase = new GetAllMembersUseCase(membersRepository);
-    const createMemberUseCase = new CreateMemberUseCase(membersRepository);
+    const createMemberUseCase = new CreateMemberUseCase(membersRepository, imcCalculator);
     const getMemberByIdUseCase = new GetMemberByIdUseCase(membersRepository);
-    const updateMemberUseCase = new UpdateMemberUseCase(membersRepository);
+    const updateMemberUseCase = new UpdateMemberUseCase(membersRepository, imcCalculator);
     const deleteMemberUseCase = new DeleteMemberUseCase(membersRepository);
     const restoreMemberUseCase = new RestoreMemberUseCase(membersRepository);
     const getMemberByQrCodeUseCase = new GetMemberByQrCodeUseCase(membersRepository);
