@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient, keepPreviousData, QueryKey } from "@tanstack/react-query";
 import { productsApi } from "@/lib/api-client/products.api";
+import { ApiClientError } from "@/lib/fetch-client";
 import { productKeys } from "@/lib/react-query/query-keys";
 import { toast } from "sonner";
 import { CreateProductInput, UpdateProductInput } from "@/shared/types/products.types";
@@ -28,7 +29,7 @@ export const useProductDetail = (id: string, enabled = true) => {
 
 export const useCreateProduct = () => {
     const queryClient = useQueryClient();
-    return useMutation({
+    return useMutation<Product, ApiClientError, CreateProductInput>({
         mutationFn: (data: CreateProductInput) => productsApi.create(data),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: productKeys.lists() });
@@ -47,7 +48,7 @@ interface ProductsContext {
 
 export const useUpdateProduct = () => {
     const queryClient = useQueryClient();
-    return useMutation<Product, Error, { id: string; data: UpdateProductInput }, ProductsContext>({
+    return useMutation<Product, ApiClientError, { id: string; data: UpdateProductInput }, ProductsContext>({
         mutationFn: ({ id, data }: { id: string; data: UpdateProductInput }) => productsApi.update(id, data),
         onMutate: async ({ id, data }) => {
             await queryClient.cancelQueries({ queryKey: productKeys.lists() });
@@ -102,7 +103,7 @@ interface DeleteProductContext {
 
 export const useDeleteProduct = () => {
     const queryClient = useQueryClient();
-    return useMutation<void, Error, string, DeleteProductContext>({
+    return useMutation<void, ApiClientError, string, DeleteProductContext>({
         mutationFn: (id: string) => productsApi.delete(id),
         onMutate: async (id) => {
             await queryClient.cancelQueries({ queryKey: productKeys.lists() });

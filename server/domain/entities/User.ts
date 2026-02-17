@@ -1,6 +1,7 @@
 import { BaseEntity, EntityStatus } from "./_base";
+import { Role } from "@/shared/types/users.types";
 
-export class User extends BaseEntity {
+export class User extends BaseEntity<EntityStatus> {
   constructor(
     id: string,
     organizationId: string,
@@ -11,7 +12,7 @@ export class User extends BaseEntity {
     public firstName: string | null,
     public lastName: string | null,
     public email: string,
-    public role: string,
+    public role: Role,
     public isActive: boolean,
     public image: string | null,
     public preferences: Record<string, unknown> | null = null,

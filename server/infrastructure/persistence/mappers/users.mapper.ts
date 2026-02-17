@@ -15,7 +15,7 @@ export class UserMapper implements IMapperInterface<User, PrismaUser> {
             raw.firstName,
             raw.lastName,
             raw.email,
-            raw.role,
+            raw.role as any,
             raw.isActive,
             raw.image,
             raw.preferences as any,

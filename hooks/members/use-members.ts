@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient, keepPreviousData, QueryKey } from "@tanstack/react-query";
 import { membersApi } from "@/lib/api-client/members.api";
+import { ApiClientError } from "@/lib/fetch-client";
 import { memberKeys } from "@/lib/react-query/query-keys";
 import { toast } from "sonner";
 import { CreateMemberInput, UpdateMemberInput } from "@/shared/types/members.types";
@@ -33,7 +34,7 @@ export const useMemberByQrCode = (qrCode: string, enabled = true) => {
 
 export const useCreateMember = () => {
     const queryClient = useQueryClient();
-    return useMutation({
+    return useMutation<Member, ApiClientError, CreateMemberInput>({
         mutationFn: (data: CreateMemberInput) => membersApi.create(data),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: memberKeys.lists() });
@@ -52,7 +53,7 @@ interface MembersContext {
 
 export const useUpdateMember = () => {
     const queryClient = useQueryClient();
-    return useMutation<Member, Error, { id: string; data: UpdateMemberInput }, MembersContext>({
+    return useMutation<Member, ApiClientError, { id: string; data: UpdateMemberInput }, MembersContext>({
         mutationFn: ({ id, data }: { id: string; data: UpdateMemberInput }) => membersApi.update(id, data),
         onMutate: async ({ id, data }) => {
             await queryClient.cancelQueries({ queryKey: memberKeys.lists() });
@@ -107,7 +108,7 @@ interface DeleteMemberContext {
 
 export const useDeleteMember = () => {
     const queryClient = useQueryClient();
-    return useMutation<void, Error, string, DeleteMemberContext>({
+    return useMutation<void, ApiClientError, string, DeleteMemberContext>({
         mutationFn: (id: string) => membersApi.delete(id),
         onMutate: async (id) => {
             await queryClient.cancelQueries({ queryKey: memberKeys.lists() });

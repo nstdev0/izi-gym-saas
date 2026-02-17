@@ -9,6 +9,7 @@ export enum MembershipStatus {
 }
 
 export interface Membership extends BaseEntity {
+    status: MembershipStatus;
     startDate: Date;
     endDate: Date;
     pricePaid: number;

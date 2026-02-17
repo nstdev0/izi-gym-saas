@@ -8,6 +8,7 @@ import {
   UsersFilters,
 } from "@/server/domain/types/users";
 import { UserMapper } from "../mappers/users.mapper";
+import { translatePrismaError } from "../prisma-error-translator";
 
 export class UsersRepository
   extends BaseRepository<
@@ -20,35 +21,43 @@ export class UsersRepository
   implements IUsersRepository {
 
   constructor(model: Prisma.UserDelegate, organizationId: string) {
-    super(model, new UserMapper(), organizationId);
+    super(model, new UserMapper(), organizationId, "Usuario");
   }
   async create(data: CreateUserInput): Promise<User> {
-    const { password, id, ...rest } = data;
-    // Si viene ID (de Clerk), lo usamos.
-    const prismaData = {
-      ...rest,
-      id: id,
-      passwordHash: password,
-    };
+    try {
+      const { password, id, ...rest } = data;
+      // Si viene ID (de Clerk), lo usamos.
+      const prismaData = {
+        ...rest,
+        id: id,
+        passwordHash: password,
+      };
 
-    const entity = await this.model.create({
-      data: { ...prismaData, organizationId: this.organizationId },
-    });
-    return this.mapper.toDomain(entity);
+      const entity = await this.model.create({
+        data: { ...prismaData, organizationId: this.organizationId },
+      });
+      return this.mapper.toDomain(entity);
+    } catch (error) {
+      translatePrismaError(error, "Usuario")
+    }
   }
 
   async update(id: string, data: UpdateUserInput): Promise<User> {
-    const { password, ...rest } = data;
-    const prismaData: any = { ...rest };
-    if (password) {
-      prismaData.passwordHash = password;
-    }
+    try {
+      const { password, ...rest } = data;
+      const prismaData: any = { ...rest };
+      if (password) {
+        prismaData.passwordHash = password;
+      }
 
-    const entity = await this.model.update({
-      data: { ...prismaData, organizationId: this.organizationId } as any,
-      where: { id },
-    });
-    return this.mapper.toDomain(entity);
+      const entity = await this.model.update({
+        data: { ...prismaData, organizationId: this.organizationId } as any,
+        where: { id },
+      });
+      return this.mapper.toDomain(entity);
+    } catch (error) {
+      translatePrismaError(error, "Usuario")
+    }
   }
 
   protected async buildPrismaClauses(

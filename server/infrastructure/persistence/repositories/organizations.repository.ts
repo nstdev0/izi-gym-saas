@@ -9,6 +9,8 @@ import {
 } from "@/server/domain/types/organizations";
 import { Organization } from "@/server/domain/entities/Organization";
 import { OrganizationMapper } from "../mappers/organizations.mapper";
+import { translatePrismaError } from "../prisma-error-translator";
+import { InternalError, NotFoundError } from "@/server/domain/errors/common";
 
 export class OrganizationsRepository
   extends BaseRepository<
@@ -30,18 +32,22 @@ export class OrganizationsRepository
     protected readonly organizationModel: Prisma.OrganizationDelegate,
     protected readonly organizationId?: string
   ) {
-    super(organizationModel, new OrganizationMapper(), organizationId)
+    super(organizationModel, new OrganizationMapper(), organizationId, "Organización")
   }
 
   async findCurrent(): Promise<Organization | null> {
-    if (!this.organizationId) return null;
-    const org = await this.organizationModel.findUnique({
-      where: { id: this.organizationId },
-      include: { config: true, plan: true }
-    });
+    try {
+      if (!this.organizationId) return null;
+      const org = await this.organizationModel.findUnique({
+        where: { id: this.organizationId },
+        include: { config: true, plan: true }
+      });
 
-    if (!org) return null;
-    return this.mapper.toDomain(org);
+      if (!org) return null;
+      return this.mapper.toDomain(org);
+    } catch (error) {
+      translatePrismaError(error, "Organización")
+    }
   }
 
   protected async buildPrismaClauses(
@@ -88,99 +94,113 @@ export class OrganizationsRepository
   // }
 
   async upgradePlan(slug: string): Promise<Organization> {
-    if (!this.organizationId) throw new Error("Organization Context required");
+    try {
+      if (!this.organizationId) throw new InternalError("Organization Context required");
 
-    // 1. Find the plan
-    const plan = await prisma.organizationPlan.findUnique({
-      where: { slug },
-    });
+      // 1. Find the plan
+      const plan = await prisma.organizationPlan.findUnique({
+        where: { slug },
+      });
 
-    if (!plan) {
-      throw new Error(`El plan '${slug}' no es válido o no existe.`);
-    }
+      if (!plan) {
+        throw new NotFoundError(`El plan '${slug}' no es válido o no existe.`);
+      }
 
-    // 2. Execute transaction
-    await prisma.$transaction(async (tx) => {
-      await tx.organization.update({
+      // 2. Execute transaction
+      await prisma.$transaction(async (tx) => {
+        await tx.organization.update({
+          where: { id: this.organizationId },
+          data: {
+            organizationPlanId: plan.id,
+            organizationPlan: plan.name
+          }
+        });
+
+        await tx.subscription.update({
+          where: { organizationId: this.organizationId },
+          data: {
+            pricePaid: plan.price
+          },
+        });
+      });
+
+      // 3. Return updated organization
+      const updatedOrg = await this.organizationModel.findUnique({
         where: { id: this.organizationId },
-        data: {
-          organizationPlanId: plan.id,
-          organizationPlan: plan.name
+        include: {
+          config: true,
+          plan: true
         }
       });
 
-      await tx.subscription.update({
-        where: { organizationId: this.organizationId },
-        data: {
-          pricePaid: plan.price
-        },
-      });
-    });
+      if (!updatedOrg) throw new NotFoundError("Organization not found after upgrade");
 
-    // 3. Return updated organization
-    const updatedOrg = await this.organizationModel.findUnique({
-      where: { id: this.organizationId },
-      include: {
-        config: true,
-        plan: true
-      }
-    });
-
-    if (!updatedOrg) throw new Error("Organization not found after upgrade");
-
-    return this.mapper.toDomain(updatedOrg);
+      return this.mapper.toDomain(updatedOrg);
+    } catch (error) {
+      if (error instanceof NotFoundError || error instanceof InternalError) throw error;
+      translatePrismaError(error, "Organización")
+    }
   }
 
   async updateSettings(id: string, settings: any): Promise<Organization> {
-    const { name, image, config } = settings;
+    try {
+      const { name, image, config } = settings;
 
-    if (name || image !== undefined) {
-      await this.organizationModel.update({
-        where: { id },
-        data: {
-          name: name,
-          image: image
-        }
-      });
-    }
-
-    if (config) {
-      const payload: any = { ...config };
-
-      if (config.identity) {
-        if (config.identity.locale) payload.locale = config.identity.locale;
-        if (config.identity.timezone) payload.timezone = config.identity.timezone;
-        if (config.identity.currency) payload.currency = config.identity.currency;
+      if (name || image !== undefined) {
+        await this.organizationModel.update({
+          where: { id },
+          data: {
+            name: name,
+            image: image
+          }
+        });
       }
 
-      await this.organizationModel.update({
-        where: { id },
-        data: {
-          config: {
-            upsert: {
-              create: payload,
-              update: payload
+      if (config) {
+        const payload: any = { ...config };
+
+        if (config.identity) {
+          if (config.identity.locale) payload.locale = config.identity.locale;
+          if (config.identity.timezone) payload.timezone = config.identity.timezone;
+          if (config.identity.currency) payload.currency = config.identity.currency;
+        }
+
+        await this.organizationModel.update({
+          where: { id },
+          data: {
+            config: {
+              upsert: {
+                create: payload,
+                update: payload
+              }
             }
           }
-        }
+        });
+      }
+
+      const updatedOrg = await this.organizationModel.findUnique({
+        where: { id },
+        include: { config: true, plan: true }
       });
+
+      if (!updatedOrg) throw new NotFoundError("Organization not found after update");
+
+      return this.mapper.toDomain(updatedOrg);
+    } catch (error) {
+      if (error instanceof NotFoundError) throw error;
+      translatePrismaError(error, "Organización")
     }
-
-    const updatedOrg = await this.organizationModel.findUnique({
-      where: { id },
-      include: { config: true, plan: true }
-    });
-
-    if (!updatedOrg) throw new Error("Organization not found after update");
-
-    return this.mapper.toDomain(updatedOrg);
   }
 
   async findBySlug(slug: string): Promise<Organization | null> {
-    const record = await this.organizationModel.findUnique({
-      where: { slug },
-    });
+    try {
+      const record = await this.organizationModel.findUnique({
+        where: { slug },
+      });
 
-    return record ? this.mapper.toDomain(record) : null;
+      return record ? this.mapper.toDomain(record) : null;
+    } catch (error) {
+      translatePrismaError(error, "Organización")
+    }
   }
 }

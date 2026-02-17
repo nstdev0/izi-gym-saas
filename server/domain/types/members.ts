@@ -1,4 +1,4 @@
-import { DocType, Gender } from "../entities/Member";
+import { DocType, Gender } from "@/shared/types/members.types";
 
 export interface CreateMemberInput {
   firstName: string;

@@ -1,8 +1,9 @@
-import { IBillingGateway, InvoicePayload, BillingResponse } from "@/server/domain/interfaces/billing.gateway";
+import { IBillingGateway, InvoicePayload, BillingSuccessResponse } from "@/server/domain/interfaces/billing.gateway";
+import { ExternalServiceError } from "@/server/domain/errors/common";
 
 export class FacturadorProAdapter implements IBillingGateway {
 
-    async emitInvoice(data: InvoicePayload, apiUrl: string, token: string): Promise<BillingResponse> {
+    async emitInvoice(data: InvoicePayload, apiUrl: string, token: string): Promise<BillingSuccessResponse> {
 
         // Mapeamos tu Objeto de Dominio al JSON "Ganador" de Facturador Pro
         const requestBody = {
@@ -74,14 +75,10 @@ export class FacturadorProAdapter implements IBillingGateway {
 
             if (!result.success) {
                 console.error("Error Facturador:", result.message);
-                return {
-                    success: false,
-                    message: result.message || "Error desconocido al facturar"
-                };
+                throw new ExternalServiceError(`Error al emitir factura: ${result.message || "Error desconocido"}`);
             }
 
             return {
-                success: true,
                 externalId: result.data.external_id,
                 pdfUrl: result.links.pdf,
                 xmlUrl: result.links.xml,
@@ -89,8 +86,9 @@ export class FacturadorProAdapter implements IBillingGateway {
             };
 
         } catch (error) {
+            if (error instanceof ExternalServiceError) throw error;
             console.error("Error de conexión con Facturador:", error);
-            return { success: false, message: "Error de conexión con el servicio de facturación" };
+            throw new ExternalServiceError("Error de conexión con el servicio de facturación: " + (error instanceof Error ? error.message : "Desconocido"));
         }
     }
 }

@@ -1,5 +1,5 @@
 import { IGetUserByIdUseCase } from "@/server/application/use-cases/users/get-user-by-id.use-case";
-import { User } from "@/server/domain/entities/User";
+import { User } from "@/shared/types/users.types";
 import { ControllerExecutor } from "@/server/lib/api-handler";
 
 export class GetUserByIdController implements ControllerExecutor<void, User | null> {

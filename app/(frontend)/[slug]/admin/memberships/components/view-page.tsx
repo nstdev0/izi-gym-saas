@@ -87,7 +87,6 @@ export default function MembershipsViewPage() {
         ]
     };
 
-    // Type assertion since the hook might return a generic shape
     const memberships = (paginatedMemberships?.records || []) as any[];
     const totalPages = paginatedMemberships?.totalPages || 0;
     const totalRecords = paginatedMemberships?.totalRecords || 0;

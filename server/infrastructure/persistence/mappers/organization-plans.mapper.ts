@@ -15,6 +15,10 @@ export class OrganizationPlanMapper implements IMapperInterface<OrganizationPlan
             raw.name,
             raw.slug,
             Number(raw.price),
+            raw.currency,
+            raw.description,
+            raw.image,
+            raw.stripePriceId,
             raw.limits
         );
     }
@@ -39,7 +43,11 @@ export class OrganizationPlanMapper implements IMapperInterface<OrganizationPlan
             name: domain.name,
             slug: domain.slug,
             price: domain.price,
-            limits: domain.limits as any, // Json type
+            currency: domain.currency,
+            description: domain.description,
+            image: domain.image,
+            stripePriceId: domain.stripePriceId,
+            limits: domain.limits as any,
         }
     }
 }

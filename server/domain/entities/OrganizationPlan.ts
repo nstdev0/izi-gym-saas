@@ -10,10 +10,17 @@ export class OrganizationPlan extends BaseEntity {
         deletedAt: Date | null,
         public name: string,
         public slug: string,
-        public price: number, // Decimal in prisma, number in domain
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        public price: number,
+        public currency: string,
+        public description: string | null,
+        public image: string | null,
+        public stripePriceId: string | null,
         public limits: any,
     ) {
         super(id, organizationId, createdAt, updatedAt, status, deletedAt);
+    }
+
+    get isActive(): boolean {
+        return this.status === EntityStatus.ACTIVE;
     }
 }

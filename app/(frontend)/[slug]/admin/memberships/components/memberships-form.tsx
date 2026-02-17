@@ -13,8 +13,6 @@ import {
 } from "@/components/ui/select";
 import { Loader2, Save, CreditCard, CalendarDays, DollarSign, Activity, Info } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useMutation } from "@tanstack/react-query";
-import { api, ApiError } from "@/lib/api";
 import { toast } from "sonner";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -68,7 +66,7 @@ export default function MembershipForm({
                 : new Date(),
             endDate: initialData?.endDate
                 ? new Date(initialData.endDate)
-                : new Date(),
+                : undefined,
             pricePaid: initialData?.pricePaid || 0,
             status: (initialData?.status as MembershipStatus) || MembershipStatus.PENDING,
         },
@@ -81,6 +79,7 @@ export default function MembershipForm({
         const plan = plans?.find((p) => p.id === planId);
         if (plan && !isEdit) {
             form.setValue("pricePaid", plan.price, { shouldDirty: true });
+            form.setValue("endDate", new Date(Date.now() + plan.durationDays * 24 * 60 * 60 * 1000), { shouldDirty: true });
         }
     };
 

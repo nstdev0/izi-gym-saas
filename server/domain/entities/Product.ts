@@ -1,13 +1,8 @@
 import { BaseEntity, EntityStatus } from "./_base";
 
-export enum ProductType {
-  CONSUMABLE = "CONSUMABLE",
-  GEAR = "GEAR",
-  MERCH = "MERCH",
-  SERVICE = "SERVICE",
-}
+import { ProductType } from "@/shared/types/products.types";
 
-export class Product extends BaseEntity {
+export class Product extends BaseEntity<EntityStatus> {
   constructor(
     id: string,
     organizationId: string,

@@ -31,14 +31,13 @@ export interface InvoicePayload {
     items: InvoiceItem[];
 }
 
-export interface BillingResponse {
-    success: boolean;
-    externalId?: string;
-    pdfUrl?: string;
-    xmlUrl?: string;
-    message?: string;
+export interface BillingSuccessResponse {
+    externalId: string;
+    pdfUrl: string;
+    xmlUrl: string;
+    message: string;
 }
 
 export interface IBillingGateway {
-    emitInvoice(payload: InvoicePayload, apiUrl: string, token: string): Promise<BillingResponse>;
+    emitInvoice(payload: InvoicePayload, apiUrl: string, token: string): Promise<BillingSuccessResponse>;
 }

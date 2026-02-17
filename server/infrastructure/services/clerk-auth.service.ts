@@ -1,6 +1,7 @@
 import { IAuthProvider } from "@/server/application/services/auth-provider.interface";
 import { auth, clerkClient, createClerkClient } from "@clerk/nextjs/server";
 import { Role } from "@/shared/types/users.types";
+import { NotFoundError, ConflictError, InternalError } from "@/server/domain/errors/common";
 
 const clerk = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY });
 
@@ -48,15 +49,15 @@ export class ClerkAuthService implements IAuthProvider {
         } catch (error: any) {
             console.error("❌ Org Invitation Error:", JSON.stringify(error, null, 2));
             if (error.errors?.[0]?.code === "resource_not_found") {
-                throw new Error("Organización no encontrada. IDs incorrectos.");
+                throw new NotFoundError("Organización no encontrada. IDs incorrectos.");
             }
             if (error.errors?.[0]?.code === "form_identifier_exists") {
-                throw new Error("Este usuario ya ha sido invitado o es miembro.");
+                throw new ConflictError("Este usuario ya ha sido invitado o es miembro.");
             }
             if (error.errors?.[0]?.message?.includes("already")) {
-                throw new Error("El usuario ya tiene una invitación pendiente o es miembro.");
+                throw new ConflictError("El usuario ya tiene una invitación pendiente o es miembro.");
             }
-            throw error;
+            throw new InternalError("Error al invitar usuario: " + (error.message || "Error desconocido"));
         }
     }
 

@@ -1,9 +1,10 @@
-import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, keepPreviousData, QueryKey } from "@tanstack/react-query";
 import { membershipsApi } from "@/lib/api-client/memberships.api";
+import { ApiClientError } from "@/lib/fetch-client";
 import { membershipKeys } from "@/lib/react-query/query-keys";
 import { toast } from "sonner";
-import { CreateMembershipInput, UpdateMembershipInput } from "@/shared/types/memberships.types";
-import { PageableRequest } from "@/shared/types/pagination.types";
+import { CreateMembershipInput, UpdateMembershipInput, Membership } from "@/shared/types/memberships.types";
+import { PageableRequest, PageableResponse } from "@/shared/types/pagination.types";
 import { MembershipsFilters } from "@/shared/types/memberships.types";
 
 export const useMembershipsList = (params: PageableRequest<MembershipsFilters>) => {
@@ -24,7 +25,7 @@ export const useMembershipDetail = (id: string, enabled = true) => {
 
 export const useCreateMembership = () => {
     const queryClient = useQueryClient();
-    return useMutation({
+    return useMutation<Membership, ApiClientError, CreateMembershipInput>({
         mutationFn: (data: CreateMembershipInput) => membershipsApi.create(data),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: membershipKeys.lists() });
@@ -36,29 +37,37 @@ export const useCreateMembership = () => {
     });
 };
 
+interface MembershipsContext {
+    previousMemberships: [QueryKey, PageableResponse<Membership> | undefined][];
+    previousDetail: Membership | undefined;
+}
+
 export const useUpdateMembership = () => {
     const queryClient = useQueryClient();
-    return useMutation({
+    return useMutation<Membership, ApiClientError, { id: string; data: UpdateMembershipInput }, MembershipsContext>({
         mutationFn: ({ id, data }: { id: string; data: UpdateMembershipInput }) => membershipsApi.update(id, data),
         onMutate: async ({ id, data }) => {
             await queryClient.cancelQueries({ queryKey: membershipKeys.lists() });
             await queryClient.cancelQueries({ queryKey: membershipKeys.detail(id) });
 
-            const previousMemberships = queryClient.getQueriesData({ queryKey: membershipKeys.lists() });
-            const previousDetail = queryClient.getQueryData(membershipKeys.detail(id));
+            const previousMemberships = queryClient.getQueriesData<PageableResponse<Membership>>({ queryKey: membershipKeys.lists() });
+            const previousDetail = queryClient.getQueryData<Membership>(membershipKeys.detail(id));
 
-            queryClient.setQueriesData({ queryKey: membershipKeys.lists() }, (old: any) => {
+            queryClient.setQueriesData<PageableResponse<Membership>>({ queryKey: membershipKeys.lists() }, (old) => {
                 if (!old) return old;
                 return {
                     ...old,
-                    records: old.records.map((membership: any) =>
-                        membership.id === id ? { ...membership, ...data } : membership
+                    records: old.records.map((membership) =>
+                        membership.id === id ? { ...membership, ...data } as Membership : membership
                     ),
                 };
             });
 
             if (previousDetail) {
-                queryClient.setQueryData(membershipKeys.detail(id), (old: any) => ({ ...old, ...data }));
+                queryClient.setQueryData<Membership>(membershipKeys.detail(id), (old) => {
+                    if (!old) return old;
+                    return { ...old, ...data } as Membership;
+                });
             }
 
             return { previousMemberships, previousDetail };

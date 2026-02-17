@@ -13,7 +13,7 @@ export class UpdateUserController implements ControllerExecutor<UpdateUserInput,
 
   async execute(input: UpdateUserInput, id?: string) {
     if (!id) {
-      throw new BadRequestError("ID requerido", "No se proporcionó el ID del usuario a actualizar");
+      throw new BadRequestError("No se proporcionó el ID del usuario a actualizar");
     }
 
     const session = await auth();

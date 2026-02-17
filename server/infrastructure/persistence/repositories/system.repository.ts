@@ -10,39 +10,44 @@ import { CreatePlanInput, UpdatePlanInput } from "@/server/domain/types/plans";
 import { Prisma } from "@/generated/prisma/client";
 import { OrganizationMapper } from "../mappers/organizations.mapper";
 import { OrganizationPlanMapper } from "../mappers/organization-plans.mapper";
+import { translatePrismaError } from "../prisma-error-translator";
 
 export class SystemRepository implements ISystemRepository {
     private mapper = new OrganizationMapper();
     private planMapper = new OrganizationPlanMapper();
 
     async getGlobalStats(): Promise<SystemStats> {
-        const [totalUsers, totalOrgs, activeSubsWrapper, allActiveSubs] = await Promise.all([
-            prisma.user.count(),
-            prisma.organization.count(),
-            prisma.subscription.count({
-                where: {
-                    status: 'ACTIVE'
-                }
-            }),
-            prisma.subscription.findMany({
-                where: { status: 'ACTIVE' },
-                include: {
-                    plan: true
-                }
-            })
-        ]);
+        try {
+            const [totalUsers, totalOrgs, activeSubsWrapper, allActiveSubs] = await Promise.all([
+                prisma.user.count(),
+                prisma.organization.count(),
+                prisma.subscription.count({
+                    where: {
+                        status: 'ACTIVE'
+                    }
+                }),
+                prisma.subscription.findMany({
+                    where: { status: 'ACTIVE' },
+                    include: {
+                        plan: true
+                    }
+                })
+            ]);
 
-        // Calculate MRR from active subscriptions
-        const mrr = allActiveSubs.reduce((acc, sub) => {
-            return acc + Number(sub.pricePaid || 0);
-        }, 0);
+            // Calculate MRR from active subscriptions
+            const mrr = allActiveSubs.reduce((acc, sub) => {
+                return acc + Number(sub.pricePaid || 0);
+            }, 0);
 
-        return {
-            totalUsers,
-            totalOrgs,
-            activeSubs: activeSubsWrapper,
-            mrr
-        };
+            return {
+                totalUsers,
+                totalOrgs,
+                activeSubs: activeSubsWrapper,
+                mrr
+            };
+        } catch (error) {
+            translatePrismaError(error, "Sistema")
+        }
     }
 
     async getAllOrganizations(request: PageableRequest<OrganizationsFilters>): Promise<PageableResponse<Organization>> {
@@ -82,135 +87,171 @@ export class SystemRepository implements ISystemRepository {
             }
         }
 
-        const [totalRecords, records] = await Promise.all([
-            prisma.organization.count({ where }),
-            prisma.organization.findMany({
-                skip,
-                take: limit,
-                where,
-                orderBy,
+        try {
+            const [totalRecords, records] = await Promise.all([
+                prisma.organization.count({ where }),
+                prisma.organization.findMany({
+                    skip,
+                    take: limit,
+                    where,
+                    orderBy,
+                    include: {
+                        plan: true,
+                        _count: {
+                            select: { members: true }
+                        }
+                    }
+                })
+            ]);
+
+            const totalPages = Math.ceil(totalRecords / limit);
+
+            const mappedRecords = records.map(org => this.mapper.toDomain(org));
+
+            return {
+                currentPage: page,
+                pageSize: limit,
+                totalRecords,
+                totalPages,
+                hasNext: page < totalPages,
+                hasPrevious: page > 1,
+                records: mappedRecords
+            };
+        } catch (error) {
+            translatePrismaError(error, "Sistema")
+        }
+    }
+
+    async suspendOrganization(organizationId: string, suspend: boolean): Promise<void> {
+        try {
+            await prisma.organization.update({
+                where: { id: organizationId },
+                data: { isActive: !suspend }
+            });
+        } catch (error) {
+            translatePrismaError(error, "Sistema")
+        }
+    }
+
+    async getRecentSignups(): Promise<Organization[]> {
+        try {
+            const orgs = await prisma.organization.findMany({
+                take: 5,
+                orderBy: { createdAt: 'desc' },
                 include: {
                     plan: true,
+                    subscription: {
+                        include: {
+                            plan: true
+                        }
+                    },
                     _count: {
                         select: { members: true }
                     }
                 }
-            })
-        ]);
+            });
 
-        const totalPages = Math.ceil(totalRecords / limit);
-
-        const mappedRecords = records.map(org => this.mapper.toDomain(org));
-
-        return {
-            currentPage: page,
-            pageSize: limit,
-            totalRecords,
-            totalPages,
-            hasNext: page < totalPages,
-            hasPrevious: page > 1,
-            records: mappedRecords
-        };
-    }
-
-    async suspendOrganization(organizationId: string, suspend: boolean): Promise<void> {
-        await prisma.organization.update({
-            where: { id: organizationId },
-            data: { isActive: !suspend }
-        });
-    }
-
-    async getRecentSignups(): Promise<Organization[]> {
-        const orgs = await prisma.organization.findMany({
-            take: 5,
-            orderBy: { createdAt: 'desc' },
-            include: {
-                plan: true,
-                subscription: {
-                    include: {
-                        plan: true
-                    }
-                },
-                _count: {
-                    select: { members: true }
-                }
-            }
-        });
-
-        return orgs.map(org => this.mapper.toDomain(org));
+            return orgs.map(org => this.mapper.toDomain(org));
+        } catch (error) {
+            translatePrismaError(error, "Sistema")
+        }
     }
 
     async getRevenueStats(): Promise<RevenueStats[]> {
-        const sixMonthsAgo = new Date();
-        sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+        try {
+            const sixMonthsAgo = new Date();
+            sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
 
-        const subscriptions = await prisma.subscription.findMany({
-            where: {
-                createdAt: {
-                    gte: sixMonthsAgo
+            const subscriptions = await prisma.subscription.findMany({
+                where: {
+                    createdAt: {
+                        gte: sixMonthsAgo
+                    },
+                    status: 'ACTIVE'
                 },
-                status: 'ACTIVE'
-            },
-            include: {
-                plan: true
-            }
-        });
+                include: {
+                    plan: true
+                }
+            });
 
-        const revenueByMonth: Record<string, number> = {};
+            const revenueByMonth: Record<string, number> = {};
 
-        subscriptions.forEach(sub => {
-            if (sub.plan) {
-                const month = sub.createdAt.toLocaleString('default', { month: 'short' });
-                revenueByMonth[month] = (revenueByMonth[month] || 0) + Number(sub.plan.price);
-            }
-        });
+            subscriptions.forEach(sub => {
+                if (sub.plan) {
+                    const month = sub.createdAt.toLocaleString('default', { month: 'short' });
+                    revenueByMonth[month] = (revenueByMonth[month] || 0) + Number(sub.plan.price);
+                }
+            });
 
-        return Object.entries(revenueByMonth).map(([name, total]) => ({ name, total }));
+            return Object.entries(revenueByMonth).map(([name, total]) => ({ name, total }));
+        } catch (error) {
+            translatePrismaError(error, "Sistema")
+        }
     }
 
     async getSystemConfig(): Promise<SystemConfig> {
-        let config = await prisma.systemConfig.findFirst();
-        if (!config) {
-            config = await prisma.systemConfig.create({
-                data: {}
-            });
+        try {
+            let config = await prisma.systemConfig.findFirst();
+            if (!config) {
+                config = await prisma.systemConfig.create({
+                    data: {}
+                });
+            }
+            return config as SystemConfig;
+        } catch (error) {
+            translatePrismaError(error, "Sistema")
         }
-        return config as SystemConfig;
     }
 
     async updateSystemConfig(data: Partial<SystemConfig>): Promise<void> {
-        const config = await this.getSystemConfig();
-        await prisma.systemConfig.update({
-            where: { id: config.id },
-            data
-        });
+        try {
+            const config = await this.getSystemConfig();
+            await prisma.systemConfig.update({
+                where: { id: config.id },
+                data
+            });
+        } catch (error) {
+            translatePrismaError(error, "Sistema")
+        }
     }
 
     async getPlans(): Promise<OrganizationPlan[]> {
-        const plans = await prisma.organizationPlan.findMany({
-            orderBy: { price: 'asc' }
-        });
+        try {
+            const plans = await prisma.organizationPlan.findMany({
+                orderBy: { price: 'asc' }
+            });
 
-        return plans.map(p => this.planMapper.toDomain(p));
+            return plans.map(p => this.planMapper.toDomain(p));
+        } catch (error) {
+            translatePrismaError(error, "Sistema")
+        }
     }
 
     async createPlan(data: CreatePlanInput): Promise<void> {
-        await prisma.organizationPlan.create({
-            data: {
-                ...data,
-                slug: data.name.toLowerCase().replace(/\s+/g, '-'),
-                limits: (data.limits || {}) as any
-            }
-        });
+        try {
+            await prisma.organizationPlan.create({
+                data: {
+                    ...data,
+                    slug: data.name.toLowerCase().replace(/\s+/g, '-'),
+                    limits: (data.limits || {}) as any
+                }
+            });
+        } catch (error) {
+            translatePrismaError(error, "Sistema")
+        }
     }
 
     async updatePlan(id: string, data: UpdatePlanInput): Promise<void> {
-        await prisma.organizationPlan.update({
-            where: { id },
-            data: {
-                ...data,
-                limits: (data.limits || {}) as any
-            }
-        });
+        try {
+            await prisma.organizationPlan.update({
+                where: { id },
+                data: {
+                    ...data,
+                    limits: (data.limits || {}) as any
+                }
+            });
+        } catch (error) {
+            translatePrismaError(error, "Sistema")
+        }
     }
 }

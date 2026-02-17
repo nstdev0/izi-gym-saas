@@ -13,6 +13,7 @@ import {
 } from "@/shared/common/pagination";
 import { NotFoundError } from "@/server/domain/errors/common";
 import { MemberMapper } from "../mappers/members.mapper";
+import { translatePrismaError } from "../prisma-error-translator";
 
 
 
@@ -27,7 +28,7 @@ export class MembersRepository
   implements IMembersRepository {
 
   constructor(model: Prisma.MemberDelegate, organizationId: string) {
-    super(model, new MemberMapper(), organizationId)
+    super(model, new MemberMapper(), organizationId, "Miembro")
   }
 
   async findAll(
@@ -51,73 +52,87 @@ export class MembersRepository
       where = { ...where, organizationId: this.organizationId };
     }
 
-    const [totalRecords, records] = await Promise.all([
-      this.model.count({ where }),
-      this.model.findMany({
-        skip,
-        take: limit,
-        where,
-        orderBy,
-        include: {
-          memberships: {
-            where: { status: "ACTIVE" },
-            take: 1,
-            orderBy: { endDate: "desc" },
-            include: {
-              plan: {
-                select: { id: true, name: true },
+    try {
+      const [totalRecords, records] = await Promise.all([
+        this.model.count({ where }),
+        this.model.findMany({
+          skip,
+          take: limit,
+          where,
+          orderBy,
+          include: {
+            memberships: {
+              where: { status: "ACTIVE" },
+              take: 1,
+              orderBy: { endDate: "desc" },
+              include: {
+                plan: {
+                  select: { id: true, name: true },
+                },
               },
             },
           },
-        },
-      }),
-    ]);
+        }),
+      ]);
 
-    const totalPages = Math.ceil(totalRecords / limit);
+      const totalPages = Math.ceil(totalRecords / limit);
 
-    const mappedRecords = records.map((record) => {
-      return this.mapper.toDomain(record);
-    });
+      const mappedRecords = records.map((record) => {
+        return this.mapper.toDomain(record);
+      });
 
-    return {
-      currentPage: page,
-      pageSize: limit,
-      totalRecords,
-      totalPages,
-      hasNext: page < totalPages,
-      hasPrevious: page > 1,
-      records: mappedRecords,
-    };
+      return {
+        currentPage: page,
+        pageSize: limit,
+        totalRecords,
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrevious: page > 1,
+        records: mappedRecords,
+      };
+    } catch (error) {
+      translatePrismaError(error, "Miembros")
+    }
   }
 
   async delete(id: string): Promise<void> {
-    const member = await this.model.findUnique({ where: { id } });
-    if (!member) throw new NotFoundError("Miembro no encontrado");
+    try {
+      const member = await this.model.findUnique({ where: { id } });
+      if (!member) throw new NotFoundError("Miembro no encontrado");
 
-    await this.model.update({
-      where: { id },
-      data: {
-        isActive: false,
-        deletedAt: new Date(),
-        email: this.softDelete(member.email),
-        docNumber: this.softDelete(member.docNumber) || "",
-      },
-    })
+      await this.model.update({
+        where: { id },
+        data: {
+          isActive: false,
+          deletedAt: new Date(),
+          email: this.softDelete(member.email),
+          docNumber: this.softDelete(member.docNumber) || "",
+        },
+      })
+    } catch (error) {
+      if (error instanceof NotFoundError) throw error;
+      translatePrismaError(error, "Miembro")
+    }
   }
 
   async restore(id: string): Promise<void> {
-    const member = await this.model.findUnique({ where: { id } });
-    if (!member) throw new NotFoundError("Miembro no encontrado");
+    try {
+      const member = await this.model.findUnique({ where: { id } });
+      if (!member) throw new NotFoundError("Miembro no encontrado");
 
-    await this.model.update({
-      where: { id },
-      data: {
-        isActive: true,
-        deletedAt: null,
-        email: this.restoreField(member.email),
-        docNumber: this.restoreField(member.docNumber) || "",
-      },
-    })
+      await this.model.update({
+        where: { id },
+        data: {
+          isActive: true,
+          deletedAt: null,
+          email: this.restoreField(member.email),
+          docNumber: this.restoreField(member.docNumber) || "",
+        },
+      })
+    } catch (error) {
+      if (error instanceof NotFoundError) throw error;
+      translatePrismaError(error, "Miembro")
+    }
   }
 
 
@@ -184,59 +199,75 @@ export class MembersRepository
   }
 
   async validateUniqueEmail(email: string | null | undefined): Promise<Member | null> {
-    if (!email) return null;
-    const emailRecord = await this.model.findUnique({
-      where: {
-        email_organizationId: {
-          email,
-          organizationId: this.organizationId as string,
-        },
-      }
-    });
+    try {
+      if (!email) return null;
+      const emailRecord = await this.model.findUnique({
+        where: {
+          email_organizationId: {
+            email,
+            organizationId: this.organizationId as string,
+          },
+        }
+      });
 
-    if (emailRecord) return this.mapper.toDomain(emailRecord);
-    return null;
+      if (emailRecord) return this.mapper.toDomain(emailRecord);
+      return null;
+    } catch (error) {
+      translatePrismaError(error, "Miembro")
+    }
   }
 
   async validateUniqueDocument(docType: DocType, docNumber: string): Promise<Member | null> {
-    const docRecord = await this.model.findUnique({
-      where: {
-        docType_docNumber_organizationId: {
-          docType,
-          docNumber,
-          organizationId: this.organizationId as string,
-        },
-      }
-    });
-    if (docRecord) return this.mapper.toDomain(docRecord);
-    return null;
+    try {
+      const docRecord = await this.model.findUnique({
+        where: {
+          docType_docNumber_organizationId: {
+            docType,
+            docNumber,
+            organizationId: this.organizationId as string,
+          },
+        }
+      });
+      if (docRecord) return this.mapper.toDomain(docRecord);
+      return null;
+    } catch (error) {
+      translatePrismaError(error, "Miembro")
+    }
   }
 
   async findByIdWithMemberships(id: string): Promise<Member | null> {
-    const record = await this.model.findUnique({
-      where: { id, organizationId: this.organizationId },
-      include: {
-        memberships: {
-          select: { status: true },
+    try {
+      const record = await this.model.findUnique({
+        where: { id, organizationId: this.organizationId },
+        include: {
+          memberships: {
+            select: { status: true },
+          },
         },
-      },
-    });
+      });
 
-    if (!record) return null;
-    // @ts-ignore
-    return this.mapper.toDomain(record);
+      if (!record) return null;
+      // @ts-ignore
+      return this.mapper.toDomain(record);
+    } catch (error) {
+      translatePrismaError(error, "Miembro")
+    }
   }
 
   async findByQrCode(qrCode: string): Promise<Member | null> {
-    const record = await this.model.findUnique({
-      where: { qr_organizationId: { qr: qrCode, organizationId: this.organizationId! } },
-      include: {
-        memberships: {
-          select: { status: true },
+    try {
+      const record = await this.model.findUnique({
+        where: { qr_organizationId: { qr: qrCode, organizationId: this.organizationId! } },
+        include: {
+          memberships: {
+            select: { status: true },
+          },
         },
-      },
-    });
-    if (!record) return null;
-    return this.mapper.toDomain(record);
+      });
+      if (!record) return null;
+      return this.mapper.toDomain(record);
+    } catch (error) {
+      translatePrismaError(error, "Miembro")
+    }
   }
 }

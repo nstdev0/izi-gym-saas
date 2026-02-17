@@ -1,6 +1,6 @@
 import { PlansFilters } from "@/server/application/repositories/plans.repository.interface";
 import { GetAllPlansUseCase } from "@/server/application/use-cases/plans/get-all-plans.use-case";
-import { Plan } from "@/server/domain/entities/Plan";
+import { Plan } from "@/shared/types/plans.types";
 import { ControllerExecutor } from "@/server/lib/api-handler";
 import { PageableRequest, PageableResponse } from "@/shared/common/pagination";
 

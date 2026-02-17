@@ -1,7 +1,7 @@
 import { BaseEntity, EntityStatus } from "./_base";
 import { Member } from "./Member";
 
-export class Attendance extends BaseEntity {
+export class Attendance extends BaseEntity<EntityStatus> {
     constructor(
         id: string,
         organizationId: string,

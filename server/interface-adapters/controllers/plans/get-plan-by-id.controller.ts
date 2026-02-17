@@ -1,5 +1,5 @@
 import { GetPlanByIdUseCase } from "@/server/application/use-cases/plans/get-plan-by-id.use-case";
-import { Plan } from "@/server/domain/entities/Plan";
+import { Plan } from "@/shared/types/plans.types";
 import { BadRequestError, NotFoundError } from "@/server/domain/errors/common";
 import { ControllerExecutor } from "@/server/lib/api-handler";
 

@@ -1,4 +1,4 @@
-import { OrganizationPlan } from "@/server/domain/entities/OrganizationPlan";
+import { OrganizationPlan } from "@/shared/types/organization-plans.types";
 import { SystemGetPlansUseCase } from "@/server/application/use-cases/system/system-get-plans.use-case";
 import { ControllerExecutor } from "@/server/lib/api-handler";
 

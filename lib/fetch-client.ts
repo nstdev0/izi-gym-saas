@@ -12,10 +12,21 @@ const getBaseUrl = () => {
     return 'http://localhost:3000';
 };
 
+export class ApiClientError extends Error {
+    code: string;
+    fields?: Record<string, string[]>;
+
+    constructor(message: string, code: string = "UNKNOWN_ERROR", fields?: Record<string, string[]>) {
+        super(message);
+        this.name = "ApiClientError";
+        this.code = code;
+        this.fields = fields;
+    }
+}
+
 export const fetchClient = async <T>(endpoint: string, options?: RequestInit): Promise<T> => {
     const url = endpoint.startsWith('http') ? endpoint : `${getBaseUrl()}${endpoint}`;
 
-    // Ensure content-type is json for mutations if body is present and it's an object (and not FormData)
     const headers = new Headers(options?.headers);
     if (
         options?.body &&
@@ -26,24 +37,20 @@ export const fetchClient = async <T>(endpoint: string, options?: RequestInit): P
     }
 
     const config: RequestInit = {
-        // 1. DEFAULT CRÍTICO PARA TANSTACK QUERY:
-        // Evita que Next.js cachee la respuesta HTTP a nivel de red.
-        // Dejamos que React Query gestione la memoria y el re-fetching.
         cache: 'no-store',
-
-        // 2. Spread de opciones (permite sobrescribir cache si fuera necesario)
         ...options,
-
-        // 3. Headers procesados
         headers,
     };
 
     const response = await fetch(url, config);
 
     if (!response.ok) {
-        // Handle non-2xx responses
         const errorBody = await response.json().catch(() => ({}));
-        throw new Error(errorBody.message || `API Error: ${response.statusText}`);
+        throw new ApiClientError(
+            errorBody.message || `API Error: ${response.statusText}`,
+            errorBody.code || "UNKNOWN_ERROR",
+            errorBody.fields
+        );
     }
 
     // For 204 No Content, return null

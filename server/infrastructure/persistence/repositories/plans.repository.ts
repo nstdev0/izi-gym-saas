@@ -8,6 +8,7 @@ import {
   UpdatePlanInput,
 } from "@/server/domain/types/plans";
 import { PlanMapper } from "../mappers/plans.mapper";
+import { translatePrismaError } from "../prisma-error-translator";
 
 export class PlansRepository
   extends BaseRepository<
@@ -23,7 +24,7 @@ export class PlansRepository
     protected readonly model: Prisma.PlanDelegate,
     protected readonly organizationId: string
   ) {
-    super(model, new PlanMapper(), organizationId);
+    super(model, new PlanMapper(), organizationId, "Plan");
   }
 
   protected async buildPrismaClauses(
@@ -79,10 +80,14 @@ export class PlansRepository
   }
 
   async findBySlug(slug: string): Promise<Plan | null> {
-    const record = await this.model.findUnique({
-      where: { slug },
-    });
+    try {
+      const record = await this.model.findUnique({
+        where: { slug },
+      });
 
-    return record ? this.mapper.toDomain(record) : null;
+      return record ? this.mapper.toDomain(record) : null;
+    } catch (error) {
+      translatePrismaError(error, "Plan")
+    }
   }
 }

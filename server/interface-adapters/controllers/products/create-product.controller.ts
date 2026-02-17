@@ -12,7 +12,7 @@ export class CreateProductController {
     if (!validatedInput.success) {
       throw new ValidationError(
         "Datos de producto inválidos",
-        validatedInput.error.message,
+        validatedInput.error.flatten().fieldErrors,
       );
     }
     await this.useCase.execute(validatedInput.data);

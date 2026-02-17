@@ -3,7 +3,7 @@ import { BaseEntity, EntityStatus } from "./_base";
 import { OrganizationConfig } from "./OrganizationConfig";
 import { OrganizationPlan } from "./OrganizationPlan";
 
-export class Organization extends BaseEntity {
+export class Organization extends BaseEntity<EntityStatus> {
   constructor(
     id: string,
     organizationId: string,

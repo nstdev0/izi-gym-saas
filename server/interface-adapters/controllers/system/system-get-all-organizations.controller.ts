@@ -3,7 +3,7 @@ import { OrganizationsFilters } from "@/server/domain/types/organizations";
 import { PageableRequest } from "@/shared/common/pagination";
 import { ControllerExecutor } from "@/server/lib/api-handler";
 import { PageableResponse } from "@/shared/common/pagination";
-import { Organization } from "@/server/domain/entities/Organization";
+import { Organization } from "@/shared/types/organizations.types";
 
 export class SystemGetAllOrganizationsController implements ControllerExecutor<PageableRequest<OrganizationsFilters>, PageableResponse<Organization>> {
     constructor(private readonly getAllOrganizationsUseCase: ISystemGetAllOrganizationsUseCase) { }

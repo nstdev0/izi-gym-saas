@@ -1,6 +1,6 @@
 import { ControllerExecutor } from "@/server/lib/api-handler";
 import { GetProductByIdUseCase } from "@/server/application/use-cases/products/get-product-by-id.use-case";
-import { Product } from "@/server/domain/entities/Product";
+import { Product } from "@/shared/types/products.types";
 import { BadRequestError, NotFoundError } from "@/server/domain/errors/common";
 
 export class GetProductByIdController implements ControllerExecutor<void, Product | null> {

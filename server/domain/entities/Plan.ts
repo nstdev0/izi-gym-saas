@@ -1,6 +1,6 @@
 import { BaseEntity, EntityStatus } from "./_base";
 
-export class Plan extends BaseEntity {
+export class Plan extends BaseEntity<EntityStatus> {
   constructor(
     id: string,
     organizationId: string,

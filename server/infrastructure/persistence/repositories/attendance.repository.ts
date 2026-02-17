@@ -10,6 +10,7 @@ import {
     PageableResponse,
 } from "@/shared/common/pagination";
 import { AttendanceMapper } from "../mappers/attendance.mapper";
+import { translatePrismaError } from "../prisma-error-translator";
 import { Attendance } from "@/server/domain/entities/Attendance";
 
 export class AttendanceRepository
@@ -26,7 +27,7 @@ export class AttendanceRepository
         model: Prisma.AttendanceDelegate,
         organizationId: string,
     ) {
-        super(model, new AttendanceMapper(), organizationId);
+        super(model, new AttendanceMapper(), organizationId, "Asistencia");
     }
 
     async findAll(
@@ -50,13 +51,53 @@ export class AttendanceRepository
             where = { ...where, organizationId: this.organizationId };
         }
 
-        const [totalRecords, records] = await Promise.all([
-            this.model.count({ where }),
-            this.model.findMany({
-                skip,
-                take: limit,
-                where,
-                orderBy,
+        try {
+            const [totalRecords, records] = await Promise.all([
+                this.model.count({ where }),
+                this.model.findMany({
+                    skip,
+                    take: limit,
+                    where,
+                    orderBy,
+                    include: {
+                        member: {
+                            select: {
+                                id: true,
+                                firstName: true,
+                                lastName: true,
+                                image: true,
+                            },
+                        },
+                    },
+                }),
+            ]);
+
+            const totalPages = Math.ceil(totalRecords / limit);
+            const mappedRecords = records.map(record => this.mapper.toDomain(record));
+
+            return {
+                currentPage: page,
+                pageSize: limit,
+                totalRecords,
+                totalPages,
+                hasNext: page < totalPages,
+                hasPrevious: page > 1,
+                records: mappedRecords,
+            };
+        } catch (error) {
+            translatePrismaError(error, "Asistencias")
+        }
+    }
+
+    async create(data: RegisterAttendanceInput): Promise<Attendance> {
+        try {
+            const record = await this.model.create({
+                data: {
+                    memberId: data.memberId,
+                    date: data.date,
+                    method: data.method,
+                    organizationId: this.organizationId as string,
+                },
                 include: {
                     member: {
                         select: {
@@ -67,82 +108,58 @@ export class AttendanceRepository
                         },
                     },
                 },
-            }),
-        ]);
-
-        const totalPages = Math.ceil(totalRecords / limit);
-        const mappedRecords = records.map(record => this.mapper.toDomain(record));
-
-        return {
-            currentPage: page,
-            pageSize: limit,
-            totalRecords,
-            totalPages,
-            hasNext: page < totalPages,
-            hasPrevious: page > 1,
-            records: mappedRecords,
-        };
-    }
-
-    async create(data: RegisterAttendanceInput): Promise<Attendance> {
-        const record = await this.model.create({
-            data: {
-                memberId: data.memberId,
-                date: data.date,
-                method: data.method,
-                organizationId: this.organizationId as string,
-            },
-            include: {
-                member: {
-                    select: {
-                        id: true,
-                        firstName: true,
-                        lastName: true,
-                        image: true,
-                    },
-                },
-            },
-        });
-        return this.mapper.toDomain(record);
+            });
+            return this.mapper.toDomain(record);
+        } catch (error) {
+            translatePrismaError(error, "Asistencia")
+        }
     }
 
     async findById(id: string): Promise<Attendance | null> {
-        const record = await this.model.findFirst({
-            where: {
-                id,
-                organizationId: this.organizationId,
-            },
-            include: {
-                member: {
-                    select: {
-                        id: true,
-                        firstName: true,
-                        lastName: true,
-                        image: true,
+        try {
+            const record = await this.model.findFirst({
+                where: {
+                    id,
+                    organizationId: this.organizationId,
+                },
+                include: {
+                    member: {
+                        select: {
+                            id: true,
+                            firstName: true,
+                            lastName: true,
+                            image: true,
+                        },
                     },
                 },
-            },
-        });
-        if (!record) return null;
-        return this.mapper.toDomain(record);
+            });
+            if (!record) return null;
+            return this.mapper.toDomain(record);
+        } catch (error) {
+            translatePrismaError(error, "Asistencia")
+        }
     }
 
     async update(id: string, data: UpdateAttendanceInput): Promise<Attendance> {
-        const record = await this.model.update({
-            where: { id, organizationId: this.organizationId },
-            data,
-            include: {
-                member: {
-                    select: {
-                        id: true,
-                        firstName: true,
-                        lastName: true,
-                        image: true,
+        try {
+            const record = await this.model.update({
+                where: { id, organizationId: this.organizationId },
+                data,
+                include: {
+                    member: {
+                        select: {
+                            id: true,
+                            firstName: true,
+                            lastName: true,
+                            image: true,
+                        },
                     },
                 },
-            },
-        });
-        return this.mapper.toDomain(record);
+            });
+            return this.mapper.toDomain(record);
+        } catch (error) {
+            translatePrismaError(error, "Asistencia")
+        }
     }
 
     protected async buildPrismaClauses(

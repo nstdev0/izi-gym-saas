@@ -1,20 +1,9 @@
 import { BaseEntity, EntityStatus } from "./_base";
 import { Membership } from "./Membership";
 
-export enum Gender {
-  MALE = "MALE",
-  FEMALE = "FEMALE",
-  OTHER = "OTHER",
-}
+import { Gender, DocType } from "@/shared/types/members.types";
 
-export enum DocType {
-  DNI = "DNI",
-  CE = "CE",
-  PASSPORT = "PASSPORT",
-  RUC = "RUC",
-}
-
-export class Member extends BaseEntity {
+export class Member extends BaseEntity<EntityStatus> {
   constructor(
     id: string,
     organizationId: string,

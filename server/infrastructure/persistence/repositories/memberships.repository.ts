@@ -1,4 +1,4 @@
-import { Member, Prisma, PrismaClient } from "@/generated/prisma/client";
+import { Prisma } from "@/generated/prisma/client";
 import { Membership } from "@/server/domain/entities/Membership";
 import { BaseRepository } from "./base.repository";
 import { IMembershipsRepository } from "@/server/application/repositories/memberships.repository.interface";
@@ -9,6 +9,7 @@ import {
 } from "@/server/domain/types/memberships";
 import { PageableRequest, PageableResponse } from "@/shared/common/pagination";
 import { MembershipMapper } from "../mappers/memberships.mapper";
+import { translatePrismaError } from "../prisma-error-translator";
 
 
 
@@ -23,7 +24,7 @@ export class MembershipsRepository
   implements IMembershipsRepository {
 
   constructor(model: Prisma.MembershipDelegate, organizationId: string) {
-    super(model, new MembershipMapper(), organizationId);
+    super(model, new MembershipMapper(), organizationId, "Membresía");
   }
 
   protected async buildPrismaClauses(
@@ -91,82 +92,96 @@ export class MembershipsRepository
   async findAll(
     request: PageableRequest<MembershipsFilters> = { page: 1, limit: 10 },
   ): Promise<PageableResponse<Membership>> {
-    const { page = 1, limit = 10, filters } = request;
+    try {
+      const { page = 1, limit = 10, filters } = request;
 
-    const safePage = page < 1 ? 1 : page;
-    const skip = (safePage - 1) * limit;
+      const safePage = page < 1 ? 1 : page;
+      const skip = (safePage - 1) * limit;
 
-    let where: Prisma.MembershipWhereInput = { deletedAt: null };
-    let orderBy: Prisma.MembershipOrderByWithRelationInput = { createdAt: "desc" };
+      let where: Prisma.MembershipWhereInput = { deletedAt: null };
+      let orderBy: Prisma.MembershipOrderByWithRelationInput = { createdAt: "desc" };
 
-    if (filters) {
-      const [whereClause, orderByClause] = await this.buildPrismaClauses(filters);
-      where = { ...where, ...whereClause };
-      orderBy = orderByClause;
-    }
+      if (filters) {
+        const [whereClause, orderByClause] = await this.buildPrismaClauses(filters);
+        where = { ...where, ...whereClause };
+        orderBy = orderByClause;
+      }
 
-    if (this.organizationId) {
-      where = { ...where, organizationId: this.organizationId };
-    }
+      if (this.organizationId) {
+        where = { ...where, organizationId: this.organizationId };
+      }
 
-    const [totalRecords, records] = await Promise.all([
-      this.model.count({ where }),
-      this.model.findMany({
-        skip,
-        take: limit,
-        where,
-        orderBy,
-        include: {
-          member: {
-            select: { firstName: true, lastName: true, image: true, docNumber: true },
+      const [totalRecords, records] = await Promise.all([
+        this.model.count({ where }),
+        this.model.findMany({
+          skip,
+          take: limit,
+          where,
+          orderBy,
+          include: {
+            member: {
+              select: { firstName: true, lastName: true, image: true, docNumber: true },
+            },
+            plan: {
+              select: { name: true },
+            },
           },
-          plan: {
-            select: { name: true },
-          },
-        },
-      }),
-    ]);
+        }),
+      ]);
 
-    const totalPages = Math.ceil(totalRecords / limit);
+      const totalPages = Math.ceil(totalRecords / limit);
 
-    const mappedRecords = records.map((record) => {
-      // @ts-ignore
-      return this.mapper.toDomain(record);
-    });
+      const mappedRecords = records.map((record) => {
+        // @ts-ignore
+        return this.mapper.toDomain(record);
+      });
 
-    return {
-      currentPage: page,
-      pageSize: limit,
-      totalRecords,
-      totalPages,
-      hasNext: page < totalPages,
-      hasPrevious: page > 1,
-      records: mappedRecords,
-    };
+      return {
+        currentPage: page,
+        pageSize: limit,
+        totalRecords,
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrevious: page > 1,
+        records: mappedRecords,
+      };
+    } catch (error) {
+      translatePrismaError(error, "Membresía")
+    }
   }
 
   async findActiveMembershipByMemberId(memberId: string): Promise<Membership | null> {
-    const result = await this.model.findFirst({
-      where: {
-        memberId,
-        organizationId: this.organizationId,
-        status: {
-          in: ["ACTIVE", "PENDING"],
+    try {
+      const result = await this.model.findFirst({
+        where: {
+          memberId,
+          organizationId: this.organizationId,
+          deletedAt: null,
+          status: {
+            in: ["ACTIVE", "PENDING"],
+          },
         },
-      },
-      include: {
-        plan: true,
-      }
-    });
+        include: {
+          plan: true,
 
-    if (!result) return null;
-    return this.mapper.toDomain(result);
+        }
+      });
+
+      if (!result) return null;
+      return this.mapper.toDomain(result);
+    } catch (error) {
+      translatePrismaError(error, "Membresía")
+    }
   }
 
   async cancel(id: string): Promise<void> {
-    await this.model.update({
-      where: { id, organizationId: this.organizationId },
-      data: { status: "CANCELLED" },
-    });
+    try {
+      await this.model.update({
+        where: { id, organizationId: this.organizationId },
+        data: { status: "CANCELLED" },
+      });
+    } catch (error) {
+      translatePrismaError(error, "Membresía")
+    }
   }
 }

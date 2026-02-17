@@ -1,5 +1,5 @@
 import { SystemGetRecentSignupsUseCase } from "@/server/application/use-cases/system/system-get-recent-signups.use-case";
-import { Organization } from "@/server/domain/entities/Organization";
+import { Organization } from "@/shared/types/organizations.types";
 import { ControllerExecutor } from "@/server/lib/api-handler";
 
 export class SystemGetRecentSignupsController implements ControllerExecutor<void, Organization[]> {
