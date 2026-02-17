@@ -3,7 +3,7 @@ import { SystemUpdatePlanUseCase } from "@/server/application/use-cases/system/s
 import { ControllerExecutor } from "@/server/lib/api-handler";
 
 export class SystemUpdatePlanController implements ControllerExecutor<UpdatePlanInput, void> {
-    constructor(private useCase: SystemUpdatePlanUseCase) { }
+    constructor(private readonly useCase: SystemUpdatePlanUseCase) { }
 
     async execute(data: UpdatePlanInput, id?: string): Promise<void> {
         if (!id) throw new Error("ID is required");

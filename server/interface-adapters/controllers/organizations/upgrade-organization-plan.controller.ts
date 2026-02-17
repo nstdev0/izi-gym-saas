@@ -2,13 +2,13 @@ import { IUpgradeOrganizationPlanUseCase } from "@/server/application/use-cases/
 import { BadRequestError } from "@/server/domain/errors/common";
 import { ControllerExecutor } from "@/server/lib/api-handler";
 
-export class UpgradeOrganizationPlanController implements ControllerExecutor<Record<string, string>> {
+export class UpgradeOrganizationPlanController implements ControllerExecutor<Record<string, string>, void> {
     constructor(private readonly useCase: IUpgradeOrganizationPlanUseCase) { }
 
-    async execute(input: Record<string, string>, _id?: string) {
+    async execute(input: Record<string, string>, _id?: string): Promise<void> {
         if (!input.plan) {
             throw new BadRequestError("Plan no especificado")
         }
-        return this.useCase.execute(input.plan);
+        await this.useCase.execute(input.plan);
     }
 }

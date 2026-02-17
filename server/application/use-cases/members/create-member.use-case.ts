@@ -8,7 +8,7 @@ import { generateMemberQrToken } from "@/server/shared/utils/token-generator";
 export class CreateMemberUseCase {
   constructor(private readonly repo: IMembersRepository) { }
 
-  async execute(input: CreateMemberInput): Promise<Member> {
+  async execute(input: CreateMemberInput): Promise<void> {
     const errors: string[] = [];
 
     const validateUniqueDocument = await this.repo.validateUniqueDocument(input.docType, input.docNumber);
@@ -32,7 +32,7 @@ export class CreateMemberUseCase {
     const qrToken = generateMemberQrToken();
     input.qr = qrToken;
 
-    return await this.repo.create(input);
+    await this.repo.create(input);
   }
 }
 

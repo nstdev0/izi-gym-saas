@@ -10,8 +10,7 @@ export class SystemSuspendOrganizationController implements ControllerExecutor<{
     async execute(input: {
         organizationId: string;
         suspend: boolean;
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    }, id?: string | undefined) {
-        return this.suspendOrganizationUseCase.execute(input.organizationId, input.suspend);
+    }, id?: string | undefined): Promise<void> {
+        await this.suspendOrganizationUseCase.execute(input.organizationId, input.suspend);
     }
 }

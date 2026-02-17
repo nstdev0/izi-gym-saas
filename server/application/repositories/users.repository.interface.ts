@@ -8,10 +8,10 @@ import {
 
 export type { CreateUserInput, UpdateUserInput, UsersFilters };
 
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface IUsersRepository extends IBaseRepository<
   User,
   CreateUserInput,
   UpdateUserInput,
   UsersFilters
-> {}
+> {
+}

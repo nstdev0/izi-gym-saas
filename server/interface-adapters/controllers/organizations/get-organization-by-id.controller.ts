@@ -6,7 +6,7 @@ import { ControllerExecutor } from "@/server/lib/api-handler";
 export class GetOrganizationByIdController implements ControllerExecutor<void, Organization | null> {
   constructor(private readonly useCase: IGetOrganizationByIdUseCase) { }
 
-  async execute(input: void, id?: string) {
+  async execute(input: void, id?: string): Promise<Organization | null> {
     if (!id) {
       throw new BadRequestError("No se proporcionó un id");
     }

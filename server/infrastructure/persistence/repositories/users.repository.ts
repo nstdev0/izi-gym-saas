@@ -22,7 +22,7 @@ export class UsersRepository
   constructor(model: Prisma.UserDelegate, organizationId: string) {
     super(model, new UserMapper(), organizationId);
   }
-  async create(data: CreateUserInput): Promise<User> {
+  async create(data: CreateUserInput): Promise<void> {
     const { password, id, ...rest } = data;
     // Si viene ID (de Clerk), lo usamos.
     const prismaData = {
@@ -31,10 +31,9 @@ export class UsersRepository
       passwordHash: password,
     };
 
-    const created = await this.model.create({
+    await this.model.create({
       data: { ...prismaData, organizationId: this.organizationId },
     });
-    return this.mapper.toDomain(created);
   }
 
   async update(id: string, data: UpdateUserInput): Promise<void> {

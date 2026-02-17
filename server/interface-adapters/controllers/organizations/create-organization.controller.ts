@@ -6,12 +6,12 @@ import { Organization } from "@/server/domain/entities/Organization";
 // Input que incluye el userId agregado en la ruta
 type CreateOrganizationInput = typeof createOrganizationSchema._type & { userId: string };
 
-export class CreateOrganizationController implements ControllerExecutor<CreateOrganizationInput, Organization> {
+export class CreateOrganizationController implements ControllerExecutor<CreateOrganizationInput, void> {
   constructor(private readonly useCase: ICreateOrganizationUseCase) { }
 
-  async execute(input: CreateOrganizationInput) {
+  async execute(input: CreateOrganizationInput): Promise<void> {
     const { userId, ...data } = input;
-    return await this.useCase.execute(data, userId);
+    await this.useCase.execute(data, userId);
   }
 }
 

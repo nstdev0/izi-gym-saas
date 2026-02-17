@@ -4,9 +4,9 @@ import { SystemUpdateSystemConfigUseCase } from "@/server/application/use-cases/
 import { ControllerExecutor } from "@/server/lib/api-handler";
 
 export class SystemUpdateSystemConfigController implements ControllerExecutor<Partial<SystemConfig>, void> {
-    constructor(private useCase: SystemUpdateSystemConfigUseCase) { }
+    constructor(private readonly useCase: SystemUpdateSystemConfigUseCase) { }
 
     async execute(data: Partial<SystemConfig>): Promise<void> {
-        return this.useCase.execute(data);
+        await this.useCase.execute(data);
     }
 }

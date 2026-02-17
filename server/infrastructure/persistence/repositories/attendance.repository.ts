@@ -84,8 +84,8 @@ export class AttendanceRepository
         };
     }
 
-    async create(data: RegisterAttendanceInput): Promise<Attendance> {
-        const result = await this.model.create({
+    async create(data: RegisterAttendanceInput): Promise<void> {
+        await this.model.create({
             data: {
                 memberId: data.memberId,
                 date: data.date,
@@ -103,7 +103,6 @@ export class AttendanceRepository
                 },
             },
         });
-        return this.mapper.toDomain(result);
     }
 
     async findById(id: string): Promise<Attendance | null> {

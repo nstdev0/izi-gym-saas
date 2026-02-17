@@ -96,11 +96,10 @@ export abstract class BaseRepository<
     return entity ? this.mapper.toDomain(entity) : null
   }
 
-  async create(data: TCreate): Promise<TEntity> {
-    const entity = await this.model.create({
+  async create(data: TCreate): Promise<void> {
+    await this.model.create({
       data: { ...data, organizationId: this.organizationId } as any,
     })
-    return this.mapper.toDomain(entity)
   }
 
   async update(id: string, data: TUpdate): Promise<void> {

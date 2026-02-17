@@ -6,7 +6,7 @@ import { ControllerExecutor } from "@/server/lib/api-handler";
 export class UpdateMemberController implements ControllerExecutor<UpdateMemberInput, void> {
   constructor(private readonly useCase: IUpdateMemberUseCase) { }
 
-  async execute(input: UpdateMemberInput, id?: string) {
+  async execute(input: UpdateMemberInput, id?: string): Promise<void> {
     if (!id) {
       throw new BadRequestError("No se proporciono un id");
     }

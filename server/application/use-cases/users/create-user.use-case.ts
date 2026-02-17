@@ -4,7 +4,7 @@ import { User } from "@/server/domain/entities/User";
 import { ClerkAuthService } from "@/server/infrastructure/services/clerk-auth.service";
 
 export interface ICreateUserUseCase {
-  execute(input: CreateUserInput, organizationId?: string, inviterId?: string): Promise<User>;
+  execute(input: CreateUserInput, organizationId?: string, inviterId?: string): Promise<void>;
 }
 
 // OJO: Cambiamos la interfaz de retorno o devolvemos un objeto parcial compatible
@@ -16,7 +16,7 @@ export class CreateUserUseCase implements ICreateUserUseCase {
     private authService: ClerkAuthService
   ) { }
 
-  async execute(input: CreateUserInput, organizationId?: string, inviterId?: string): Promise<User> {
+  async execute(input: CreateUserInput, organizationId?: string, inviterId?: string): Promise<void> {
     // 1. Invitar en Clerk a la Organización
     const orgId = organizationId || "";
     // inviterId es obligatorio para org invites, podría venir del controller
@@ -33,17 +33,17 @@ export class CreateUserUseCase implements ICreateUserUseCase {
 
     // 2. Retornar un objeto dummy para satisfacer la interfaz hasta que el webhook cree el real.
     // Esto es un compromiso temporal. El frontend refrescará y quizás no vea al usuario todavía.
-    return {
-      id: "pending_invitation",
-      email: input.email,
-      firstName: input.firstName || "",
-      lastName: input.lastName || "",
-      role: input.role,
-      isActive: false,
-      organizationId: orgId,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      image: null,
-    } as User;
+    //   return {
+    //     id: "pending_invitation",
+    //     email: input.email,
+    //     firstName: input.firstName || "",
+    //     lastName: input.lastName || "",
+    //     role: input.role,
+    //     isActive: false,
+    //     organizationId: orgId,
+    //     createdAt: new Date(),
+    //     updatedAt: new Date(),
+    //     image: null,
+    //   } as User;
   }
 }

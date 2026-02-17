@@ -6,7 +6,7 @@ import { BadRequestError } from "@/server/domain/errors/common";
 export class UpdateProductController implements ControllerExecutor<UpdateProductSchema, void> {
   constructor(private readonly useCase: UpdateProductUseCase) { }
 
-  async execute(data: UpdateProductSchema, id?: string) {
+  async execute(data: UpdateProductSchema, id?: string): Promise<void> {
     if (!id) {
       throw new BadRequestError("No se proporcionó un id");
     }

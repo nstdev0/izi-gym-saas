@@ -1,6 +1,5 @@
 import { UpdatePlanInput } from "@/server/application/dtos/plans.dto";
 import { UpdatePlanUseCase } from "@/server/application/use-cases/plans/update-plan.use-case";
-import { Plan } from "@/server/domain/entities/Plan";
 import { BadRequestError } from "@/server/domain/errors/common";
 import { ControllerExecutor } from "@/server/lib/api-handler";
 

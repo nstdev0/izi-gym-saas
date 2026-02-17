@@ -1,17 +1,15 @@
 import { PrismaClient } from "@/generated/prisma/client";
-import { Organization } from "@/server/domain/entities/Organization";
 import { BadRequestError, ConflictError, NotFoundError } from "@/server/domain/errors/common";
 import { CreateOrganizationInput } from "@/server/domain/types/organizations";
-import { OrganizationMapper } from "@/server/infrastructure/persistence/mappers/organizations.mapper";
 import { clerkClient } from "@clerk/nextjs/server";
 
 export class CreateOrganizationUseCase {
-  constructor(private readonly prisma: PrismaClient, private readonly mapper: OrganizationMapper) { }
+  constructor(private readonly prisma: PrismaClient) { }
 
   async execute(
     input: CreateOrganizationInput,
     userId: string,
-  ): Promise<Organization> {
+  ): Promise<void> {
     const selectedPlan = input.planSlug || "free-trial";
 
     // 1. Buscar Plan
@@ -32,7 +30,7 @@ export class CreateOrganizationUseCase {
     }
 
     // 3. Transacción
-    const newOrg = await this.prisma.$transaction(async (tx) => {
+    await this.prisma.$transaction(async (tx) => {
       // A. Crear Org
       const org = await tx.organization.create({
         data: {
@@ -166,13 +164,8 @@ export class CreateOrganizationUseCase {
           },
         });
       }
-      return org;
     });
-
-    return this.mapper.toDomain(newOrg);
-
   }
-
 }
 
 export type ICreateOrganizationUseCase = InstanceType<typeof CreateOrganizationUseCase>;

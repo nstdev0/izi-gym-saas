@@ -22,7 +22,6 @@ export class UpdateUserController implements ControllerExecutor<UpdateUserInput,
       throw new ForbiddenError("No autenticado");
     }
 
-    // Check current user's role
     const currentUser = await prisma.user.findUnique({
       where: { id: session.userId },
       select: { role: true },
