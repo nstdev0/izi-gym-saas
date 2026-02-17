@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { SystemService } from "@/lib/services/system.service";
+import { systemApi } from "@/lib/api-client/system.api";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
@@ -19,7 +19,6 @@ import { Textarea } from "@/components/ui/textarea";
 interface PlanDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     plan?: any;
 }
 
@@ -43,10 +42,10 @@ export function PlanDialog({ open, onOpenChange, plan }: PlanDialogProps) {
 
         try {
             if (plan) {
-                await SystemService.updatePlan(plan.id, data);
+                await systemApi.updatePlan(plan.id, data);
                 toast.success("Plan updated successfully");
             } else {
-                await SystemService.createPlan(data);
+                await systemApi.createPlan(data);
                 toast.success("Plan created successfully");
             }
             onOpenChange(false);

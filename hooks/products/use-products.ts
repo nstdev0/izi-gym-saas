@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient, keepPreviousData, QueryKey } from "@tanstack/react-query";
-import { ProductsService } from "@/lib/services/products.service";
+import { productsApi } from "@/lib/api-client/products.api";
 import { productKeys } from "@/lib/react-query/query-keys";
 import { toast } from "sonner";
 import { CreateProductSchema, UpdateProductSchema } from "@/server/application/dtos/products.dto";
@@ -10,7 +10,7 @@ import { Product } from "@/server/domain/entities/Product";
 export const useProductsList = (params: PageableRequest<ProductsFilters>) => {
     return useQuery({
         queryKey: productKeys.list(params),
-        queryFn: () => ProductsService.getAll(params),
+        queryFn: () => productsApi.getAll(params),
         placeholderData: keepPreviousData,
     });
 };
@@ -18,7 +18,7 @@ export const useProductsList = (params: PageableRequest<ProductsFilters>) => {
 export const useProductDetail = (id: string, enabled = true) => {
     return useQuery({
         queryKey: productKeys.detail(id),
-        queryFn: () => ProductsService.getById(id),
+        queryFn: () => productsApi.getById(id),
         enabled,
     });
 };
@@ -26,7 +26,7 @@ export const useProductDetail = (id: string, enabled = true) => {
 export const useCreateProduct = () => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (data: CreateProductSchema) => ProductsService.create(data),
+        mutationFn: (data: CreateProductSchema) => productsApi.create(data),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: productKeys.lists() });
             toast.success("Producto creado exitosamente");
@@ -45,7 +45,7 @@ interface ProductsContext {
 export const useUpdateProduct = () => {
     const queryClient = useQueryClient();
     return useMutation<Product, Error, { id: string; data: UpdateProductSchema }, ProductsContext>({
-        mutationFn: ({ id, data }: { id: string; data: UpdateProductSchema }) => ProductsService.update(id, data),
+        mutationFn: ({ id, data }: { id: string; data: UpdateProductSchema }) => productsApi.update(id, data),
         onMutate: async ({ id, data }) => {
             await queryClient.cancelQueries({ queryKey: productKeys.lists() });
             await queryClient.cancelQueries({ queryKey: productKeys.detail(id) });
@@ -100,7 +100,7 @@ interface DeleteProductContext {
 export const useDeleteProduct = () => {
     const queryClient = useQueryClient();
     return useMutation<void, Error, string, DeleteProductContext>({
-        mutationFn: (id: string) => ProductsService.delete(id),
+        mutationFn: (id: string) => productsApi.delete(id),
         onMutate: async (id) => {
             await queryClient.cancelQueries({ queryKey: productKeys.lists() });
 
@@ -139,7 +139,7 @@ export const useRestoreProduct = () => {
 
     return useMutation({
         mutationFn: async (id: string) => {
-            return await ProductsService.restore(id);
+            return await productsApi.restore(id);
         },
         onSuccess: () => {
             toast.success("Producto restaurado correctamente");

@@ -41,10 +41,10 @@ import StatCard from "./stat-card";
 import { getQueryClient } from "@/lib/react-query/client-config";
 import { historicStartDateKeys } from "@/lib/react-query/query-keys";
 import { AttendanceModal } from "./attendance-modal";
-import { DashboardService } from "@/lib/services/dashboard.service";
 import { StatCardSkeleton } from "@/components/ui/skeletons/stat-card-skeleton";
 import { ChartSkeleton } from "@/components/ui/skeletons/chart-skeleton";
 import { ListSkeleton } from "@/components/ui/skeletons/list-skeleton";
+import { dashboardApi } from "@/lib/api-client/dashboard.api";
 
 // Helper para encabezados consistentes
 function CardSectionHeader({ title, icon: Icon, colorClass, action }: { title: string, icon: any, colorClass: string, action?: React.ReactNode }) {
@@ -131,7 +131,7 @@ export default function DashboardViewPage() {
                 try {
                     const historicDate = await queryClient.ensureQueryData({
                         queryKey: historicStartDateKeys.historicStartDate(),
-                        queryFn: () => DashboardService.getHistoricStartDate(),
+                        queryFn: () => dashboardApi.getHistoricStartDate(),
                         staleTime: Infinity,
                     });
                     setGrouping("month")

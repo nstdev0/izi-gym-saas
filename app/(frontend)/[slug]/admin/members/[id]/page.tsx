@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 import { getQueryClient } from "@/lib/react-query/client-config";
 import { memberKeys } from "@/lib/react-query/query-keys";
-import { MembersService } from "@/lib/services/members.service";
+import { membersApi } from "@/lib/api-client/members.api";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import MemberViewPage from "./view-page";
 
@@ -22,7 +22,7 @@ export default async function MemberPage({
 
   await queryClient.prefetchQuery({
     queryKey: memberKeys.detail(id),
-    queryFn: () => MembersService.getById(id),
+    queryFn: () => membersApi.getById(id),
   });
 
   return (

@@ -1,6 +1,6 @@
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import UsersViewPage from "./components/view-page";
-import { UsersService } from "@/lib/services/users.service";
+import { usersApi } from "@/lib/api-client/users.api";
 import { userKeys } from "@/lib/react-query/query-keys";
 import { getQueryClient } from "@/lib/react-query/client-config";
 import { usersCache } from "@/lib/nuqs/search-params/users";
@@ -24,7 +24,7 @@ export default async function UsersPage({ searchParams }: PageProps) {
                 status: filters.status ?? undefined,
             }
         }),
-        queryFn: () => UsersService.getAll({
+        queryFn: () => usersApi.getAll({
             page,
             limit,
             filters: {

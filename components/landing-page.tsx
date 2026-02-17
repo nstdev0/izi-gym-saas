@@ -15,6 +15,7 @@ import {
     Dumbbell,
     Clock,
     TrendingUp,
+    ArrowDown,
 } from "lucide-react";
 import { ModeToggle } from "@/components/mode-toggle";
 
@@ -86,12 +87,15 @@ export function LandingPage({ dashboardUrl, isLoggedIn }: { dashboardUrl?: strin
                             <Link href={isLoggedIn ? (dashboardUrl || "/sign-in") : "/sign-up?plan=free-trial"}>
                                 <Button size="lg" className="w-full sm:w-auto h-12 px-8 text-base shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all">
                                     {isLoggedIn ? "Ir a mi Panel" : "Prueba Gratis 14 Días"}
-                                    <ArrowRight className="ml-2 h-5 w-5" />
                                 </Button>
                             </Link>
-                            <Button size="lg" variant="outline" className="h-12 px-8 text-base">
-                                Ver Demo en Vivo
-                            </Button>
+                            {!isLoggedIn &&
+                                <Link href="#pricing">
+                                    <Button size="lg" variant="outline" className="h-12 px-8 text-base">
+                                        Ver Precios
+                                    </Button>
+                                </Link>
+                            }
                         </div>
 
                         <p className="mt-4 text-sm text-muted-foreground">

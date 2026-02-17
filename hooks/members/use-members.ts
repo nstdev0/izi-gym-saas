@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient, keepPreviousData, QueryKey } from "@tanstack/react-query";
-import { MembersService } from "@/lib/services/members.service";
+import { membersApi } from "@/lib/api-client/members.api";
 import { memberKeys } from "@/lib/react-query/query-keys";
 import { toast } from "sonner";
 import { CreateMemberInput, UpdateMemberInput } from "@/server/application/dtos/members.dto";
@@ -10,7 +10,7 @@ import { Member } from "@/server/domain/entities/Member";
 export const useMembersList = (params: PageableRequest<MembersFilters>) => {
     return useQuery({
         queryKey: memberKeys.list(params),
-        queryFn: () => MembersService.getAll(params),
+        queryFn: () => membersApi.getAll(params),
         placeholderData: keepPreviousData,
     });
 };
@@ -18,7 +18,7 @@ export const useMembersList = (params: PageableRequest<MembersFilters>) => {
 export const useMemberDetail = (id: string, enabled = true) => {
     return useQuery({
         queryKey: memberKeys.detail(id),
-        queryFn: () => MembersService.getById(id),
+        queryFn: () => membersApi.getById(id),
         enabled,
     });
 };
@@ -26,7 +26,7 @@ export const useMemberDetail = (id: string, enabled = true) => {
 export const useMemberByQrCode = (qrCode: string, enabled = true) => {
     return useQuery({
         queryKey: memberKeys.detail(qrCode),
-        queryFn: () => MembersService.getByQrCode(qrCode),
+        queryFn: () => membersApi.getByQrCode(qrCode),
         enabled: enabled && !!qrCode && qrCode.length > 0,
     });
 };
@@ -34,7 +34,7 @@ export const useMemberByQrCode = (qrCode: string, enabled = true) => {
 export const useCreateMember = () => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (data: CreateMemberInput) => MembersService.create(data),
+        mutationFn: (data: CreateMemberInput) => membersApi.create(data),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: memberKeys.lists() });
             toast.success("Miembro creado exitosamente");
@@ -53,7 +53,7 @@ interface MembersContext {
 export const useUpdateMember = () => {
     const queryClient = useQueryClient();
     return useMutation<Member, Error, { id: string; data: UpdateMemberInput }, MembersContext>({
-        mutationFn: ({ id, data }: { id: string; data: UpdateMemberInput }) => MembersService.update(id, data),
+        mutationFn: ({ id, data }: { id: string; data: UpdateMemberInput }) => membersApi.update(id, data),
         onMutate: async ({ id, data }) => {
             await queryClient.cancelQueries({ queryKey: memberKeys.lists() });
             await queryClient.cancelQueries({ queryKey: memberKeys.detail(id) });
@@ -108,7 +108,7 @@ interface DeleteMemberContext {
 export const useDeleteMember = () => {
     const queryClient = useQueryClient();
     return useMutation<void, Error, string, DeleteMemberContext>({
-        mutationFn: (id: string) => MembersService.delete(id),
+        mutationFn: (id: string) => membersApi.delete(id),
         onMutate: async (id) => {
             await queryClient.cancelQueries({ queryKey: memberKeys.lists() });
 
@@ -144,7 +144,7 @@ export const useRestoreMember = () => {
 
     return useMutation({
         mutationFn: async (id: string) => {
-            return await MembersService.restore(id);
+            return await membersApi.restore(id);
         },
         onSuccess: () => {
             toast.success("Miembro restaurado correctamente");

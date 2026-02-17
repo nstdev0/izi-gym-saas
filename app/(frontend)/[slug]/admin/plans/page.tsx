@@ -1,6 +1,6 @@
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import PlansViewPage from "./components/view-page";
-import { PlansService } from "@/lib/services/plans.service";
+import { plansApi } from "@/lib/api-client/plans.api";
 import { planKeys } from "@/lib/react-query/query-keys";
 import { getQueryClient } from "@/lib/react-query/client-config";
 
@@ -36,7 +36,7 @@ export default async function PlansPage({ searchParams }: PageProps) {
                 status: filters.status ?? undefined,
             }
         }),
-        queryFn: () => PlansService.getAll({
+        queryFn: () => plansApi.getAll({
             page,
             limit,
             filters: {

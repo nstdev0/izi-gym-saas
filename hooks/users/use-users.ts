@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
-import { UsersService } from "@/lib/services/users.service";
+import { usersApi } from "@/lib/api-client/users.api";
 import { userKeys } from "@/lib/react-query/query-keys";
 import { toast } from "sonner";
 import { CreateUserInput, UpdateUserInput } from "@/server/application/dtos/users.dto";
@@ -9,7 +9,7 @@ import { UsersFilters } from "@/server/domain/types/users";
 export const useUsersList = (params: PageableRequest<UsersFilters>) => {
     return useQuery({
         queryKey: userKeys.list(params),
-        queryFn: () => UsersService.getAll(params),
+        queryFn: () => usersApi.getAll(params),
         placeholderData: keepPreviousData,
     });
 };
@@ -17,7 +17,7 @@ export const useUsersList = (params: PageableRequest<UsersFilters>) => {
 export const useUserDetail = (id: string, enabled = true) => {
     return useQuery({
         queryKey: userKeys.detail(id),
-        queryFn: () => UsersService.getById(id),
+        queryFn: () => usersApi.getById(id),
         enabled,
     });
 };
@@ -25,7 +25,7 @@ export const useUserDetail = (id: string, enabled = true) => {
 export const useCreateUser = () => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (data: CreateUserInput) => UsersService.create(data),
+        mutationFn: (data: CreateUserInput) => usersApi.create(data),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: userKeys.lists() });
             toast.success("Usuario creado exitosamente");
@@ -39,7 +39,7 @@ export const useCreateUser = () => {
 export const useUpdateUser = () => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: ({ id, data }: { id: string; data: UpdateUserInput }) => UsersService.update(id, data),
+        mutationFn: ({ id, data }: { id: string; data: UpdateUserInput }) => usersApi.update(id, data),
         onMutate: async ({ id, data }) => {
             await queryClient.cancelQueries({ queryKey: userKeys.lists() });
             await queryClient.cancelQueries({ queryKey: userKeys.detail(id) });
@@ -47,12 +47,10 @@ export const useUpdateUser = () => {
             const previousUsers = queryClient.getQueriesData({ queryKey: userKeys.lists() });
             const previousDetail = queryClient.getQueryData(userKeys.detail(id));
 
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             queryClient.setQueriesData({ queryKey: userKeys.lists() }, (old: any) => {
                 if (!old) return old;
                 return {
                     ...old,
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     records: old.records.map((user: any) =>
                         user.id === id ? { ...user, ...data } : user
                     ),
@@ -60,7 +58,6 @@ export const useUpdateUser = () => {
             });
 
             if (previousDetail) {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 queryClient.setQueryData(userKeys.detail(id), (old: any) => ({ ...old, ...data }));
             }
 
@@ -90,18 +87,16 @@ export const useUpdateUser = () => {
 export const useDeleteUser = () => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (id: string) => UsersService.delete(id),
+        mutationFn: (id: string) => usersApi.delete(id),
         onMutate: async (id) => {
             await queryClient.cancelQueries({ queryKey: userKeys.lists() });
 
             const previousUsers = queryClient.getQueriesData({ queryKey: userKeys.lists() });
 
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             queryClient.setQueriesData({ queryKey: userKeys.lists() }, (old: any) => {
                 if (!old) return old;
                 return {
                     ...old,
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     records: old.records.filter((user: any) => user.id !== id),
                     totalRecords: old.totalRecords - 1,
                 };
@@ -129,7 +124,7 @@ export const useDeleteUser = () => {
 export const useRestoreUser = () => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (id: string) => UsersService.restore(id),
+        mutationFn: (id: string) => usersApi.restore(id),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: userKeys.lists() });
             toast.success("Usuario restaurado exitosamente");

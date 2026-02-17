@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 import { getQueryClient } from "@/lib/react-query/client-config";
 import { productKeys } from "@/lib/react-query/query-keys";
-import { ProductsService } from "@/lib/services/products.service";
+import { productsApi } from "@/lib/api-client/products.api";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { ProductsForm } from "../components/products-form";
 
@@ -22,7 +22,7 @@ export default async function ProductPage({
 
     await queryClient.prefetchQuery({
         queryKey: productKeys.detail(id),
-        queryFn: () => ProductsService.getById(id),
+        queryFn: () => productsApi.getById(id),
     });
 
     return (

@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
-import { AttendanceService } from "@/lib/services/attendance.service";
+import { attendanceApi } from "@/lib/api-client/attendance.api";
 import { attendanceKeys } from "@/lib/react-query/query-keys";
 import { PageableRequest } from "@/server/shared/common/pagination";
 import { AttendanceFilters } from "@/server/application/repositories/attendance.repository.interface";
@@ -9,7 +9,7 @@ import { toast } from "sonner";
 export const useAttendanceList = (params: PageableRequest<AttendanceFilters>) => {
     return useQuery({
         queryKey: attendanceKeys.list(params),
-        queryFn: () => AttendanceService.getAll(params),
+        queryFn: () => attendanceApi.getAll(params),
         placeholderData: keepPreviousData,
     });
 };
@@ -17,7 +17,7 @@ export const useAttendanceList = (params: PageableRequest<AttendanceFilters>) =>
 export const useAttendanceDetail = (id: string, enabled = true) => {
     return useQuery({
         queryKey: attendanceKeys.detail(id),
-        queryFn: () => AttendanceService.getById(id),
+        queryFn: () => attendanceApi.getById(id),
         enabled,
     });
 };
@@ -26,7 +26,7 @@ export const useUpdateAttendance = () => {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: ({ id, data }: { id: string; data: UpdateAttendanceInput }) =>
-            AttendanceService.update(id, data),
+            attendanceApi.update(id, data),
         onSuccess: (_data, variables) => {
             queryClient.invalidateQueries({ queryKey: attendanceKeys.lists() });
             queryClient.invalidateQueries({ queryKey: attendanceKeys.detail(variables.id) });
@@ -41,7 +41,7 @@ export const useUpdateAttendance = () => {
 export const useDeleteAttendance = () => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (id: string) => AttendanceService.delete(id),
+        mutationFn: (id: string) => attendanceApi.delete(id),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: attendanceKeys.lists() });
             toast.success("Asistencia eliminada exitosamente");

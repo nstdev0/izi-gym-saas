@@ -1,4 +1,4 @@
-import { fetchClient } from "@/lib/api-client";
+import { fetchClient } from "@/lib/fetch-client";
 import { CreateOrganizationSchema, UpdateOrganizationSchema } from "@/server/application/dtos/organizations.dto";
 import { Organization } from "@/server/domain/entities/Organization";
 import { PageableResponse } from "@/server/shared/common/pagination";
@@ -13,10 +13,10 @@ export interface OrganizationPaginationParams {
     [key: string]: any;
 }
 
-export class OrganizationsService {
-    private static readonly BASE_PATH = "/api/organizations";
+const BASE_API_PATH = "/api/organizations";
 
-    static async getAll(params: OrganizationPaginationParams = {}) {
+export const organizationsApi = {
+    getAll: (params: OrganizationPaginationParams = {}) => {
         const searchParams = new URLSearchParams();
         Object.entries(params).forEach(([key, value]) => {
             if (value !== undefined && value !== null) {
@@ -25,37 +25,37 @@ export class OrganizationsService {
         });
 
         const queryString = searchParams.toString();
-        const endpoint = queryString ? `${this.BASE_PATH}?${queryString}` : this.BASE_PATH;
+        const endpoint = queryString ? `${BASE_API_PATH}?${queryString}` : BASE_API_PATH;
 
         return fetchClient<PageableResponse<Organization>>(endpoint);
-    }
+    },
 
-    static async getById(id: string) {
-        return fetchClient<Organization>(`${this.BASE_PATH}/${id}`);
-    }
+    getById: (id: string) => {
+        return fetchClient<Organization>(`${BASE_API_PATH}/${id}`);
+    },
 
-    static async create(data: CreateOrganizationSchema) {
-        return fetchClient<Organization>(this.BASE_PATH, {
+    create: (data: CreateOrganizationSchema) => {
+        return fetchClient<Organization>(BASE_API_PATH, {
             method: "POST",
             body: JSON.stringify(data),
         });
-    }
+    },
 
-    static async update(id: string, data: UpdateOrganizationSchema) {
-        return fetchClient<Organization>(`${this.BASE_PATH}/${id}`, {
+    update: (id: string, data: UpdateOrganizationSchema) => {
+        return fetchClient<Organization>(`${BASE_API_PATH}/${id}`, {
             method: "PATCH",
             body: JSON.stringify(data),
         });
-    }
+    },
 
-    static async delete(id: string) {
-        return fetchClient<void>(`${this.BASE_PATH}/${id}`, {
+    delete: (id: string) => {
+        return fetchClient<void>(`${BASE_API_PATH}/${id}`, {
             method: "DELETE",
         });
-    }
+    },
 
-    static async restore(id: string) {
-        return fetchClient<Organization>(`${this.BASE_PATH}/id/${id}/restore`, {
+    restore: (id: string) => {
+        return fetchClient<Organization>(`${BASE_API_PATH}/id/${id}/restore`, {
             method: "POST",
         });
     }

@@ -1,13 +1,13 @@
-import { fetchClient } from "@/lib/api-client";
+import { fetchClient } from "@/lib/fetch-client";
 import { CreateMembershipInput, UpdateMembershipInput } from "@/server/application/dtos/memberships.dto";
 import { Membership } from "@/server/domain/entities/Membership";
 import { MembershipsFilters } from "@/server/domain/types/memberships";
 import { PageableRequest, PageableResponse } from "@/server/shared/common/pagination";
 
-export class MembershipsService {
-    private static readonly BASE_PATH = "/api/memberships";
+const BASE_API_PATH = "/api/memberships";
 
-    static async getAll(params: PageableRequest<MembershipsFilters>) {
+export const membershipsApi = {
+    getAll: (params: PageableRequest<MembershipsFilters>) => {
         const searchParams = new URLSearchParams();
 
         if (params.page) searchParams.append("page", String(params.page));
@@ -22,42 +22,43 @@ export class MembershipsService {
         }
 
         const queryString = searchParams.toString();
-        const endpoint = queryString ? `${this.BASE_PATH}?${queryString}` : this.BASE_PATH;
+        const endpoint = queryString ? `${BASE_API_PATH}?${queryString}` : BASE_API_PATH;
 
         return fetchClient<PageableResponse<Membership>>(endpoint);
-    }
+    },
 
-    static async getById(id: string) {
-        return fetchClient<Membership>(`${this.BASE_PATH}/${id}`);
-    }
+    getById: (id: string) => {
+        return fetchClient<Membership>(`${BASE_API_PATH}/${id}`);
+    },
 
-    static async create(data: CreateMembershipInput) {
-        return fetchClient<Membership>(this.BASE_PATH, {
+    create: (data: CreateMembershipInput) => {
+        return fetchClient<Membership>(BASE_API_PATH, {
             method: "POST",
             body: JSON.stringify(data),
         });
-    }
+    },
 
-    static async update(id: string, data: UpdateMembershipInput) {
-        return fetchClient<Membership>(`${this.BASE_PATH}/${id}`, {
+    update: (id: string, data: UpdateMembershipInput) => {
+        return fetchClient<Membership>(`${BASE_API_PATH}/${id}`, {
             method: "PATCH",
             body: JSON.stringify(data),
         });
-    }
+    },
 
-    static async delete(id: string) {
-        return fetchClient<void>(`${this.BASE_PATH}/${id}`, {
+    delete: (id: string) => {
+        return fetchClient<void>(`${BASE_API_PATH}/${id}`, {
             method: "DELETE",
         });
-    }
-    static async restore(id: string) {
-        return fetchClient<Membership>(`${this.BASE_PATH}/${id}/restore`, {
+    },
+
+    restore: (id: string) => {
+        return fetchClient<Membership>(`${BASE_API_PATH}/${id}/restore`, {
             method: "POST",
         });
-    }
+    },
 
-    static async cancel(id: string) {
-        return fetchClient<void>(`${this.BASE_PATH}/${id}/cancel`, {
+    cancel: (id: string) => {
+        return fetchClient<void>(`${BASE_API_PATH}/${id}/cancel`, {
             method: "POST",
         });
     }

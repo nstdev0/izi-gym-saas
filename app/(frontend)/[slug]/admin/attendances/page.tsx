@@ -1,9 +1,9 @@
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
-import { AttendanceService } from "@/lib/services/attendance.service";
 import { attendanceKeys } from "@/lib/react-query/query-keys";
 import { getQueryClient } from "@/lib/react-query/client-config";
 import { attendanceSearchParamsCache } from "@/lib/nuqs/search-params/attendance";
 import AttendanceViewPage from "./components/view-page";
+import { attendanceApi } from "@/lib/api-client/attendance.api";
 
 interface PageProps {
     searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
@@ -20,7 +20,7 @@ export default async function AttendancePage({ searchParams }: PageProps) {
 
     await queryClient.prefetchQuery({
         queryKey: attendanceKeys.list(filters),
-        queryFn: () => AttendanceService.getAll(filters),
+        queryFn: () => attendanceApi.getAll(filters),
     });
 
     return (

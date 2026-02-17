@@ -1,13 +1,13 @@
-import { fetchClient } from "@/lib/api-client";
+import { fetchClient } from "@/lib/fetch-client";
 import { CreateProductSchema, UpdateProductSchema } from "@/server/application/dtos/products.dto";
 import { Product } from "@/server/domain/entities/Product";
 import { PageableRequest, PageableResponse } from "@/server/shared/common/pagination";
 import { ProductsFilters } from "@/server/domain/types/products";
 
-export class ProductsService {
-    private static readonly BASE_PATH = "/api/products";
+const BASE_API_PATH = "/api/products";
 
-    static async getAll(params: PageableRequest<ProductsFilters>) {
+export const productsApi = {
+    getAll: (params: PageableRequest<ProductsFilters>) => {
         const searchParams = new URLSearchParams();
 
         if (params.page) searchParams.append("page", String(params.page));
@@ -22,37 +22,37 @@ export class ProductsService {
         }
 
         const queryString = searchParams.toString();
-        const endpoint = queryString ? `${this.BASE_PATH}?${queryString}` : this.BASE_PATH;
+        const endpoint = queryString ? `${BASE_API_PATH}?${queryString}` : BASE_API_PATH;
 
         return fetchClient<PageableResponse<Product>>(endpoint);
-    }
+    },
 
-    static async getById(id: string) {
-        return fetchClient<Product>(`${this.BASE_PATH}/${id}`);
-    }
+    getById: (id: string) => {
+        return fetchClient<Product>(`${BASE_API_PATH}/${id}`);
+    },
 
-    static async create(data: CreateProductSchema) {
-        return fetchClient<Product>(this.BASE_PATH, {
+    create: (data: CreateProductSchema) => {
+        return fetchClient<Product>(BASE_API_PATH, {
             method: "POST",
             body: JSON.stringify(data),
         });
-    }
+    },
 
-    static async update(id: string, data: UpdateProductSchema) {
-        return fetchClient<Product>(`${this.BASE_PATH}/${id}`, {
+    update: (id: string, data: UpdateProductSchema) => {
+        return fetchClient<Product>(`${BASE_API_PATH}/${id}`, {
             method: "PATCH",
             body: JSON.stringify(data),
         });
-    }
+    },
 
-    static async delete(id: string) {
-        return fetchClient<void>(`${this.BASE_PATH}/${id}`, {
+    delete: (id: string) => {
+        return fetchClient<void>(`${BASE_API_PATH}/${id}`, {
             method: "DELETE",
         });
-    }
+    },
 
-    static async restore(id: string) {
-        return fetchClient<Product>(`${this.BASE_PATH}/id/${id}/restore`, {
+    restore: (id: string) => {
+        return fetchClient<Product>(`${BASE_API_PATH}/id/${id}/restore`, {
             method: "POST",
         });
     }

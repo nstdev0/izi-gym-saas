@@ -1,10 +1,8 @@
-// lib/api.ts
-
 export class ApiError extends Error {
   constructor(
     public message: string,
     public status: number,
-    public code?: string, // <--- Agregado para coincidir con el Backend
+    public code?: string,
     public errors?: Record<string, string[]>
   ) {
     super(message);

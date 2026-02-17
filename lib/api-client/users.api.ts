@@ -1,13 +1,13 @@
-import { fetchClient } from "@/lib/api-client";
+import { fetchClient } from "@/lib/fetch-client";
 import { CreateUserInput, UpdateUserInput } from "@/server/application/dtos/users.dto";
 import { User } from "@/server/domain/entities/User";
 import { PageableRequest, PageableResponse } from "@/server/shared/common/pagination";
 import { UsersFilters } from "@/server/domain/types/users";
 
-export class UsersService {
-    private static readonly BASE_PATH = "/api/users";
+const BASE_API_PATH = "/api/users";
 
-    static async getAll(params: PageableRequest<UsersFilters>) {
+export const usersApi = {
+    getAll: (params: PageableRequest<UsersFilters>) => {
         const searchParams = new URLSearchParams();
 
         if (params.page) searchParams.append("page", String(params.page));
@@ -22,37 +22,37 @@ export class UsersService {
         }
 
         const queryString = searchParams.toString();
-        const endpoint = queryString ? `${this.BASE_PATH}?${queryString}` : this.BASE_PATH;
+        const endpoint = queryString ? `${BASE_API_PATH}?${queryString}` : BASE_API_PATH;
 
         return fetchClient<PageableResponse<User>>(endpoint);
-    }
+    },
 
-    static async getById(id: string) {
-        return fetchClient<User>(`${this.BASE_PATH}/${id}`);
-    }
+    getById: (id: string) => {
+        return fetchClient<User>(`${BASE_API_PATH}/${id}`);
+    },
 
-    static async create(data: CreateUserInput) {
-        return fetchClient<User>(this.BASE_PATH, {
+    create: (data: CreateUserInput) => {
+        return fetchClient<User>(BASE_API_PATH, {
             method: "POST",
             body: JSON.stringify(data),
         });
-    }
+    },
 
-    static async update(id: string, data: UpdateUserInput) {
-        return fetchClient<User>(`${this.BASE_PATH}/${id}`, {
+    update: (id: string, data: UpdateUserInput) => {
+        return fetchClient<User>(`${BASE_API_PATH}/${id}`, {
             method: "PATCH",
             body: JSON.stringify(data),
         });
-    }
+    },
 
-    static async delete(id: string) {
-        return fetchClient<void>(`${this.BASE_PATH}/${id}`, {
+    delete: (id: string) => {
+        return fetchClient<void>(`${BASE_API_PATH}/${id}`, {
             method: "DELETE",
         });
-    }
+    },
 
-    static async restore(id: string) {
-        return fetchClient<User>(`${this.BASE_PATH}/id/${id}/restore`, {
+    restore: (id: string) => {
+        return fetchClient<User>(`${BASE_API_PATH}/id/${id}/restore`, {
             method: "POST",
         });
     }

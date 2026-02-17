@@ -1,6 +1,6 @@
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import ProductsViewPage from "./components/view-page";
-import { ProductsService } from "@/lib/services/products.service";
+import { productsApi } from "@/lib/api-client/products.api";
 import { productKeys } from "@/lib/react-query/query-keys";
 import { getQueryClient } from "@/lib/react-query/client-config";
 import { productsCache } from "@/lib/nuqs/search-params/products";
@@ -25,7 +25,7 @@ export default async function ProductsPage({ searchParams }: PageProps) {
                 status: filters.status ?? undefined,
             }
         }),
-        queryFn: () => ProductsService.getAll({
+        queryFn: () => productsApi.getAll({
             page,
             limit,
             filters: {

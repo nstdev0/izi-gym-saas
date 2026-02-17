@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
-import { MembershipsService } from "@/lib/services/memberships.service";
+import { membershipsApi } from "@/lib/api-client/memberships.api";
 import { membershipKeys } from "@/lib/react-query/query-keys";
 import { toast } from "sonner";
 import { CreateMembershipInput, UpdateMembershipInput } from "@/server/application/dtos/memberships.dto";
@@ -9,7 +9,7 @@ import { MembershipsFilters } from "@/server/application/repositories/membership
 export const useMembershipsList = (params: PageableRequest<MembershipsFilters>) => {
     return useQuery({
         queryKey: membershipKeys.list(params),
-        queryFn: () => MembershipsService.getAll(params),
+        queryFn: () => membershipsApi.getAll(params),
         placeholderData: keepPreviousData,
     });
 };
@@ -17,7 +17,7 @@ export const useMembershipsList = (params: PageableRequest<MembershipsFilters>) 
 export const useMembershipDetail = (id: string, enabled = true) => {
     return useQuery({
         queryKey: membershipKeys.detail(id),
-        queryFn: () => MembershipsService.getById(id),
+        queryFn: () => membershipsApi.getById(id),
         enabled,
     });
 };
@@ -25,7 +25,7 @@ export const useMembershipDetail = (id: string, enabled = true) => {
 export const useCreateMembership = () => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (data: CreateMembershipInput) => MembershipsService.create(data),
+        mutationFn: (data: CreateMembershipInput) => membershipsApi.create(data),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: membershipKeys.lists() });
             toast.success("Membresía creada exitosamente");
@@ -39,7 +39,7 @@ export const useCreateMembership = () => {
 export const useUpdateMembership = () => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: ({ id, data }: { id: string; data: UpdateMembershipInput }) => MembershipsService.update(id, data),
+        mutationFn: ({ id, data }: { id: string; data: UpdateMembershipInput }) => membershipsApi.update(id, data),
         onMutate: async ({ id, data }) => {
             await queryClient.cancelQueries({ queryKey: membershipKeys.lists() });
             await queryClient.cancelQueries({ queryKey: membershipKeys.detail(id) });
@@ -87,7 +87,7 @@ export const useUpdateMembership = () => {
 export const useDeleteMembership = () => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (id: string) => MembershipsService.delete(id),
+        mutationFn: (id: string) => membershipsApi.delete(id),
         onMutate: async (id) => {
             await queryClient.cancelQueries({ queryKey: membershipKeys.lists() });
 
@@ -121,7 +121,7 @@ export const useDeleteMembership = () => {
 export const useRestoreMembership = () => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (id: string) => MembershipsService.restore(id),
+        mutationFn: (id: string) => membershipsApi.restore(id),
         onSuccess: () => {
             toast.success("Membresía restaurada exitosamente");
             queryClient.invalidateQueries({ queryKey: membershipKeys.lists() })
@@ -135,7 +135,7 @@ export const useRestoreMembership = () => {
 export const useCancelMembership = () => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (id: string) => MembershipsService.cancel(id),
+        mutationFn: (id: string) => membershipsApi.cancel(id),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: membershipKeys.lists() })
         },

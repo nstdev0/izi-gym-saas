@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient, keepPreviousData, QueryKey } from "@tanstack/react-query";
-import { PlansService } from "@/lib/services/plans.service";
+import { plansApi } from "@/lib/api-client/plans.api";
 import { planKeys } from "@/lib/react-query/query-keys";
 import { toast } from "sonner";
 import { CreatePlanInput, UpdatePlanInput } from "@/server/application/dtos/plans.dto";
@@ -11,7 +11,7 @@ import { ApiError } from "@/lib/api";
 export const usePlansList = (params: PageableRequest<PlansFilters>) => {
     return useQuery({
         queryKey: planKeys.list(params),
-        queryFn: () => PlansService.getAll(params),
+        queryFn: () => plansApi.getAll(params),
         placeholderData: keepPreviousData,
     });
 };
@@ -19,7 +19,7 @@ export const usePlansList = (params: PageableRequest<PlansFilters>) => {
 export const usePlanDetail = (id: string, enabled = true) => {
     return useQuery({
         queryKey: planKeys.detail(id),
-        queryFn: () => PlansService.getById(id),
+        queryFn: () => plansApi.getById(id),
         enabled,
     });
 };
@@ -27,7 +27,7 @@ export const usePlanDetail = (id: string, enabled = true) => {
 export const useCreatePlan = () => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (data: CreatePlanInput) => PlansService.create(data),
+        mutationFn: (data: CreatePlanInput) => plansApi.create(data),
         onSuccess: () => {
             toast.success("Plan creado exitosamente");
             queryClient.invalidateQueries({ queryKey: planKeys.lists() });
@@ -46,7 +46,7 @@ interface PlansContext {
 export const useUpdatePlan = () => {
     const queryClient = useQueryClient();
     return useMutation<Plan, Error, { id: string; data: UpdatePlanInput }, PlansContext>({
-        mutationFn: ({ id, data }: { id: string; data: UpdatePlanInput }) => PlansService.update(id, data),
+        mutationFn: ({ id, data }: { id: string; data: UpdatePlanInput }) => plansApi.update(id, data),
         onMutate: async ({ id, data }) => {
             await queryClient.cancelQueries({ queryKey: planKeys.lists() });
             await queryClient.cancelQueries({ queryKey: planKeys.detail(id) });
@@ -101,7 +101,7 @@ interface DeletePlanContext {
 export const useDeletePlan = () => {
     const queryClient = useQueryClient();
     return useMutation<void, Error, string, DeletePlanContext>({
-        mutationFn: (id: string) => PlansService.delete(id),
+        mutationFn: (id: string) => plansApi.delete(id),
         onMutate: async (id) => {
             await queryClient.cancelQueries({ queryKey: planKeys.lists() });
 
@@ -139,7 +139,7 @@ export const useDeletePlan = () => {
 export const useRestorePlan = () => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (id: string) => PlansService.restore(id),
+        mutationFn: (id: string) => plansApi.restore(id),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: planKeys.lists() });
             toast.success("Plan restaurado exitosamente");

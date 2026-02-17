@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { SystemService } from "@/lib/services/system.service";
+import { systemApi } from "@/lib/api-client/system.api";
 import { useState } from "react";
 import { Separator } from "@/components/ui/separator";
 import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field";
@@ -43,10 +43,9 @@ export function SystemSettingsForm({ initialData, onSubmit: externalSubmit, isSu
             return;
         }
 
-        // Fallback to internal submission if no handler provided (backward compatibility)
         setInternalLoading(true);
         try {
-            await SystemService.updateSystemConfig(data);
+            await systemApi.updateSystemConfig(data);
             toast.success("System settings updated");
         } catch {
             toast.error("Failed to update settings");

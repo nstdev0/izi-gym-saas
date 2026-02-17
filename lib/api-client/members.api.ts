@@ -1,13 +1,13 @@
-import { fetchClient } from "@/lib/api-client";
+import { fetchClient } from "@/lib/fetch-client";
 import { CreateMemberInput, UpdateMemberInput } from "@/server/application/dtos/members.dto";
 import { MembersFilters } from "@/server/application/repositories/members.repository.interface";
 import { Member } from "@/server/domain/entities/Member";
 import { PageableRequest, PageableResponse } from "@/server/shared/common/pagination";
 
-export class MembersService {
-    private static readonly BASE_PATH = "/api/members";
+const BASE_API_PATH = "/api/members";
 
-    static async getAll(params: PageableRequest<MembersFilters>) {
+export const membersApi = {
+    getAll: (params: PageableRequest<MembersFilters>) => {
         const searchParams = new URLSearchParams();
 
         if (params.page) searchParams.append("page", String(params.page));
@@ -22,41 +22,41 @@ export class MembersService {
         }
 
         const queryString = searchParams.toString();
-        const endpoint = queryString ? `${this.BASE_PATH}?${queryString}` : this.BASE_PATH;
+        const endpoint = queryString ? `${BASE_API_PATH}?${queryString}` : BASE_API_PATH;
 
         return fetchClient<PageableResponse<Member>>(endpoint);
-    }
+    },
 
-    static async getById(id: string) {
-        return fetchClient<Member>(`${this.BASE_PATH}/id/${id}`);
-    }
+    getById: (id: string) => {
+        return fetchClient<Member>(`${BASE_API_PATH}/id/${id}`);
+    },
 
-    static async getByQrCode(qrCode: string) {
-        return fetchClient<Member>(`${this.BASE_PATH}/qr/${qrCode}`);
-    }
+    getByQrCode: (qrCode: string) => {
+        return fetchClient<Member>(`${BASE_API_PATH}/qr/${qrCode}`);
+    },
 
-    static async create(data: CreateMemberInput) {
-        return fetchClient<Member>(this.BASE_PATH, {
+    create: (data: CreateMemberInput) => {
+        return fetchClient<Member>(BASE_API_PATH, {
             method: "POST",
             body: JSON.stringify(data),
         });
-    }
+    },
 
-    static async update(id: string, data: UpdateMemberInput) {
-        return fetchClient<Member>(`${this.BASE_PATH}/id/${id}`, {
+    update: (id: string, data: UpdateMemberInput) => {
+        return fetchClient<Member>(`${BASE_API_PATH}/id/${id}`, {
             method: "PATCH",
             body: JSON.stringify(data),
         });
-    }
+    },
 
-    static async delete(id: string) {
-        return fetchClient<void>(`${this.BASE_PATH}/id/${id}`, {
+    delete: (id: string) => {
+        return fetchClient<void>(`${BASE_API_PATH}/id/${id}`, {
             method: "DELETE",
         });
-    }
+    },
 
-    static async restore(id: string) {
-        return fetchClient<Member>(`${this.BASE_PATH}/id/${id}/restore`, {
+    restore: (id: string) => {
+        return fetchClient<Member>(`${BASE_API_PATH}/id/${id}/restore`, {
             method: "POST",
         });
     }

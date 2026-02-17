@@ -1,9 +1,9 @@
 import { Metadata } from "next";
 import { getQueryClient } from "@/lib/react-query/client-config";
 import { attendanceKeys } from "@/lib/react-query/query-keys";
-import { AttendanceService } from "@/lib/services/attendance.service";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import AttendanceDetailViewPage from "./view-page";
+import { attendanceApi } from "@/lib/api-client/attendance.api";
 
 export const metadata: Metadata = {
     title: "Detalle de Asistencia",
@@ -20,7 +20,7 @@ export default async function AttendanceDetailPage({ params }: PageProps) {
 
     await queryClient.prefetchQuery({
         queryKey: attendanceKeys.detail(id),
-        queryFn: () => AttendanceService.getById(id),
+        queryFn: () => attendanceApi.getById(id),
     });
 
     return (

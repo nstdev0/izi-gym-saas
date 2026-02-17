@@ -1,6 +1,6 @@
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import MembershipsViewPage from "./components/view-page"
-import { MembershipsService } from "@/lib/services/memberships.service";
+import { membershipsApi } from "@/lib/api-client/memberships.api";
 import { membershipKeys } from "@/lib/react-query/query-keys";
 import { getQueryClient } from "@/lib/react-query/client-config";
 import { membershipsSearchParamsCache } from "@/lib/nuqs/search-params/memberships";
@@ -20,7 +20,7 @@ export default async function MembershipsPage({ searchParams }: PageProps) {
 
     await queryClient.prefetchQuery({
         queryKey: membershipKeys.list(filters),
-        queryFn: () => MembershipsService.getAll(filters),
+        queryFn: () => membershipsApi.getAll(filters),
     });
 
     return (

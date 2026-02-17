@@ -1,6 +1,6 @@
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import OrganizationsViewPage from "./components/view-page";
-import { OrganizationsService } from "@/lib/services/organizations.service";
+import { organizationsApi } from "@/lib/api-client/organizations.api";
 import { organizationKeys } from "@/lib/react-query/query-keys";
 import { getQueryClient } from "@/lib/react-query/client-config";
 
@@ -28,7 +28,7 @@ export default async function OrganizationsPage({ searchParams }: PageProps) {
 
     await queryClient.prefetchQuery({
         queryKey: organizationKeys.list(filters),
-        queryFn: () => OrganizationsService.getAll(filters),
+        queryFn: () => organizationsApi.getAll(filters),
     });
 
     return (

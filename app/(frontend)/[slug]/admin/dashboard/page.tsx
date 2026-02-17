@@ -1,5 +1,5 @@
 import { HydrationBoundary, dehydrate, QueryClient } from "@tanstack/react-query";
-import { DashboardService } from "@/lib/services/dashboard.service";
+import { dashboardApi } from "@/lib/api-client/dashboard.api";
 import { dashboardKeys } from "@/lib/react-query/query-keys";
 import { startOfYear, endOfYear } from "date-fns";
 import DashboardViewPage from "./components/view-page";
@@ -21,7 +21,7 @@ export default async function DashboardPage() {
 
     await queryClient.prefetchQuery({
         queryKey: dashboardKeys.metrics(params),
-        queryFn: () => DashboardService.getMetrics(params),
+        queryFn: () => dashboardApi.getMetrics(params),
     });
 
     return (

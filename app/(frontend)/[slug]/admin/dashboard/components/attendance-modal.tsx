@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Camera, StopCircle, Calendar as CalendarIcon, Loader2, QrCode, Keyboard, ScanLine, X } from "lucide-react";
+import { StopCircle, Calendar as CalendarIcon, Loader2, QrCode, Keyboard, ScanLine, X } from "lucide-react";
 import { MemberCombobox } from "../../memberships/components/member-combobox";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -12,12 +12,12 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Html5Qrcode } from "html5-qrcode";
 import { toast } from "sonner";
-import { AttendanceService } from "@/lib/services/attendance.service";
 import { useQueryClient } from "@tanstack/react-query";
 import { attendanceKeys } from "@/lib/react-query/query-keys";
 import { useMemberByQrCode } from "@/hooks/members/use-members";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { attendanceApi } from "@/lib/api-client/attendance.api";
 
 const BEEP_AUDIO = "data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU";
 
@@ -134,7 +134,7 @@ function AttendanceForm({ onClose }: AttendanceFormProps) {
         if (!selectedMemberId) return;
         setIsLoading(true);
         try {
-            await AttendanceService.register({
+            await attendanceApi.register({
                 memberId: selectedMemberId,
                 date: date,
                 method: attendanceMethod

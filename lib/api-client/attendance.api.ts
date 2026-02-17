@@ -1,4 +1,4 @@
-import { fetchClient } from "@/lib/api-client";
+import { fetchClient } from "@/lib/fetch-client";
 import { AttendanceFilters } from "@/server/application/repositories/attendance.repository.interface";
 import { UpdateAttendanceInput } from "@/server/application/dtos/attendance.dto";
 import { PageableRequest, PageableResponse } from "@/server/shared/common/pagination";
@@ -10,10 +10,11 @@ export interface RegisterAttendanceInput {
     method: "QR" | "MANUAL";
 }
 
-export class AttendanceService {
-    private static readonly BASE_PATH = "/api/attendance";
+const BASE_API_PATH = "/api/attendance";
 
-    static async getAll(params: PageableRequest<AttendanceFilters>) {
+export const attendanceApi = {
+
+    getAll: (params: PageableRequest<AttendanceFilters>) => {
         const searchParams = new URLSearchParams();
 
         if (params.page) searchParams.append("page", String(params.page));
@@ -28,39 +29,38 @@ export class AttendanceService {
         }
 
         const queryString = searchParams.toString();
-        const endpoint = queryString ? `${this.BASE_PATH}?${queryString}` : this.BASE_PATH;
+        const endpoint = queryString ? `${BASE_API_PATH}?${queryString}` : BASE_API_PATH;
 
         return fetchClient<PageableResponse<Attendance>>(endpoint);
-    }
+    },
 
-    static async register(data: RegisterAttendanceInput) {
-        return fetchClient<void>(this.BASE_PATH, {
+    register: (data: RegisterAttendanceInput) => {
+        return fetchClient<void>(BASE_API_PATH, {
             method: "POST",
             body: JSON.stringify(data),
-        });
-    }
+        })
+    },
 
-    static async getById(id: string) {
-        return fetchClient<Attendance>(`${this.BASE_PATH}/${id}`);
-    }
+    getById: (id: string) => {
+        return fetchClient<Attendance>(`${BASE_API_PATH}/${id}`);
+    },
 
-    static async update(id: string, data: UpdateAttendanceInput) {
-        return fetchClient<Attendance>(`${this.BASE_PATH}/${id}`, {
+    update: (id: string, data: UpdateAttendanceInput) => {
+        return fetchClient<Attendance>(`${BASE_API_PATH}/${id}`, {
             method: "PATCH",
             body: JSON.stringify(data),
         });
-    }
+    },
 
-    static async delete(id: string) {
-        return fetchClient<void>(`${this.BASE_PATH}/${id}`, {
+    delete: (id: string) => {
+        return fetchClient<void>(`${BASE_API_PATH}/${id}`, {
             method: "DELETE",
         });
-    }
+    },
 
-    static async restore(id: string) {
-        return fetchClient<Attendance>(`${this.BASE_PATH}/id/${id}/restore`, {
+    restore: (id: string) => {
+        return fetchClient<Attendance>(`${BASE_API_PATH}/id/${id}/restore`, {
             method: "POST",
         });
     }
 }
-

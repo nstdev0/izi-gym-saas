@@ -1,34 +1,34 @@
-import { SystemService } from "@/lib/services/system.service";
+import { systemApi } from "@/lib/api-client/system.api";
 import { systemKeys } from "@/lib/react-query/query-keys";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { OrganizationPaginationParams } from "@/lib/services/organizations.service";
+import { OrganizationPaginationParams } from "@/lib/api-client/organizations.api";
 
 export const useSystemStats = () => {
     return useQuery({
         queryKey: systemKeys.stats(),
-        queryFn: () => SystemService.getStats(),
+        queryFn: () => systemApi.getStats(),
     });
 };
 
 export const useSystemRecentSignups = () => {
     return useQuery({
         queryKey: systemKeys.recentSignups(),
-        queryFn: () => SystemService.getRecentSignups(),
+        queryFn: () => systemApi.getRecentSignups(),
     });
 };
 
 export const useSystemRevenueStats = () => {
     return useQuery({
         queryKey: systemKeys.revenue(),
-        queryFn: () => SystemService.getRevenueStats(),
+        queryFn: () => systemApi.getRevenueStats(),
     });
 };
 
 export const useSystemOrganizations = (params: OrganizationPaginationParams = {}) => {
     return useQuery({
         queryKey: systemKeys.organizations(params),
-        queryFn: () => SystemService.getAllOrganizations(params),
+        queryFn: () => systemApi.getAllOrganizations(params),
     });
 };
 
@@ -36,10 +36,9 @@ export const useSuspendOrganization = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: ({ id, suspend }: { id: string, suspend: boolean }) => SystemService.suspendOrganization(id, suspend),
+        mutationFn: ({ id, suspend }: { id: string, suspend: boolean }) => systemApi.suspendOrganization(id, suspend),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: systemKeys.all });
-            // Should properly use specific keys but 'all' is safer for now to ensure list updates
         },
         onError: (error) => {
             toast.error("Failed to update organization status");
@@ -51,7 +50,7 @@ export const useSuspendOrganization = () => {
 export const useSystemConfig = () => {
     return useQuery({
         queryKey: systemKeys.config(),
-        queryFn: () => SystemService.getSystemConfig(),
+        queryFn: () => systemApi.getSystemConfig(),
     });
 };
 
@@ -59,8 +58,7 @@ export const useUpdateSystemConfig = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        mutationFn: (data: any) => SystemService.updateSystemConfig(data),
+        mutationFn: (data: any) => systemApi.updateSystemConfig(data),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: systemKeys.config() });
             toast.success("System configuration updated successfully");

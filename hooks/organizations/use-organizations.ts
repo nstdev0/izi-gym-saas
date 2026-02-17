@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
-import { OrganizationsService } from "@/lib/services/organizations.service";
+import { organizationsApi } from "@/lib/api-client/organizations.api";
 import { organizationKeys } from "@/lib/react-query/query-keys";
 import { toast } from "sonner";
 import { CreateOrganizationSchema, UpdateOrganizationSchema } from "@/server/application/dtos/organizations.dto";
@@ -9,7 +9,7 @@ import { OrganizationsFilters } from "@/server/application/repositories/organiza
 export const useOrganizationsList = (params: PageableRequest<OrganizationsFilters>) => {
     return useQuery({
         queryKey: organizationKeys.list(params),
-        queryFn: () => OrganizationsService.getAll(params),
+        queryFn: () => organizationsApi.getAll(params),
         placeholderData: keepPreviousData,
     });
 };
@@ -17,7 +17,7 @@ export const useOrganizationsList = (params: PageableRequest<OrganizationsFilter
 export const useOrganizationDetail = (id: string, enabled = true) => {
     return useQuery({
         queryKey: organizationKeys.detail(id),
-        queryFn: () => OrganizationsService.getById(id),
+        queryFn: () => organizationsApi.getById(id),
         enabled,
     });
 };
@@ -25,7 +25,7 @@ export const useOrganizationDetail = (id: string, enabled = true) => {
 export const useCreateOrganization = () => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (data: CreateOrganizationSchema) => OrganizationsService.create(data),
+        mutationFn: (data: CreateOrganizationSchema) => organizationsApi.create(data),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: organizationKeys.lists() });
             toast.success("Organización creada exitosamente");
@@ -39,7 +39,7 @@ export const useCreateOrganization = () => {
 export const useUpdateOrganization = () => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: ({ id, data }: { id: string; data: UpdateOrganizationSchema }) => OrganizationsService.update(id, data),
+        mutationFn: ({ id, data }: { id: string; data: UpdateOrganizationSchema }) => organizationsApi.update(id, data),
         onMutate: async ({ id, data }) => {
             await queryClient.cancelQueries({ queryKey: organizationKeys.lists() });
             await queryClient.cancelQueries({ queryKey: organizationKeys.detail(id) });
@@ -87,7 +87,7 @@ export const useUpdateOrganization = () => {
 export const useDeleteOrganization = () => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (id: string) => OrganizationsService.delete(id),
+        mutationFn: (id: string) => organizationsApi.delete(id),
         onMutate: async (id) => {
             await queryClient.cancelQueries({ queryKey: organizationKeys.lists() });
 
