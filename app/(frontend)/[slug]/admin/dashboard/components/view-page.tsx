@@ -159,7 +159,7 @@ export default function DashboardViewPage() {
                 {/* HEADER & FILTERS */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 min-h-[50px]">
                     <PageHeader
-                        title={`Bienvenido al panel de ${slug} 👋`}
+                        title={`Bienvenido a tu panel 👋`}
                         description="Resumen de actividad y rendimiento del gimnasio."
                     />
 
