@@ -3,10 +3,9 @@ import { membersApi } from "@/lib/api-client/members.api";
 import { ApiClientError } from "@/lib/fetch-client";
 import { memberKeys } from "@/lib/react-query/query-keys";
 import { toast } from "sonner";
-import { CreateMemberInput, UpdateMemberInput } from "@/shared/types/members.types";
+import { CreateMemberInput, UpdateMemberInput, MemberResponse } from "@/shared/types/members.types";
 import { PageableRequest, PageableResponse } from "@/shared/types/pagination.types";
 import { MembersFilters } from "@/shared/types/members.types";
-import { Member } from "@/shared/types/members.types";
 
 export const useMembersList = (params: PageableRequest<MembersFilters>) => {
     return useQuery({
@@ -34,7 +33,7 @@ export const useMemberByQrCode = (qrCode: string, enabled = true) => {
 
 export const useCreateMember = () => {
     const queryClient = useQueryClient();
-    return useMutation<Member, ApiClientError, CreateMemberInput>({
+    return useMutation<MemberResponse, ApiClientError, CreateMemberInput>({
         mutationFn: (data: CreateMemberInput) => membersApi.create(data),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: memberKeys.lists() });
@@ -47,35 +46,35 @@ export const useCreateMember = () => {
 };
 
 interface MembersContext {
-    previousMembers: [QueryKey, PageableResponse<Member> | undefined][];
-    previousDetail: Member | undefined;
+    previousMembers: [QueryKey, PageableResponse<MemberResponse> | undefined][];
+    previousDetail: MemberResponse | undefined;
 }
 
 export const useUpdateMember = () => {
     const queryClient = useQueryClient();
-    return useMutation<Member, ApiClientError, { id: string; data: UpdateMemberInput }, MembersContext>({
+    return useMutation<MemberResponse, ApiClientError, { id: string; data: UpdateMemberInput }, MembersContext>({
         mutationFn: ({ id, data }: { id: string; data: UpdateMemberInput }) => membersApi.update(id, data),
         onMutate: async ({ id, data }) => {
             await queryClient.cancelQueries({ queryKey: memberKeys.lists() });
             await queryClient.cancelQueries({ queryKey: memberKeys.detail(id) });
 
-            const previousMembers = queryClient.getQueriesData<PageableResponse<Member>>({ queryKey: memberKeys.lists() });
-            const previousDetail = queryClient.getQueryData<Member>(memberKeys.detail(id));
+            const previousMembers = queryClient.getQueriesData<PageableResponse<MemberResponse>>({ queryKey: memberKeys.lists() });
+            const previousDetail = queryClient.getQueryData<MemberResponse>(memberKeys.detail(id));
 
-            queryClient.setQueriesData<PageableResponse<Member>>({ queryKey: memberKeys.lists() }, (old) => {
+            queryClient.setQueriesData<PageableResponse<MemberResponse>>({ queryKey: memberKeys.lists() }, (old) => {
                 if (!old) return old;
                 return {
                     ...old,
                     records: old.records.map((member) =>
-                        member.id === id ? { ...member, ...data } as Member : member
+                        member.id === id ? { ...member, ...data } as MemberResponse : member
                     ),
                 };
             });
 
             if (previousDetail) {
-                queryClient.setQueryData<Member>(memberKeys.detail(id), (old) => {
+                queryClient.setQueryData<MemberResponse>(memberKeys.detail(id), (old) => {
                     if (!old) return old;
-                    return { ...old, ...data } as Member;
+                    return { ...old, ...data } as MemberResponse;
                 });
             }
 
@@ -103,7 +102,7 @@ export const useUpdateMember = () => {
 };
 
 interface DeleteMemberContext {
-    previousMembers: [QueryKey, PageableResponse<Member> | undefined][];
+    previousMembers: [QueryKey, PageableResponse<MemberResponse> | undefined][];
 }
 
 export const useDeleteMember = () => {
@@ -113,9 +112,9 @@ export const useDeleteMember = () => {
         onMutate: async (id) => {
             await queryClient.cancelQueries({ queryKey: memberKeys.lists() });
 
-            const previousMembers = queryClient.getQueriesData<PageableResponse<Member>>({ queryKey: memberKeys.lists() });
+            const previousMembers = queryClient.getQueriesData<PageableResponse<MemberResponse>>({ queryKey: memberKeys.lists() });
 
-            queryClient.setQueriesData<PageableResponse<Member>>({ queryKey: memberKeys.lists() }, (old) => {
+            queryClient.setQueriesData<PageableResponse<MemberResponse>>({ queryKey: memberKeys.lists() }, (old) => {
                 if (!old) return old;
                 return {
                     ...old,

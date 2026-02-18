@@ -11,29 +11,26 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { CreateMemberInput, CreateMemberSchema } from "@/shared/types/members.types";
+import { CreateMemberInput, CreateMemberSchema, MemberResponse } from "@/shared/types/members.types";
 import { Loader2, Save, User, FileBadge, Phone, Activity } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { ApiError } from "@/lib/api";
 import { toast } from "sonner";
 import { useCreateMember, useUpdateMember } from "@/hooks/members/use-members";
-import { Member } from "@/shared/types/members.types";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { AvatarUploader } from "@/components/avatar-uploader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import QRCode from "react-qr-code";
 
 type MemberFormProps = {
-  initialData?: Member;
-  isEdit?: boolean;
+  initialData?: MemberResponse;
   redirectUrl?: string;
 };
 
 export default function MemberForm({
   initialData,
-  isEdit = false,
   redirectUrl,
 }: MemberFormProps) {
+  const isEdit = !!initialData;
   const router = useRouter();
 
   // 1. Configuración del Formulario

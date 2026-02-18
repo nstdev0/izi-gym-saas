@@ -1,7 +1,7 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { User } from "@/shared/types/users.types";
+import { UserResponse } from "@/shared/types/users.types";
 import { Trash2, Shield, CheckCircle, XCircle, Eye, MoreHorizontal, UserCog, Calendar, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -50,7 +50,7 @@ const getRoleConfig = (role: string) => {
 
 // --- COMPONENTES DE CELDA ---
 
-const UserCell = ({ user }: { user: User }) => {
+const UserCell = ({ user }: { user: UserResponse }) => {
     const params = useParams();
     const slug = params.slug as string;
     const fullName = user.firstName ? `${user.firstName} ${user.lastName || ""}` : "Usuario";
@@ -78,7 +78,7 @@ const UserCell = ({ user }: { user: User }) => {
     );
 };
 
-const UserActions = ({ user }: { user: User }) => {
+const UserActions = ({ user }: { user: UserResponse }) => {
     const params = useParams();
     const slug = params.slug as string;
     const { mutate: deleteUser, isPending } = useDeleteUser();
@@ -166,7 +166,7 @@ const UserActions = ({ user }: { user: User }) => {
 };
 
 // --- DEFINICIÓN DE COLUMNAS ---
-export const columns: ColumnDef<User>[] = [
+export const columns: ColumnDef<UserResponse>[] = [
     {
         accessorKey: "user",
         header: "Usuario",

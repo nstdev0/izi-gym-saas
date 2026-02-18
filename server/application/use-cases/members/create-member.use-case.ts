@@ -3,6 +3,7 @@ import { CreateMemberInput } from "@/server/application/dtos/members.dto";
 import { ConflictError } from "@/server/domain/errors/common";
 import { generateMemberQrToken } from "@/shared/utils/token-generator";
 import { IIMCCalculator } from "@/server/application/services/imc-calculator.interface";
+import { Member } from "@/server/domain/entities/Member";
 
 export class CreateMemberUseCase {
   constructor(
@@ -10,7 +11,7 @@ export class CreateMemberUseCase {
     private readonly imcCalculator: IIMCCalculator
   ) { }
 
-  async execute(input: CreateMemberInput): Promise<void> {
+  async execute(input: CreateMemberInput): Promise<Member> {
     const errors: string[] = [];
 
     const validateUniqueDocument = await this.repo.validateUniqueDocument(input.docType, input.docNumber);
@@ -34,7 +35,7 @@ export class CreateMemberUseCase {
     const qrToken = generateMemberQrToken();
     input.qr = qrToken;
 
-    await this.repo.create(input);
+    return await this.repo.create(input);
   }
 }
 

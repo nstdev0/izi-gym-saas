@@ -20,6 +20,8 @@ export class AttendanceMapper implements IMapperInterface<Attendance, Prisma.Att
                 firstName: raw.member.firstName,
                 lastName: raw.member.lastName,
                 image: raw.member.image,
+                docType: raw.member.docType,
+                docNumber: raw.member.docNumber,
             } as any : undefined,
         };
     }

@@ -33,7 +33,6 @@ export default function MembershipDetailViewPage() {
 
     return (
         <MembershipForm
-            isEdit={true}
             initialData={membershipDetail}
             redirectUrl={`/${slug}/admin/memberships`}
             plans={plans?.records || []}

@@ -1,7 +1,7 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { Users, QrCode, Hand, CalendarDays, Eye, Trash2, MoreHorizontal, Clock, User } from "lucide-react";
+import { QrCode, Hand, CalendarDays, Eye, Trash2, MoreHorizontal, Clock, User } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -63,8 +63,8 @@ const MemberCell = ({ attendance }: { attendance: Attendance }) => {
                 >
                     {member.firstName} {member.lastName}
                 </Link>
-                <span className="text-[10px] text-muted-foreground font-primary">
-                    ID: {member.docNumber || "N/A"}
+                <span className="text-[12px] text-muted-foreground font-primary">
+                    {member.docType}: {member.docNumber || "N/A"}
                 </span>
             </div>
         </div>

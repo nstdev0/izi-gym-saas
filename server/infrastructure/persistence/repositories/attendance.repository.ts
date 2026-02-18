@@ -66,6 +66,8 @@ export class AttendanceRepository
                                 firstName: true,
                                 lastName: true,
                                 image: true,
+                                docType: true,
+                                docNumber: true,
                             },
                         },
                     },

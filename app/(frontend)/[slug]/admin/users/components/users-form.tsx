@@ -2,7 +2,7 @@
 
 import { useForm, Controller, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
+import z from "zod";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,16 +16,14 @@ import { CreateUserSchema } from "@/shared/types/users.types";
 import { Loader2, Save, User, Mail, Shield, CheckCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { ApiError } from "@/lib/api";
-import { toast } from "sonner";
-import { User as UserEntity } from "@/shared/types/users.types";
+import { UserResponse } from "@/shared/types/users.types";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { AvatarUploader } from "@/components/avatar-uploader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useCreateUser, useUpdateUser } from "@/hooks/users/use-users";
 
 type UserFormProps = {
-    initialData?: UserEntity;
-    isEdit?: boolean;
+    initialData?: UserResponse;
     redirectUrl?: string;
 };
 
@@ -34,9 +32,9 @@ const ALLOWED_ROLES = ["OWNER", "ADMIN", "STAFF", "TRAINER"];
 
 export default function UserForm({
     initialData,
-    isEdit = false,
     redirectUrl,
 }: UserFormProps) {
+    const isEdit = !!initialData;
     const router = useRouter();
 
     const form = useForm<z.infer<typeof CreateUserSchema>>({

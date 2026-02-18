@@ -33,7 +33,6 @@ export default async function EditUserPage({ params }: PageProps) {
             <div className="p-4 border rounded-md">
                 <UserForm
                     initialData={user}
-                    isEdit={true}
                     redirectUrl={`/${slug}/admin/users`}
                 />
             </div>

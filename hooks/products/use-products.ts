@@ -3,13 +3,10 @@ import { productsApi } from "@/lib/api-client/products.api";
 import { ApiClientError } from "@/lib/fetch-client";
 import { productKeys } from "@/lib/react-query/query-keys";
 import { toast } from "sonner";
-import { CreateProductInput, UpdateProductInput } from "@/shared/types/products.types";
+import { CreateProductInput, UpdateProductInput, ProductResponse } from "@/shared/types/products.types";
 
-// ... (skipping context match, just targeting specific lines via replace logic)
-// I will use replace_file_content with specific context.
 import { PageableRequest, PageableResponse } from "@/shared/types/pagination.types";
 import { ProductsFilters } from "@/shared/types/products.types";
-import { Product } from "@/shared/types/products.types";
 
 export const useProductsList = (params: PageableRequest<ProductsFilters>) => {
     return useQuery({
@@ -29,7 +26,7 @@ export const useProductDetail = (id: string, enabled = true) => {
 
 export const useCreateProduct = () => {
     const queryClient = useQueryClient();
-    return useMutation<Product, ApiClientError, CreateProductInput>({
+    return useMutation<ProductResponse, ApiClientError, CreateProductInput>({
         mutationFn: (data: CreateProductInput) => productsApi.create(data),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: productKeys.lists() });
@@ -42,35 +39,35 @@ export const useCreateProduct = () => {
 };
 
 interface ProductsContext {
-    previousProducts: [QueryKey, PageableResponse<Product> | undefined][];
-    previousDetail: Product | undefined;
+    previousProducts: [QueryKey, PageableResponse<ProductResponse> | undefined][];
+    previousDetail: ProductResponse | undefined;
 }
 
 export const useUpdateProduct = () => {
     const queryClient = useQueryClient();
-    return useMutation<Product, ApiClientError, { id: string; data: UpdateProductInput }, ProductsContext>({
+    return useMutation<ProductResponse, ApiClientError, { id: string; data: UpdateProductInput }, ProductsContext>({
         mutationFn: ({ id, data }: { id: string; data: UpdateProductInput }) => productsApi.update(id, data),
         onMutate: async ({ id, data }) => {
             await queryClient.cancelQueries({ queryKey: productKeys.lists() });
             await queryClient.cancelQueries({ queryKey: productKeys.detail(id) });
 
-            const previousProducts = queryClient.getQueriesData<PageableResponse<Product>>({ queryKey: productKeys.lists() });
-            const previousDetail = queryClient.getQueryData<Product>(productKeys.detail(id));
+            const previousProducts = queryClient.getQueriesData<PageableResponse<ProductResponse>>({ queryKey: productKeys.lists() });
+            const previousDetail = queryClient.getQueryData<ProductResponse>(productKeys.detail(id));
 
-            queryClient.setQueriesData<PageableResponse<Product>>({ queryKey: productKeys.lists() }, (old) => {
+            queryClient.setQueriesData<PageableResponse<ProductResponse>>({ queryKey: productKeys.lists() }, (old) => {
                 if (!old) return old;
                 return {
                     ...old,
                     records: old.records.map((product) =>
-                        product.id === id ? { ...product, ...data } as Product : product
+                        product.id === id ? { ...product, ...data } as ProductResponse : product
                     ),
                 };
             });
 
             if (previousDetail) {
-                queryClient.setQueryData<Product>(productKeys.detail(id), (old) => {
+                queryClient.setQueryData<ProductResponse>(productKeys.detail(id), (old) => {
                     if (!old) return old;
-                    return { ...old, ...data } as Product;
+                    return { ...old, ...data } as ProductResponse;
                 });
             }
 
@@ -98,7 +95,7 @@ export const useUpdateProduct = () => {
 };
 
 interface DeleteProductContext {
-    previousProducts: [QueryKey, PageableResponse<Product> | undefined][];
+    previousProducts: [QueryKey, PageableResponse<ProductResponse> | undefined][];
 }
 
 export const useDeleteProduct = () => {
@@ -108,9 +105,9 @@ export const useDeleteProduct = () => {
         onMutate: async (id) => {
             await queryClient.cancelQueries({ queryKey: productKeys.lists() });
 
-            const previousProducts = queryClient.getQueriesData<PageableResponse<Product>>({ queryKey: productKeys.lists() });
+            const previousProducts = queryClient.getQueriesData<PageableResponse<ProductResponse>>({ queryKey: productKeys.lists() });
 
-            queryClient.setQueriesData<PageableResponse<Product>>({ queryKey: productKeys.lists() }, (old) => {
+            queryClient.setQueriesData<PageableResponse<ProductResponse>>({ queryKey: productKeys.lists() }, (old) => {
                 if (!old) return old;
                 return {
                     ...old,

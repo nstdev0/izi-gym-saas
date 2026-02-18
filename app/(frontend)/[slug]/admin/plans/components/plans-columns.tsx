@@ -1,7 +1,7 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { Plan } from "@/shared/types/plans.types";
+import { PlanResponse } from "@/shared/types/plans.types";
 import { Trash2, Eye, CheckCircle, XCircle, MoreHorizontal, Crown, Clock, CreditCard, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -48,7 +48,7 @@ const getDurationLabel = (days: number) => {
 
 // --- COMPONENTES DE CELDA ---
 
-const PlanNameCell = ({ plan }: { plan: Plan }) => {
+const PlanNameCell = ({ plan }: { plan: PlanResponse }) => {
     const params = useParams();
     const slug = params.slug as string;
 
@@ -78,7 +78,7 @@ const PlanNameCell = ({ plan }: { plan: Plan }) => {
     );
 };
 
-const PlanActions = ({ plan }: { plan: Plan }) => {
+const PlanActions = ({ plan }: { plan: PlanResponse }) => {
     const params = useParams();
     const slug = params.slug as string;
     const { mutate: deletePlan, isPending } = useDeletePlan();
@@ -163,7 +163,7 @@ const PlanActions = ({ plan }: { plan: Plan }) => {
 };
 
 // --- DEFINICIÓN DE COLUMNAS ---
-export const columns: ColumnDef<Plan>[] = [
+export const columns: ColumnDef<PlanResponse>[] = [
     {
         accessorKey: "name",
         header: "Detalles del Plan",

@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Product, ProductType } from "@/shared/types/products.types";
+import { ProductResponse, ProductType } from "@/shared/types/products.types";
 import { createProductSchema } from "@/shared/types/products.types";
 import { useCreateProduct, useUpdateProduct } from "@/hooks/products/use-products";
 import { useRouter } from "next/navigation";
@@ -27,16 +27,15 @@ const formSchema = createProductSchema;
 export type ProductFormValues = z.infer<typeof formSchema>;
 
 interface ProductsFormProps {
-    initialData?: Product | null;
-    isEdit?: boolean;
+    initialData?: ProductResponse | null;
     redirectUrl?: string;
 }
 
 export const ProductsForm: React.FC<ProductsFormProps> = ({
     initialData,
-    isEdit = false,
     redirectUrl,
 }) => {
+    const isEdit = !!initialData;
     const router = useRouter();
 
     const { mutate: createProduct, isPending: isCreating } = useCreateProduct();

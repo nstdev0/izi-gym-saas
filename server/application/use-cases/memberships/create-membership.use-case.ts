@@ -1,12 +1,12 @@
 import { IMembershipsRepository } from "@/server/application/repositories/memberships.repository.interface";
 import { CreateMembershipInput } from "@/server/domain/types/memberships";
 import { ConflictError } from "@/server/domain/errors/common";
-import { ControllerExecutor } from "@/server/lib/api-handler";
+import { Membership } from "@/server/domain/entities/Membership";
 
-export class CreateMembershipUseCase implements ControllerExecutor<CreateMembershipInput, void> {
+export class CreateMembershipUseCase {
   constructor(private repo: IMembershipsRepository) { }
 
-  async execute(input: CreateMembershipInput): Promise<void> {
+  async execute(input: CreateMembershipInput): Promise<Membership> {
     const existingMembership = await this.repo.findActiveMembershipByMemberId(
       input.memberId
     );
@@ -15,7 +15,7 @@ export class CreateMembershipUseCase implements ControllerExecutor<CreateMembers
       throw new ConflictError("El miembro ya tiene una membresía activa o pendiente");
     }
 
-    await this.repo.create(input);
+    return await this.repo.create(input);
   }
 }
 

@@ -1,4 +1,4 @@
-import { BaseEntity } from "./common.types";
+import { BaseEntity, BaseResponse } from "./common.types";
 import { z } from "zod";
 
 export enum ProductType {
@@ -20,6 +20,21 @@ export interface Product extends BaseEntity {
     isActive: boolean;
     images: string[];
     // Getters are not included in interface
+}
+
+export interface ProductResponse extends BaseResponse {
+    sku: string | null;
+    name: string;
+    description: string | null;
+    price: number;
+    cost: number;
+    stock: number;
+    minStock: number;
+    type: ProductType;
+    isActive: boolean;
+    images: string[];
+    isLowStock: boolean;
+    profitMargin: number;
 }
 
 export const createProductSchema = z.object({

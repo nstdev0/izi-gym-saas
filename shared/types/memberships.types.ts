@@ -1,4 +1,4 @@
-import { BaseEntity } from "./common.types";
+import { BaseEntity, BaseResponse } from "./common.types";
 import { z } from "zod";
 
 export enum MembershipStatus {
@@ -18,6 +18,19 @@ export interface Membership extends BaseEntity {
     memberName?: string;
     planName?: string;
     // Simplified relations for frontend display if needed
+    member?: { firstName: string; lastName: string; image: string | null; docNumber: string; };
+    plan?: { name: string; };
+}
+
+export interface MembershipResponse extends BaseResponse {
+    status: MembershipStatus;
+    startDate: string;
+    endDate: string;
+    pricePaid: number;
+    memberId: string;
+    planId: string;
+    memberName: string | null;
+    planName: string | null;
     member?: { firstName: string; lastName: string; image: string | null; docNumber: string; };
     plan?: { name: string; };
 }

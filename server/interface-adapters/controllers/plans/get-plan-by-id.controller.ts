@@ -1,12 +1,13 @@
 import { GetPlanByIdUseCase } from "@/server/application/use-cases/plans/get-plan-by-id.use-case";
-import { Plan } from "@/shared/types/plans.types";
 import { BadRequestError, NotFoundError } from "@/server/domain/errors/common";
 import { ControllerExecutor } from "@/server/lib/api-handler";
+import { PlanResponse } from "@/shared/types/plans.types";
+import { PlanResponseMapper } from "../../mappers/plan-response.mapper";
 
-export class GetPlanByIdController implements ControllerExecutor<void, Plan | null> {
+export class GetPlanByIdController implements ControllerExecutor<void, PlanResponse> {
   constructor(private readonly useCase: GetPlanByIdUseCase) { }
 
-  async execute(_input: void, id?: string): Promise<Plan | null> {
+  async execute(_input: void, id?: string): Promise<PlanResponse> {
     if (!id) {
       throw new BadRequestError("No se proporcionó un id");
     }
@@ -17,7 +18,7 @@ export class GetPlanByIdController implements ControllerExecutor<void, Plan | nu
       throw new NotFoundError("Plan no encontrado");
     }
 
-    return plan;
+    return PlanResponseMapper.toResponse(plan);
   }
 }
 

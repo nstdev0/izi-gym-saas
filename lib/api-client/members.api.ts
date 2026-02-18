@@ -1,7 +1,6 @@
 import { fetchClient } from "@/lib/fetch-client";
-import { CreateMemberInput, UpdateMemberInput } from "@/shared/types/members.types";
+import { CreateMemberInput, UpdateMemberInput, MemberResponse } from "@/shared/types/members.types";
 import { MembersFilters } from "@/shared/types/members.types";
-import { Member } from "@/shared/types/members.types";
 import { PageableRequest, PageableResponse } from "@/shared/types/pagination.types";
 
 const BASE_API_PATH = "/api/members";
@@ -24,40 +23,19 @@ export const membersApi = {
         const queryString = searchParams.toString();
         const endpoint = queryString ? `${BASE_API_PATH}?${queryString}` : BASE_API_PATH;
 
-        return fetchClient<PageableResponse<Member>>(endpoint);
+        return fetchClient<PageableResponse<MemberResponse>>(endpoint);
     },
 
-    getById: (id: string) => {
-        return fetchClient<Member>(`${BASE_API_PATH}/id/${id}`);
-    },
+    getById: (id: string) => fetchClient<MemberResponse>(`${BASE_API_PATH}/id/${id}`),
 
-    getByQrCode: (qrCode: string) => {
-        return fetchClient<Member>(`${BASE_API_PATH}/qr/${qrCode}`);
-    },
+    getByQrCode: (qrCode: string) => fetchClient<MemberResponse>(`${BASE_API_PATH}/qr/${qrCode}`),
 
-    create: (data: CreateMemberInput) => {
-        return fetchClient<Member>(BASE_API_PATH, {
-            method: "POST",
-            body: JSON.stringify(data),
-        });
-    },
+    create: (data: CreateMemberInput) => fetchClient<MemberResponse>(BASE_API_PATH, { method: "POST", body: JSON.stringify(data) }),
 
-    update: (id: string, data: UpdateMemberInput) => {
-        return fetchClient<Member>(`${BASE_API_PATH}/id/${id}`, {
-            method: "PATCH",
-            body: JSON.stringify(data),
-        });
-    },
+    update: (id: string, data: UpdateMemberInput) =>
+        fetchClient<MemberResponse>(`${BASE_API_PATH}/id/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
 
-    delete: (id: string) => {
-        return fetchClient<void>(`${BASE_API_PATH}/id/${id}`, {
-            method: "DELETE",
-        });
-    },
+    delete: (id: string) => fetchClient<void>(`${BASE_API_PATH}/id/${id}`, { method: "DELETE" }),
 
-    restore: (id: string) => {
-        return fetchClient<Member>(`${BASE_API_PATH}/id/${id}/restore`, {
-            method: "POST",
-        });
-    }
+    restore: (id: string) => fetchClient<MemberResponse>(`${BASE_API_PATH}/id/${id}/restore`, { method: "POST" }),
 }

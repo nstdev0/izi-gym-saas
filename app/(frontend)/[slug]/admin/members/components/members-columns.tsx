@@ -1,7 +1,7 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { Member } from "@/shared/types/members.types";
+import { MemberResponse } from "@/shared/types/members.types";
 import { Mail, Phone, Trash2, Eye, PlusCircle, MoreHorizontal, User, CalendarDays, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -42,7 +42,7 @@ function formatDate(date: Date | string): string {
 
 // --- CELDAS PERSONALIZADAS ---
 
-const MemberCell = ({ member }: { member: Member }) => {
+const MemberCell = ({ member }: { member: MemberResponse }) => {
   const params = useParams();
   const slug = params.slug as string;
 
@@ -69,15 +69,15 @@ const MemberCell = ({ member }: { member: Member }) => {
   );
 };
 
-const PlanCell = ({ member }: { member: Member }) => {
+const PlanCell = ({ member }: { member: MemberResponse }) => {
   const params = useParams();
   const slug = params.slug as string;
 
-  const memberWithMembership = member as Member & {
+  const memberWithMembership = member as MemberResponse & {
     memberships?: Array<{ plan?: { name: string }; status: string }>;
   };
 
-  const activeMembership = memberWithMembership.memberships?.find(m => m.status === 'ACTIVE' || m.status === 'PENDING');
+  const activeMembership = memberWithMembership.memberships?.find((m: { status: string }) => m.status === 'ACTIVE' || m.status === 'PENDING');
   const planName = activeMembership?.plan?.name;
 
   if (planName) {
@@ -99,7 +99,7 @@ const PlanCell = ({ member }: { member: Member }) => {
   );
 };
 
-const ContactCell = ({ member }: { member: Member }) => {
+const ContactCell = ({ member }: { member: MemberResponse }) => {
   return (
     <div className="flex flex-col gap-1 text-xs">
       <div className="flex items-center gap-2 text-muted-foreground">
@@ -118,7 +118,7 @@ const ContactCell = ({ member }: { member: Member }) => {
   );
 };
 
-const MemberActions = ({ member }: { member: Member }) => {
+const MemberActions = ({ member }: { member: MemberResponse }) => {
   const params = useParams();
   const slug = params.slug?.toString();
   const { mutate: deleteMember, isPending } = useDeleteMember();
@@ -207,7 +207,7 @@ const MemberActions = ({ member }: { member: Member }) => {
   );
 };
 
-export const columns: ColumnDef<Member>[] = [
+export const columns: ColumnDef<MemberResponse>[] = [
   {
     accessorKey: "member",
     header: "Miembro",

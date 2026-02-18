@@ -2,10 +2,9 @@ import { useQuery, useMutation, useQueryClient, keepPreviousData, QueryKey } fro
 import { plansApi } from "@/lib/api-client/plans.api";
 import { planKeys } from "@/lib/react-query/query-keys";
 import { toast } from "sonner";
-import { CreatePlanInput, UpdatePlanInput } from "@/shared/types/plans.types";
+import { CreatePlanInput, UpdatePlanInput, PlanResponse } from "@/shared/types/plans.types";
 import { PageableRequest, PageableResponse } from "@/shared/types/pagination.types";
 import { PlansFilters } from "@/shared/types/plans.types";
-import { Plan } from "@/shared/types/plans.types";
 import { ApiError } from "@/lib/api";
 
 export const usePlansList = (params: PageableRequest<PlansFilters>) => {
@@ -39,35 +38,35 @@ export const useCreatePlan = () => {
 };
 
 interface PlansContext {
-    previousPlans: [QueryKey, PageableResponse<Plan> | undefined][];
-    previousDetail: Plan | undefined;
+    previousPlans: [QueryKey, PageableResponse<PlanResponse> | undefined][];
+    previousDetail: PlanResponse | undefined;
 }
 
 export const useUpdatePlan = () => {
     const queryClient = useQueryClient();
-    return useMutation<Plan, Error, { id: string; data: UpdatePlanInput }, PlansContext>({
+    return useMutation<PlanResponse, Error, { id: string; data: UpdatePlanInput }, PlansContext>({
         mutationFn: ({ id, data }: { id: string; data: UpdatePlanInput }) => plansApi.update(id, data),
         onMutate: async ({ id, data }) => {
             await queryClient.cancelQueries({ queryKey: planKeys.lists() });
             await queryClient.cancelQueries({ queryKey: planKeys.detail(id) });
 
-            const previousPlans = queryClient.getQueriesData<PageableResponse<Plan>>({ queryKey: planKeys.lists() });
-            const previousDetail = queryClient.getQueryData<Plan>(planKeys.detail(id));
+            const previousPlans = queryClient.getQueriesData<PageableResponse<PlanResponse>>({ queryKey: planKeys.lists() });
+            const previousDetail = queryClient.getQueryData<PlanResponse>(planKeys.detail(id));
 
-            queryClient.setQueriesData<PageableResponse<Plan>>({ queryKey: planKeys.lists() }, (old) => {
+            queryClient.setQueriesData<PageableResponse<PlanResponse>>({ queryKey: planKeys.lists() }, (old) => {
                 if (!old) return old;
                 return {
                     ...old,
                     records: old.records.map((plan) =>
-                        plan.id === id ? { ...plan, ...data } as Plan : plan
+                        plan.id === id ? { ...plan, ...data } as PlanResponse : plan
                     ),
                 };
             });
 
             if (previousDetail) {
-                queryClient.setQueryData<Plan>(planKeys.detail(id), (old) => {
+                queryClient.setQueryData<PlanResponse>(planKeys.detail(id), (old) => {
                     if (!old) return old;
-                    return { ...old, ...data } as Plan;
+                    return { ...old, ...data } as PlanResponse;
                 });
             }
 
@@ -95,7 +94,7 @@ export const useUpdatePlan = () => {
 };
 
 interface DeletePlanContext {
-    previousPlans: [QueryKey, PageableResponse<Plan> | undefined][];
+    previousPlans: [QueryKey, PageableResponse<PlanResponse> | undefined][];
 }
 
 export const useDeletePlan = () => {
@@ -105,9 +104,9 @@ export const useDeletePlan = () => {
         onMutate: async (id) => {
             await queryClient.cancelQueries({ queryKey: planKeys.lists() });
 
-            const previousPlans = queryClient.getQueriesData<PageableResponse<Plan>>({ queryKey: planKeys.lists() });
+            const previousPlans = queryClient.getQueriesData<PageableResponse<PlanResponse>>({ queryKey: planKeys.lists() });
 
-            queryClient.setQueriesData<PageableResponse<Plan>>({ queryKey: planKeys.lists() }, (old) => {
+            queryClient.setQueriesData<PageableResponse<PlanResponse>>({ queryKey: planKeys.lists() }, (old) => {
                 if (!old) return old;
                 return {
                     ...old,

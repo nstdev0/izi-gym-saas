@@ -14,14 +14,14 @@ import { DeleteUserController } from "@/server/interface-adapters/controllers/us
 import { RestoreUserController } from "@/server/interface-adapters/controllers/users/restore-user.controller";
 import { PrismaClient } from "@/generated/prisma/client";
 
-export function createUsersModule(prisma: PrismaClient, tenantId: string) {
-    const usersRepository = new UsersRepository(prisma.user, tenantId);
+export function createUsersModule(prisma: PrismaClient, tenantId: string, currentUserId: string) {
     const clerkAuthService = new ClerkAuthService();
+    const usersRepository = new UsersRepository(prisma.user, tenantId);
 
     const getAllUsersUseCase = new GetAllUsersUseCase(usersRepository);
     const createUserUseCase = new CreateUserUseCase(clerkAuthService);
     const getUserByIdUseCase = new GetUserByIdUseCase(usersRepository);
-    const updateUserUseCase = new UpdateUserUseCase(usersRepository);
+    const updateUserUseCase = new UpdateUserUseCase(usersRepository, currentUserId);
     const deleteUserUseCase = new DeleteUserUseCase(usersRepository);
     const restoreUserUseCase = new RestoreUserUseCase(usersRepository);
 
@@ -33,11 +33,13 @@ export function createUsersModule(prisma: PrismaClient, tenantId: string) {
     const restoreUserController = new RestoreUserController(restoreUserUseCase);
 
     return {
+
         getAllUsersController,
         createUserController,
         getUserByIdController,
         updateUserController,
         deleteUserController,
         restoreUserController,
+
     };
 }

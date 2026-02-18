@@ -1,6 +1,5 @@
 import { fetchClient } from "@/lib/fetch-client";
-import { CreateUserInput, UpdateUserInput } from "@/shared/types/users.types";
-import { User } from "@/shared/types/users.types";
+import { CreateUserInput, UpdateUserInput, UserResponse } from "@/shared/types/users.types";
 import { PageableRequest, PageableResponse } from "@/shared/types/pagination.types";
 import { UsersFilters } from "@/shared/types/users.types";
 
@@ -24,22 +23,22 @@ export const usersApi = {
         const queryString = searchParams.toString();
         const endpoint = queryString ? `${BASE_API_PATH}?${queryString}` : BASE_API_PATH;
 
-        return fetchClient<PageableResponse<User>>(endpoint);
+        return fetchClient<PageableResponse<UserResponse>>(endpoint);
     },
 
     getById: (id: string) => {
-        return fetchClient<User>(`${BASE_API_PATH}/${id}`);
+        return fetchClient<UserResponse>(`${BASE_API_PATH}/${id}`);
     },
 
     create: (data: CreateUserInput) => {
-        return fetchClient<User>(BASE_API_PATH, {
+        return fetchClient<UserResponse>(BASE_API_PATH, {
             method: "POST",
             body: JSON.stringify(data),
         });
     },
 
     update: (id: string, data: UpdateUserInput) => {
-        return fetchClient<User>(`${BASE_API_PATH}/${id}`, {
+        return fetchClient<UserResponse>(`${BASE_API_PATH}/${id}`, {
             method: "PATCH",
             body: JSON.stringify(data),
         });
@@ -52,7 +51,7 @@ export const usersApi = {
     },
 
     restore: (id: string) => {
-        return fetchClient<User>(`${BASE_API_PATH}/id/${id}/restore`, {
+        return fetchClient<UserResponse>(`${BASE_API_PATH}/id/${id}/restore`, {
             method: "POST",
         });
     }

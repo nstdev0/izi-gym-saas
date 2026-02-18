@@ -1,14 +1,25 @@
-import { BaseEntity } from "./common.types";
+import { BaseEntity, BaseResponse } from "./common.types";
 import { z } from "zod";
 import { capitalizeText } from "../utils/text.utils";
 
 export interface Plan extends BaseEntity {
     name: string;
+    slug: string;
     description: string | null;
     price: number;
     durationDays: number;
     isActive: boolean;
     image?: string | null;
+}
+
+export interface PlanResponse extends BaseResponse {
+    name: string;
+    slug: string;
+    description: string | null;
+    price: number;
+    durationDays: number;
+    isActive: boolean;
+    image: string | null;
 }
 
 export const createPlanSchema = z.object({

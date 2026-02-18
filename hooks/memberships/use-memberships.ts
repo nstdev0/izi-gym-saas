@@ -3,7 +3,7 @@ import { membershipsApi } from "@/lib/api-client/memberships.api";
 import { ApiClientError } from "@/lib/fetch-client";
 import { membershipKeys } from "@/lib/react-query/query-keys";
 import { toast } from "sonner";
-import { CreateMembershipInput, UpdateMembershipInput, Membership } from "@/shared/types/memberships.types";
+import { CreateMembershipInput, UpdateMembershipInput, MembershipResponse } from "@/shared/types/memberships.types";
 import { PageableRequest, PageableResponse } from "@/shared/types/pagination.types";
 import { MembershipsFilters } from "@/shared/types/memberships.types";
 
@@ -25,7 +25,7 @@ export const useMembershipDetail = (id: string, enabled = true) => {
 
 export const useCreateMembership = () => {
     const queryClient = useQueryClient();
-    return useMutation<Membership, ApiClientError, CreateMembershipInput>({
+    return useMutation<MembershipResponse, ApiClientError, CreateMembershipInput>({
         mutationFn: (data: CreateMembershipInput) => membershipsApi.create(data),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: membershipKeys.lists() });
@@ -38,35 +38,35 @@ export const useCreateMembership = () => {
 };
 
 interface MembershipsContext {
-    previousMemberships: [QueryKey, PageableResponse<Membership> | undefined][];
-    previousDetail: Membership | undefined;
+    previousMemberships: [QueryKey, PageableResponse<MembershipResponse> | undefined][];
+    previousDetail: MembershipResponse | undefined;
 }
 
 export const useUpdateMembership = () => {
     const queryClient = useQueryClient();
-    return useMutation<Membership, ApiClientError, { id: string; data: UpdateMembershipInput }, MembershipsContext>({
+    return useMutation<MembershipResponse, ApiClientError, { id: string; data: UpdateMembershipInput }, MembershipsContext>({
         mutationFn: ({ id, data }: { id: string; data: UpdateMembershipInput }) => membershipsApi.update(id, data),
         onMutate: async ({ id, data }) => {
             await queryClient.cancelQueries({ queryKey: membershipKeys.lists() });
             await queryClient.cancelQueries({ queryKey: membershipKeys.detail(id) });
 
-            const previousMemberships = queryClient.getQueriesData<PageableResponse<Membership>>({ queryKey: membershipKeys.lists() });
-            const previousDetail = queryClient.getQueryData<Membership>(membershipKeys.detail(id));
+            const previousMemberships = queryClient.getQueriesData<PageableResponse<MembershipResponse>>({ queryKey: membershipKeys.lists() });
+            const previousDetail = queryClient.getQueryData<MembershipResponse>(membershipKeys.detail(id));
 
-            queryClient.setQueriesData<PageableResponse<Membership>>({ queryKey: membershipKeys.lists() }, (old) => {
+            queryClient.setQueriesData<PageableResponse<MembershipResponse>>({ queryKey: membershipKeys.lists() }, (old) => {
                 if (!old) return old;
                 return {
                     ...old,
                     records: old.records.map((membership) =>
-                        membership.id === id ? { ...membership, ...data } as Membership : membership
+                        membership.id === id ? { ...membership, ...data } as MembershipResponse : membership
                     ),
                 };
             });
 
             if (previousDetail) {
-                queryClient.setQueryData<Membership>(membershipKeys.detail(id), (old) => {
+                queryClient.setQueryData<MembershipResponse>(membershipKeys.detail(id), (old) => {
                     if (!old) return old;
-                    return { ...old, ...data } as Membership;
+                    return { ...old, ...data } as MembershipResponse;
                 });
             }
 

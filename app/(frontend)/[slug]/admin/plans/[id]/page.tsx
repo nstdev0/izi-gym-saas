@@ -43,7 +43,7 @@ export default async function PlanPage({
                 </div>
             </div>
 
-            <PlanForm initialData={planPlain} isEdit={true} redirectUrl={`/${slug}/admin/plans`} />
+            <PlanForm initialData={planPlain} redirectUrl={`/${slug}/admin/plans`} />
         </div>
     );
 }

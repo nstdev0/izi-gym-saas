@@ -1,6 +1,5 @@
 import { fetchClient } from "@/lib/fetch-client";
-import { CreatePlanInput, UpdatePlanInput } from "@/shared/types/plans.types";
-import { Plan } from "@/shared/types/plans.types";
+import { CreatePlanInput, UpdatePlanInput, PlanResponse } from "@/shared/types/plans.types";
 import { PageableRequest, PageableResponse } from "@/shared/types/pagination.types";
 import { PlansFilters } from "@/shared/types/plans.types";
 
@@ -24,22 +23,22 @@ export const plansApi = {
         const queryString = searchParams.toString();
         const endpoint = queryString ? `${BASE_API_PATH}?${queryString}` : BASE_API_PATH;
 
-        return fetchClient<PageableResponse<Plan>>(endpoint);
+        return fetchClient<PageableResponse<PlanResponse>>(endpoint);
     },
 
     getById: (id: string) => {
-        return fetchClient<Plan>(`${BASE_API_PATH}/${id}`);
+        return fetchClient<PlanResponse>(`${BASE_API_PATH}/${id}`);
     },
 
     create: (data: CreatePlanInput) => {
-        return fetchClient<Plan>(BASE_API_PATH, {
+        return fetchClient<PlanResponse>(BASE_API_PATH, {
             method: "POST",
             body: JSON.stringify(data),
         });
     },
 
     update: (id: string, data: UpdatePlanInput) => {
-        return fetchClient<Plan>(`${BASE_API_PATH}/${id}`, {
+        return fetchClient<PlanResponse>(`${BASE_API_PATH}/${id}`, {
             method: "PATCH",
             body: JSON.stringify(data),
         });
@@ -52,7 +51,7 @@ export const plansApi = {
     },
 
     restore: (id: string) => {
-        return fetchClient<Plan>(`${BASE_API_PATH}/id/${id}/restore`, {
+        return fetchClient<PlanResponse>(`${BASE_API_PATH}/id/${id}/restore`, {
             method: "POST",
         });
     }

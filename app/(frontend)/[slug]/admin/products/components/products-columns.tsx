@@ -1,7 +1,7 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { Product, ProductType } from "@/shared/types/products.types";
+import { ProductResponse, ProductType } from "@/shared/types/products.types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Trash2, Eye, Box, Tag, Coffee, Shirt, Dumbbell, Sparkles, MoreHorizontal, AlertTriangle, CheckCircle, XCircle, Edit } from "lucide-react";
@@ -54,9 +54,7 @@ const formatCurrency = (amount: number) => {
     }).format(amount);
 };
 
-// --- COMPONENTES DE CELDA ---
-
-const ProductNameCell = ({ product }: { product: Product }) => {
+const ProductNameCell = ({ product }: { product: ProductResponse }) => {
     const params = useParams();
     const slug = params.slug as string;
     const { icon: Icon } = getProductTypeConfig(product.type);
@@ -85,7 +83,7 @@ const ProductNameCell = ({ product }: { product: Product }) => {
     );
 };
 
-const ProductActions = ({ product }: { product: Product }) => {
+const ProductActions = ({ product }: { product: ProductResponse }) => {
     const params = useParams();
     const slug = params.slug as string;
     const { mutate: deleteProduct, isPending } = useDeleteProduct();
@@ -169,7 +167,7 @@ const ProductActions = ({ product }: { product: Product }) => {
 };
 
 // --- DEFINICIÓN DE COLUMNAS ---
-export const columns: ColumnDef<Product>[] = [
+export const columns: ColumnDef<ProductResponse>[] = [
     {
         accessorKey: "name",
         header: "Producto",

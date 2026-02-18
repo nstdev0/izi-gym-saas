@@ -16,9 +16,9 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { MembershipStatus } from "@/shared/types/memberships.types";
+import { MembershipStatus, MembershipResponse } from "@/shared/types/memberships.types";
 import { MemberCombobox } from "./member-combobox";
-import { Member } from "@/shared/types/members.types";
+import { MemberResponse } from "@/shared/types/members.types";
 import { CreateMembershipInput, createMembershipSchema } from "@/shared/types/memberships.types";
 import { useCreateMembership, useUpdateMembership } from "@/hooks/memberships/use-memberships";
 
@@ -30,29 +30,19 @@ export interface SelectablePlan {
 }
 
 interface MembershipFormProps {
-    initialData?: {
-        id: string;
-        memberId: string;
-        planId: string;
-        startDate: Date | string;
-        endDate: Date | string;
-        pricePaid: number;
-        status: string;
-        member?: Partial<Member>;
-    };
-    isEdit?: boolean;
+    initialData?: MembershipResponse;
     redirectUrl: string;
     plans: SelectablePlan[];
-    member?: Partial<Member>;
+    member?: MemberResponse;
 }
 
 export default function MembershipForm({
     initialData,
-    isEdit = false,
     redirectUrl,
     plans,
     member,
 }: MembershipFormProps) {
+    const isEdit = !!initialData;
     const router = useRouter();
     const initialMember = member || (initialData?.member ? initialData.member : undefined);
 
@@ -138,7 +128,7 @@ export default function MembershipForm({
                                     }}
                                     disabled={isEdit}
                                     initialMember={initialMember ? {
-                                        id: initialMember.id!,
+                                        id: initialData?.memberId ?? member?.id ?? "",
                                         firstName: initialMember.firstName!,
                                         lastName: initialMember.lastName!
                                     } : null}

@@ -13,3 +13,12 @@ export interface BaseEntity {
     status: EntityStatus | MembershipStatus;
     deletedAt?: Date | null;
 }
+
+export interface BaseResponse {
+    id: string;
+    organizationId: string;
+    createdAt: string;
+    updatedAt: string;
+    status: EntityStatus | MembershipStatus;
+    deletedAt?: string | null;
+}

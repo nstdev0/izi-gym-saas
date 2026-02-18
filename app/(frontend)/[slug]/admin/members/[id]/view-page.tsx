@@ -17,6 +17,6 @@ export default function MemberViewPage() {
     }
 
     return (
-        <MemberForm isEdit={true} initialData={memberDetail} redirectUrl={`/${slug}/admin/members`} />
+        <MemberForm initialData={memberDetail} redirectUrl={`/${slug}/admin/members`} />
     );
 }

@@ -1,4 +1,4 @@
-import { BaseEntity } from "./common.types";
+import { BaseEntity, BaseResponse } from "./common.types";
 import { z } from "zod";
 import { capitalizeText } from "../utils/text.utils";
 import { Membership } from "./memberships.types";
@@ -33,6 +33,24 @@ export interface Member extends BaseEntity {
     image?: string | null;
     memberships?: Membership[];
     fullName?: string;
+}
+
+export interface MemberResponse extends BaseResponse {
+    firstName: string;
+    lastName: string;
+    fullName: string;
+    docType: DocType;
+    docNumber: string;
+    isActive: boolean;
+    qr: string;
+    email: string | null;
+    phone: string | null;
+    birthDate: string | null;
+    gender: Gender | null;
+    height: number | null;
+    weight: number | null;
+    imc: number | null;
+    image: string | null;
 }
 
 export interface MembersFilters {

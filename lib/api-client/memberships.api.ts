@@ -1,6 +1,5 @@
 import { fetchClient } from "@/lib/fetch-client";
-import { CreateMembershipInput, UpdateMembershipInput } from "@/shared/types/memberships.types";
-import { Membership } from "@/shared/types/memberships.types";
+import { CreateMembershipInput, UpdateMembershipInput, MembershipResponse } from "@/shared/types/memberships.types";
 import { MembershipsFilters } from "@/shared/types/memberships.types";
 import { PageableRequest, PageableResponse } from "@/shared/types/pagination.types";
 
@@ -24,22 +23,22 @@ export const membershipsApi = {
         const queryString = searchParams.toString();
         const endpoint = queryString ? `${BASE_API_PATH}?${queryString}` : BASE_API_PATH;
 
-        return fetchClient<PageableResponse<Membership>>(endpoint);
+        return fetchClient<PageableResponse<MembershipResponse>>(endpoint);
     },
 
     getById: (id: string) => {
-        return fetchClient<Membership>(`${BASE_API_PATH}/${id}`);
+        return fetchClient<MembershipResponse>(`${BASE_API_PATH}/${id}`);
     },
 
     create: (data: CreateMembershipInput) => {
-        return fetchClient<Membership>(BASE_API_PATH, {
+        return fetchClient<MembershipResponse>(BASE_API_PATH, {
             method: "POST",
             body: JSON.stringify(data),
         });
     },
 
     update: (id: string, data: UpdateMembershipInput) => {
-        return fetchClient<Membership>(`${BASE_API_PATH}/${id}`, {
+        return fetchClient<MembershipResponse>(`${BASE_API_PATH}/${id}`, {
             method: "PATCH",
             body: JSON.stringify(data),
         });
@@ -52,7 +51,7 @@ export const membershipsApi = {
     },
 
     restore: (id: string) => {
-        return fetchClient<Membership>(`${BASE_API_PATH}/${id}/restore`, {
+        return fetchClient<MembershipResponse>(`${BASE_API_PATH}/${id}/restore`, {
             method: "POST",
         });
     },

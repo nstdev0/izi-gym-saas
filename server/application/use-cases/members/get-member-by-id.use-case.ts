@@ -1,4 +1,4 @@
-import { Member } from "@/shared/types/members.types";
+import { Member } from "@/server/domain/entities/Member";
 import { IMembersRepository } from "../../repositories/members.repository.interface";
 
 export interface IGetMemberByIdUseCase {

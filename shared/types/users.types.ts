@@ -1,4 +1,4 @@
-import { BaseEntity } from "./common.types";
+import { BaseEntity, BaseResponse } from "./common.types";
 import { z } from "zod";
 
 export enum Role {
@@ -10,6 +10,16 @@ export enum Role {
 }
 
 export interface User extends BaseEntity {
+    firstName: string | null;
+    lastName: string | null;
+    email: string;
+    role: string;
+    isActive: boolean;
+    image: string | null;
+    preferences: Record<string, unknown> | null;
+}
+
+export interface UserResponse extends BaseResponse {
     firstName: string | null;
     lastName: string | null;
     email: string;

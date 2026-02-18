@@ -13,25 +13,23 @@ import {
 } from "@/components/ui/select";
 import { Loader2, Save, Layers } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { ApiError } from "@/lib/api";
 import { toast } from "sonner";
-import { Plan } from "@/shared/types/plans.types";
+import { PlanResponse } from "@/shared/types/plans.types";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CreatePlanInput, createPlanSchema } from "@/shared/types/plans.types";
 import { useCreatePlan, useUpdatePlan } from "@/hooks/plans/use-plans";
 
 interface PlanFormProps {
-    initialData?: Plan;
-    isEdit?: boolean;
+    initialData?: PlanResponse;
     redirectUrl?: string;
 }
 
 export default function PlanForm({
     initialData,
-    isEdit = false,
     redirectUrl,
 }: PlanFormProps) {
+    const isEdit = !!initialData;
     const router = useRouter();
 
     const form = useForm<CreatePlanInput>({

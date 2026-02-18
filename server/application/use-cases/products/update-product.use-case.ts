@@ -5,7 +5,7 @@ import { UpdateProductInput } from "@/server/domain/types/products";
 export class UpdateProductUseCase {
   constructor(private readonly repository: IProductsRepository) { }
 
-  async execute(id: string, data: UpdateProductInput): Promise<void> {
-    await this.repository.update(id, data);
+  async execute(id: string, data: UpdateProductInput): Promise<Product> {
+    return await this.repository.update(id, data);
   }
 }
