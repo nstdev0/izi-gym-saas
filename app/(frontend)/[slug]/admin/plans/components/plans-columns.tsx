@@ -2,7 +2,7 @@
 
 import { ColumnDef } from "@tanstack/react-table";
 import { PlanResponse } from "@/shared/types/plans.types";
-import { Trash2, Eye, CheckCircle, XCircle, MoreHorizontal, Crown, Clock, CreditCard, Edit } from "lucide-react";
+import { Trash2, Eye, CheckCircle, XCircle, MoreHorizontal, Crown, Clock, CreditCard, Edit, CalendarClock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
     AlertDialog,
@@ -67,11 +67,11 @@ const PlanNameCell = ({ plan }: { plan: PlanResponse }) => {
                     {plan.name}
                 </Link>
                 {plan.description ? (
-                    <span className="text-[10px] text-muted-foreground line-clamp-1 max-w-[200px]">
+                    <span className="text-[13px] text-muted-foreground line-clamp-1 max-w-[200px]">
                         {plan.description}
                     </span>
                 ) : (
-                    <span className="text-[10px] text-muted-foreground italic">Sin descripción</span>
+                    <span className="text-[13px] text-muted-foreground italic">Sin descripción</span>
                 )}
             </div>
         </div>
@@ -113,13 +113,10 @@ const PlanActions = ({ plan }: { plan: PlanResponse }) => {
                         <DropdownMenuSeparator />
                         <DropdownMenuItem asChild>
                             <Link href={`/${slug}/admin/plans/${plan.id}`} className="cursor-pointer">
-                                <Eye className="mr-2 h-4 w-4" /> Ver Detalles
+                                <Eye className="mr-2 h-4 w-4" /> Ver / Editar
                             </Link>
                         </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                            <Link href={`/${slug}/admin/plans/${plan.id}/edit`} className="cursor-pointer">
-                                <Edit className="mr-2 h-4 w-4" /> Editar Plan
-                            </Link>
+                        <DropdownMenuItem>
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
@@ -176,7 +173,7 @@ export const columns: ColumnDef<PlanResponse>[] = [
             const days = row.getValue("durationDays") as number;
             return (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Clock className="w-3.5 h-3.5 opacity-70" />
+                    <CalendarClock className="w-3.5 h-3.5 opacity-70" />
                     <span className="font-medium text-foreground">{getDurationLabel(days)}</span>
                 </div>
             );

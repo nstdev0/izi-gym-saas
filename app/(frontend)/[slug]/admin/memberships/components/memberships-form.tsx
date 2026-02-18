@@ -49,7 +49,7 @@ export default function MembershipForm({
     const form = useForm<CreateMembershipInput>({
         resolver: zodResolver(createMembershipSchema),
         defaultValues: {
-            memberId: initialData?.memberId || "",
+            memberId: initialData?.memberId || member?.id || "",
             planId: initialData?.planId || "",
             startDate: initialData?.startDate
                 ? new Date(initialData.startDate)

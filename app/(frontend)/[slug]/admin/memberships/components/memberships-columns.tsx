@@ -16,7 +16,6 @@ import {
     AlertDialogFooter,
     AlertDialogHeader,
     AlertDialogTitle,
-    AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import {
     DropdownMenu,
@@ -127,13 +126,6 @@ const MembershipActions = ({ membership }: { membership: MembershipWithRelations
 
     return (
         <div className="flex items-center justify-end gap-1">
-            {/* Ver Detalle */}
-            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-blue-600 hover:bg-blue-50" asChild>
-                <Link href={`/${slug}/admin/memberships/${membership.id}`}>
-                    <Eye className="h-4 w-4" />
-                </Link>
-            </Button>
-
             {/* Menú de Acciones Peligrosas */}
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -143,6 +135,12 @@ const MembershipActions = ({ membership }: { membership: MembershipWithRelations
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                     <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                        <Link href={`/${slug}/admin/memberships/${membership.id}`} className="cursor-pointer">
+                            <Eye className="mr-2 h-4 w-4" /> Ver / Editar
+                        </Link>
+                    </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
                         onClick={() => setShowCancelDialog(true)}
@@ -268,12 +266,12 @@ export const columns: ColumnDef<MembershipWithRelations>[] = [
             <div className="flex flex-col text-xs">
                 <div className="flex items-center gap-1.5 text-muted-foreground">
                     <span className="w-12">Desde:</span>
-                    <span className="font-primary text-foreground font-medium">{formatDate(row.original.startDate)}</span>
+                    <span className="font-primary text-sm text-foreground font-medium">{formatDate(row.original.startDate)}</span>
                 </div>
                 <div className="flex items-center gap-1.5 text-muted-foreground mt-0.5">
                     <span className="w-12">Hasta:</span>
                     <span className={cn(
-                        "font-primary font-medium",
+                        "font-primary font-medium text-sm",
                         new Date(row.original.endDate) < new Date() && row.original.status === 'ACTIVE'
                             ? "text-red-500 font-bold"
                             : "text-foreground"

@@ -101,8 +101,8 @@ const AttendanceActions = ({ attendance }: { attendance: Attendance }) => {
                         <DropdownMenuLabel>Acciones</DropdownMenuLabel>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem asChild>
-                            <Link href={`/${slug}/admin/attendance/${attendance.id}`} className="cursor-pointer">
-                                <Eye className="mr-2 h-4 w-4" /> Ver Detalles
+                            <Link href={`/${slug}/admin/attendances/${attendance.id}`} className="cursor-pointer">
+                                <Eye className="mr-2 h-4 w-4" /> Ver / Editar
                             </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>

@@ -2,7 +2,7 @@
 
 import { ColumnDef } from "@tanstack/react-table";
 import { MemberResponse } from "@/shared/types/members.types";
-import { Mail, Phone, Trash2, Eye, PlusCircle, MoreHorizontal, User, CalendarDays, ShieldCheck } from "lucide-react";
+import { Mail, Phone, Trash2, Eye, PlusCircle, MoreHorizontal, CalendarDays, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -61,8 +61,8 @@ const MemberCell = ({ member }: { member: MemberResponse }) => {
         >
           {member.firstName} {member.lastName}
         </Link>
-        <span className="text-[10px] text-muted-foreground font-mono">
-          ID: {member.docNumber || "N/A"}
+        <span className="text-[12px] text-muted-foreground font-mono">
+          {member.docType}: {member.docNumber || "N/A"}
         </span>
       </div>
     </div>
@@ -104,7 +104,7 @@ const ContactCell = ({ member }: { member: MemberResponse }) => {
     <div className="flex flex-col gap-1 text-xs">
       <div className="flex items-center gap-2 text-muted-foreground">
         <Mail className={cn("w-3 h-3", member.email ? "text-foreground" : "opacity-50")} />
-        <span className={cn("truncate max-w-[140px]", member.email ? "text-foreground" : "italic opacity-50")}>
+        <span className={cn("truncate max-w-[140px] text-sm", member.email ? "text-foreground" : "italic opacity-50")}>
           {member.email || "Sin email"}
         </span>
       </div>
@@ -142,12 +142,6 @@ const MemberActions = ({ member }: { member: MemberResponse }) => {
   return (
     <>
       <div className="flex items-center justify-end">
-        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-blue-600 hover:bg-blue-50" asChild>
-          <Link href={`/${slug}/admin/members/${member.id}`}>
-            <Eye className="w-4 h-4" />
-          </Link>
-        </Button>
-
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
@@ -159,7 +153,7 @@ const MemberActions = ({ member }: { member: MemberResponse }) => {
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
               <Link href={`/${slug}/admin/members/${member.id}`} className="cursor-pointer">
-                <User className="mr-2 h-4 w-4" /> Ver Perfil Completo
+                <Eye className="mr-2 h-4 w-4" /> Ver / Editar
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
@@ -229,7 +223,7 @@ export const columns: ColumnDef<MemberResponse>[] = [
     cell: ({ row }) => (
       <div className="flex items-center gap-2 text-xs text-muted-foreground">
         <CalendarDays className="w-3.5 h-3.5 opacity-70" />
-        <span className="font-mono">{formatDate(row.getValue("createdAt"))}</span>
+        <span className="font-mono text-sm">{formatDate(row.getValue("createdAt"))}</span>
       </div>
     ),
   },

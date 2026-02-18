@@ -79,7 +79,7 @@ export function Header({ slug, mode = "organization" }: HeaderProps) {
                 }}
               >
                 <Search className="mr-2 h-4 w-4 opacity-50" />
-                <span className="hidden lg:inline-flex">Buscar en {slug}...</span>
+                <span className="hidden lg:inline-flex">Acciones rápidas de {slug}...</span>
                 <span className="inline-flex lg:hidden">Buscar...</span>
                 <kbd className="pointer-events-none absolute right-[0.3rem] top-1/2 -translate-y-1/2 hidden h-5 select-none items-center gap-1 rounded border bg-background px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100 sm:flex shadow-sm">
                   <span className="text-xs">Ctrl</span>K

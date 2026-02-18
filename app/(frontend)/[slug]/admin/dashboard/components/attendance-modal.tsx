@@ -81,7 +81,7 @@ function AttendanceForm({ onClose }: AttendanceFormProps) {
         if (memberFoundByQr) {
             setSelectedMemberId(memberFoundByQr.id);
             setAttendanceMethod("QR");
-            toast.success(`Hola, ${memberFoundByQr.firstName}!`);
+            toast.success(`Identificado: ${memberFoundByQr.firstName} ${memberFoundByQr.lastName}`);
             setIsScanning(false);
             setScannedQr(null);
         }

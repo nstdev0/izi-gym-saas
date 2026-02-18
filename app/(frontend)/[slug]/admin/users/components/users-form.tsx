@@ -28,7 +28,7 @@ type UserFormProps = {
 };
 
 // Roles permitidos según requerimientos (excluye GOD)
-const ALLOWED_ROLES = ["OWNER", "ADMIN", "STAFF", "TRAINER"];
+const ALLOWED_ROLES = ["ADMIN", "STAFF", "TRAINER"];
 
 export default function UserForm({
     initialData,
@@ -138,7 +138,7 @@ export default function UserForm({
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {/* Nombres (Opcional, pero útil para la invitación) */}
                         <Field>
-                            <FieldLabel>Nombre (Opcional)</FieldLabel>
+                            <FieldLabel optional>Nombre</FieldLabel>
                             <Input
                                 placeholder="Juan"
                                 {...form.register("firstName")}
@@ -148,7 +148,7 @@ export default function UserForm({
                         </Field>
 
                         <Field>
-                            <FieldLabel>Apellido (Opcional)</FieldLabel>
+                            <FieldLabel optional>Apellido</FieldLabel>
                             <Input
                                 placeholder="Pérez"
                                 {...form.register("lastName")}
@@ -188,7 +188,7 @@ export default function UserForm({
                                         <SelectContent>
                                             {ALLOWED_ROLES.map((role) => (
                                                 <SelectItem key={role} value={role}>
-                                                    {role}
+                                                    {role === "ADMIN" ? "Administrador" : role === "STAFF" ? "Staff" : "Entrenador"}
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>
@@ -200,7 +200,7 @@ export default function UserForm({
 
                         {/* Estado */}
                         <Field>
-                            <FieldLabel className="flex items-center gap-2">
+                            <FieldLabel required className="flex items-center gap-2">
                                 <CheckCircle className="w-3.5 h-3.5" /> Estado
                             </FieldLabel>
                             <Controller

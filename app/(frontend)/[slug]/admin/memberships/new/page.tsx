@@ -3,14 +3,17 @@ import { memberKeys, planKeys } from "@/lib/react-query/query-keys";
 import { membersApi } from "@/lib/api-client/members.api";
 import { plansApi } from "@/lib/api-client/plans.api";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
-import MembershipDetailViewPage from "../[id]/view-page";
+import CreateMembershipPage from "./create-page";
 
 interface PageProps {
-    params: Promise<{ slug: string, memberId?: string }>;
+    params: Promise<{ slug: string }>;
+    searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
-export default async function NewMembershipPage({ params }: PageProps) {
-    const { slug, memberId } = await params;
+export default async function NewMembershipPage({ params, searchParams }: PageProps) {
+    const { slug } = await params;
+    const resolvedSearchParams = await searchParams;
+    const memberId = typeof resolvedSearchParams.memberId === 'string' ? resolvedSearchParams.memberId : undefined;
 
     const queryClient = getQueryClient()
 
@@ -28,9 +31,10 @@ export default async function NewMembershipPage({ params }: PageProps) {
             limit: 100,
         })
     })
+
     return (
         <HydrationBoundary state={dehydrate(queryClient)}>
-            <MembershipDetailViewPage />
+            <CreateMembershipPage slug={slug} />
         </HydrationBoundary>
     );
 }

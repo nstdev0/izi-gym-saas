@@ -21,6 +21,7 @@ import { useCreateProduct, useUpdateProduct } from "@/hooks/products/use-product
 import { useRouter } from "next/navigation";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Loader2, Save, Package } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const formSchema = createProductSchema;
 
@@ -59,7 +60,7 @@ export const ProductsForm: React.FC<ProductsFormProps> = ({
                 cost: 0,
                 stock: 0,
                 minStock: 5,
-                type: ProductType.MERCH,
+                type: ProductType.CONSUMABLE,
                 isActive: true,
             },
     });
@@ -254,11 +255,14 @@ export const ProductsForm: React.FC<ProductsFormProps> = ({
                             name="isActive"
                             render={({ field, fieldState }) => (
                                 <Field data-invalid={fieldState.invalid}>
-                                    <div className="flex flex-row items-center justify-between rounded-lg border p-4 shadow-sm">
+                                    <div className={cn(
+                                        "flex flex-row items-center justify-between rounded-lg border p-4 shadow-sm transition-all overflow-hidden relative",
+                                        field.value ? "bg-emerald-50 dark:bg-emerald-900/10 border-emerald-500/50" : ""
+                                    )}>
                                         <div className="space-y-0.5">
-                                            <FieldLabel className="text-base">ACTIVO</FieldLabel>
+                                            <FieldLabel className="text-base">{field.value ? "ACTIVO" : "INACTIVO"}</FieldLabel>
                                             <div className="text-[0.8rem] text-muted-foreground">
-                                                Disponible para venta/uso.
+                                                {field.value ? "Disponible para venta/uso." : "No disponible para venta/uso."}
                                             </div>
                                         </div>
                                         <Switch

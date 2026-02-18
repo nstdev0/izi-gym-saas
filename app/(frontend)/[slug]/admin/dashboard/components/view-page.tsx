@@ -159,7 +159,7 @@ export default function DashboardViewPage() {
                 {/* HEADER & FILTERS */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 min-h-[50px]">
                     <PageHeader
-                        title={`Hola, ${slug} 👋`}
+                        title={`Bienvenido al panel de ${slug} 👋`}
                         description="Resumen de actividad y rendimiento del gimnasio."
                     />
 
@@ -180,11 +180,13 @@ export default function DashboardViewPage() {
                                     !date && "text-muted-foreground"
                                 )}
                             >
-                                <CalendarIcon className={cn("h-4 w-4 opacity-70", isScrolled ? "mr-2" : "mr-2")} />
+                                <CalendarIcon className={cn("h-4 w-4 opacity-70", isScrolled ? "mr-2" : "mr-2")} />Del
                                 {date?.from ? (
                                     date.to ? (
                                         <span className="text-sm font-medium truncate">
-                                            {format(date.from, "dd MMM", { locale: es })} - {format(date.to, "dd MMM, yyyy", { locale: es })}
+                                            {format(date.from, "dd MMM", { locale: es })}
+                                            <span className="opacity-70">  al  </span>
+                                            {format(date.to, "dd MMM, yyyy", { locale: es })}
                                         </span>
                                     ) : (
                                         format(date.from, "PPP", { locale: es })
