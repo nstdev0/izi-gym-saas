@@ -6,10 +6,16 @@ export interface IRestoreProductUseCase {
     execute(id: string): Promise<Product | null>;
 }
 
+import { IPermissionService } from "@/server/application/services/permission.service.interface";
+
 export class RestoreProductUseCase implements IRestoreProductUseCase {
-    constructor(private readonly repo: IProductsRepository) { }
+    constructor(
+        private readonly repo: IProductsRepository,
+        private readonly permissions: IPermissionService
+    ) { }
 
     async execute(id: string): Promise<Product | null> {
+        this.permissions.require('products:delete');
         const product = await this.repo.findUnique({ id });
 
         if (!product) throw new NotFoundError("Producto no encontrado");

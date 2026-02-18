@@ -16,18 +16,19 @@ import { RestoreMemberController } from "@/server/interface-adapters/controllers
 import { GetMemberByQrCodeController } from "@/server/interface-adapters/controllers/members/get-member-by-qr-code.controller";
 import { PrismaClient } from "@/generated/prisma/client";
 import { IMCCalculator } from "@/server/infrastructure/services/imc-calculator.service";
+import type { AuthModule } from "@/server/di/modules/auth.module";
 
-export function createMembersModule(prisma: PrismaClient, tenantId: string) {
+export function createMembersModule(prisma: PrismaClient, tenantId: string, authModule: AuthModule) {
     const membersRepository = new MembersRepository(prisma.member, tenantId);
     const imcCalculator = new IMCCalculator();
 
-    const getAllMembersUseCase = new GetAllMembersUseCase(membersRepository);
-    const createMemberUseCase = new CreateMemberUseCase(membersRepository, imcCalculator);
-    const getMemberByIdUseCase = new GetMemberByIdUseCase(membersRepository);
-    const updateMemberUseCase = new UpdateMemberUseCase(membersRepository, imcCalculator);
-    const deleteMemberUseCase = new DeleteMemberUseCase(membersRepository);
-    const restoreMemberUseCase = new RestoreMemberUseCase(membersRepository);
-    const getMemberByQrCodeUseCase = new GetMemberByQrCodeUseCase(membersRepository);
+    const getAllMembersUseCase = new GetAllMembersUseCase(membersRepository, authModule.permissionService);
+    const createMemberUseCase = new CreateMemberUseCase(membersRepository, imcCalculator, authModule.permissionService, authModule.entitlementService);
+    const getMemberByIdUseCase = new GetMemberByIdUseCase(membersRepository, authModule.permissionService);
+    const updateMemberUseCase = new UpdateMemberUseCase(membersRepository, imcCalculator, authModule.permissionService);
+    const deleteMemberUseCase = new DeleteMemberUseCase(membersRepository, authModule.permissionService);
+    const restoreMemberUseCase = new RestoreMemberUseCase(membersRepository, authModule.permissionService);
+    const getMemberByQrCodeUseCase = new GetMemberByQrCodeUseCase(membersRepository, authModule.permissionService);
 
     const getAllMembersController = new GetAllMembersController(
         getAllMembersUseCase,

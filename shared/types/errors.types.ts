@@ -15,4 +15,5 @@ export type AppErrorCode =
     | "VALIDATION_ERROR"
     | "EXTERNAL_SERVICE_ERROR"
     | "INTERNAL_SERVER_ERROR"
-    | "CONFLICT_ERROR"; // From api-handler.ts (Prisma errors)
+    | "CONFLICT_ERROR" // From api-handler.ts (Prisma errors)
+    | "LIMIT_EXCEEDED"

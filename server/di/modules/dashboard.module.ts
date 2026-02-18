@@ -5,15 +5,18 @@ import { GetHistoricStartDateUseCase } from "@/server/application/use-cases/dash
 import { GetDashboardMetricsController } from "@/server/interface-adapters/controllers/dashboard/get-dashboard-metrics.controller";
 import { GetHistoricStartDateController } from "@/server/interface-adapters/controllers/dashboard/get-historic-start-date.controller";
 import { PrismaClient } from "@/generated/prisma/client";
+import type { AuthModule } from "@/server/di/modules/auth.module";
 
-export function createDashboardModule(prisma: PrismaClient, tenantId: string) {
+export function createDashboardModule(prisma: PrismaClient, tenantId: string, authModule: AuthModule) {
     const dashboardRepository = new PrismaDashboardRepository(prisma, tenantId);
 
     const getDashboardMetricsUseCase = new GetDashboardMetricsUseCase(
         dashboardRepository,
+        authModule.permissionService,
     );
     const getHistoricStartDateUseCase = new GetHistoricStartDateUseCase(
         dashboardRepository,
+        authModule.permissionService,
     );
 
     const getDashboardMetricsController = new GetDashboardMetricsController(

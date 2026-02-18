@@ -1,14 +1,17 @@
 import { UpdateOrganizationSettingsInput } from "../../dtos/organizations.dto";
 import { IOrganizationRepository } from "@/server/application/repositories/organizations.repository.interface";
 import { IAuthProvider } from "../../services/auth-provider.interface";
+import { IPermissionService } from "@/server/application/services/permission.service.interface";
 
 export class UpdateOrganizationSettingsUseCase {
     constructor(
         private readonly repository: IOrganizationRepository,
-        private readonly authService: IAuthProvider
+        private readonly authService: IAuthProvider,
+        private readonly permissions: IPermissionService
     ) { }
 
     async execute(input: UpdateOrganizationSettingsInput): Promise<void> {
+        this.permissions.require('org:update');
         const { name, image, config } = input;
 
         const session = await this.authService.getSession();

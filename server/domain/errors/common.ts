@@ -54,3 +54,17 @@ export class InternalError extends AppError {
   readonly code = "INTERNAL_SERVER_ERROR"
   readonly isOperational = false
 }
+
+export class LimitExceededError extends AppError {
+  readonly statusCode = 402
+  readonly code = 'LIMIT_EXCEEDED'
+
+  constructor(
+    readonly resource: 'member' | 'staff' | 'storage',
+    readonly limit: number | null,
+  ) {
+    super(
+      `Has alcanzado el límite de ${resource === 'storage' ? 'almacenamiento' : resource === 'member' ? 'miembros' : 'staff'} de tu plan (${limit ?? '∞'}). Actualiza tu plan para continuar.`
+    )
+  }
+}

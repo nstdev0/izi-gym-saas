@@ -56,9 +56,9 @@ export const ProductsForm: React.FC<ProductsFormProps> = ({
                 name: "",
                 sku: "",
                 description: "",
-                price: 0,
-                cost: 0,
-                stock: 0,
+                price: undefined,
+                cost: undefined,
+                stock: undefined,
                 minStock: 5,
                 type: ProductType.CONSUMABLE,
                 isActive: true,
@@ -122,7 +122,7 @@ export const ProductsForm: React.FC<ProductsFormProps> = ({
                             name="sku"
                             render={({ field, fieldState }) => (
                                 <Field data-invalid={fieldState.invalid}>
-                                    <FieldLabel>SKU (Código)</FieldLabel>
+                                    <FieldLabel optional>SKU (Código)</FieldLabel>
                                     <Input
                                         disabled={isPending}
                                         placeholder="PROD-001"
@@ -142,7 +142,7 @@ export const ProductsForm: React.FC<ProductsFormProps> = ({
                         name="description"
                         render={({ field, fieldState }) => (
                             <Field data-invalid={fieldState.invalid}>
-                                <FieldLabel>Descripción</FieldLabel>
+                                <FieldLabel optional>Descripción</FieldLabel>
                                 <Textarea
                                     disabled={isPending}
                                     placeholder="Descripción detallada del producto..."
@@ -260,7 +260,7 @@ export const ProductsForm: React.FC<ProductsFormProps> = ({
                                         field.value ? "bg-emerald-50 dark:bg-emerald-900/10 border-emerald-500/50" : ""
                                     )}>
                                         <div className="space-y-0.5">
-                                            <FieldLabel className="text-base">{field.value ? "ACTIVO" : "INACTIVO"}</FieldLabel>
+                                            <FieldLabel required className="text-base">{field.value ? "ACTIVO" : "INACTIVO"}</FieldLabel>
                                             <div className="text-[0.8rem] text-muted-foreground">
                                                 {field.value ? "Disponible para venta/uso." : "No disponible para venta/uso."}
                                             </div>

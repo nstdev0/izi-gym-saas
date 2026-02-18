@@ -38,13 +38,21 @@ export interface ProductResponse extends BaseResponse {
 }
 
 export const createProductSchema = z.object({
-    name: z.string().min(1, "Name is required"),
+    name: z.string().min(1, "El nombre es requerido"),
     sku: z.string().optional(),
     description: z.string().optional(),
-    price: z.number().min(0),
-    cost: z.number().min(0),
-    stock: z.number().int().min(0).default(0),
-    minStock: z.number().int().min(0).default(5),
+    price: z.number({
+        required_error: "El precio es requerido",
+    }).min(0, "El precio debe ser mayor a 0"),
+    cost: z.number({
+        required_error: "El costo es requerido",
+    }).min(0, "El costo debe ser mayor a 0"),
+    stock: z.number({
+        required_error: "El stock es requerido",
+    }).int().min(0, "El stock debe ser mayor a 0"),
+    minStock: z.number({
+        required_error: "El stock mínimo es requerido",
+    }).int().min(0).default(5),
     type: z.nativeEnum(ProductType),
     isActive: z.boolean().default(true),
     images: z.array(z.string()).optional(),

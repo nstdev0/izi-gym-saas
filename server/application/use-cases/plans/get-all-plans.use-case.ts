@@ -8,12 +8,18 @@ import {
 } from "@/shared/common/pagination";
 import { Plan } from "@/server/domain/entities/Plan";
 
+import { IPermissionService } from "@/server/application/services/permission.service.interface";
+
 export class GetAllPlansUseCase {
-  constructor(private readonly repository: IPlansRepository) { }
+  constructor(
+    private readonly repository: IPlansRepository,
+    private readonly permissions: IPermissionService
+  ) { }
 
   async execute(
     request: PageableRequest<PlansFilters>,
   ): Promise<PageableResponse<Plan>> {
+    this.permissions.require('plans:read');
     const response = await this.repository.findAll(request);
     response.records.forEach((plan) => {
       plan.price = Number(plan.price);

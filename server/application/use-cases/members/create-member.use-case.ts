@@ -4,22 +4,27 @@ import { ConflictError } from "@/server/domain/errors/common";
 import { generateMemberQrToken } from "@/shared/utils/token-generator";
 import { IIMCCalculator } from "@/server/application/services/imc-calculator.interface";
 import { Member } from "@/server/domain/entities/Member";
+import { IPermissionService } from "@/server/application/services/permission.service.interface";
+import { IEntitlementService } from "@/server/application/services/entitlement.service.interface";
 
 export class CreateMemberUseCase {
   constructor(
     private readonly repo: IMembersRepository,
-    private readonly imcCalculator: IIMCCalculator
+    private readonly imcCalculator: IIMCCalculator,
+    private readonly permissions: IPermissionService,
+    private readonly entitlements: IEntitlementService,
   ) { }
 
   async execute(input: CreateMemberInput): Promise<Member> {
+    this.permissions.require('members:create');
+    await this.entitlements.requireLimit('member');
+
     const errors: string[] = [];
 
     const validateUniqueDocument = await this.repo.validateUniqueDocument(input.docType, input.docNumber);
-
     const validateUniqueEmail = await this.repo.validateUniqueEmail(input.email);
 
     if (validateUniqueDocument) errors.push("El número de documento ya esta en uso");
-
     if (validateUniqueEmail) errors.push("El correo electrónico ya esta en uso");
 
     if (errors.length > 0) {

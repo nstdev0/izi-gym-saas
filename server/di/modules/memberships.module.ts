@@ -15,8 +15,9 @@ import { DeleteMembershipController } from "@/server/interface-adapters/controll
 import { RestoreMembershipController } from "@/server/interface-adapters/controllers/memberships/restore-membership.controller";
 import { CancelMembershipController } from "@/server/interface-adapters/controllers/memberships/cancel-membership.controller";
 import { PrismaClient } from "@/generated/prisma/client";
+import type { AuthModule } from "@/server/di/modules/auth.module";
 
-export function createMembershipsModule(prisma: PrismaClient, tenantId: string) {
+export function createMembershipsModule(prisma: PrismaClient, tenantId: string, authModule: AuthModule) {
     const membershipsRepository = new MembershipsRepository(
         prisma.membership,
         tenantId,
@@ -24,24 +25,31 @@ export function createMembershipsModule(prisma: PrismaClient, tenantId: string) 
 
     const getAllMembershipsUseCase = new GetAllMembershipsUseCase(
         membershipsRepository,
+        authModule.permissionService,
     );
     const createMembershipUseCase = new CreateMembershipUseCase(
         membershipsRepository,
+        authModule.permissionService,
     );
     const getMembershipByIdUseCase = new GetMembershipByIdUseCase(
         membershipsRepository,
+        authModule.permissionService,
     );
     const updateMembershipUseCase = new UpdateMembershipUseCase(
         membershipsRepository,
+        authModule.permissionService,
     );
     const deleteMembershipUseCase = new DeleteMembershipUseCase(
         membershipsRepository,
+        authModule.permissionService,
     );
     const restoreMembershipUseCase = new RestoreMembershipUseCase(
         membershipsRepository,
+        authModule.permissionService,
     );
     const cancelMembershipUseCase = new CancelMembershipUseCase(
         membershipsRepository,
+        authModule.permissionService,
     );
 
     const getAllMembershipsController = new GetAllMembershipsController(

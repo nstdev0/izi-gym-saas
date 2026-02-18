@@ -10,6 +10,6 @@ export class GetOrganizationByIdController implements ControllerExecutor<void, O
     if (!id) {
       throw new BadRequestError("No se proporcionó un id");
     }
-    return this.useCase.execute(id);
+    return await this.useCase.execute(id);
   }
 }

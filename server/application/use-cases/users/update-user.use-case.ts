@@ -4,21 +4,17 @@ import { User } from "@/server/domain/entities/User";
 import { ForbiddenError } from "@/server/domain/errors/common";
 import { Role } from "@/shared/types/users.types";
 
-const ALLOWED_ROLES: Role[] = [Role.GOD, Role.OWNER];
+import { IPermissionService } from "@/server/application/services/permission.service.interface";
 
 export class UpdateUserUseCase {
   constructor(
     private readonly usersRepository: IUsersRepository,
     private readonly currentUserId: string,
+    private readonly permissions: IPermissionService,
   ) { }
 
   async execute(id: string, data: UpdateUserInput): Promise<User> {
-    const currentUser = await this.usersRepository.findById(this.currentUserId);
-
-    if (!currentUser || !ALLOWED_ROLES.includes(currentUser.role as Role)) {
-      throw new ForbiddenError("No tienes permisos para actualizar usuarios");
-    }
-
+    this.permissions.require('users:update');
     return await this.usersRepository.update(id, data);
   }
 }

@@ -2,10 +2,16 @@ import { IUsersRepository, UsersFilters } from "@/server/application/repositorie
 import { User } from "@/server/domain/entities/User";
 import { PageableRequest, PageableResponse } from "@/shared/common/pagination";
 
+import { IPermissionService } from "@/server/application/services/permission.service.interface";
+
 export class GetAllUsersUseCase {
-  constructor(private repository: IUsersRepository) { }
+  constructor(
+    private repository: IUsersRepository,
+    private readonly permissions: IPermissionService
+  ) { }
 
   async execute(request: PageableRequest<UsersFilters>): Promise<PageableResponse<User>> {
+    this.permissions.require('users:read');
     return await this.repository.findAll(request);
   }
 }

@@ -125,4 +125,10 @@ export class UsersRepository
     return [WhereClause, OrderByClause];
   }
 
+  async countActive(organizationId: string): Promise<number> {
+    return this.model.count({
+      where: { organizationId, deletedAt: null, isActive: true },
+    })
+  }
+
 }

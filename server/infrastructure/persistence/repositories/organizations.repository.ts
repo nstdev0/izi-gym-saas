@@ -35,11 +35,29 @@ export class OrganizationsRepository
     super(organizationModel, new OrganizationMapper(), organizationId, "Organización")
   }
 
+  async findById(id: string): Promise<Organization | null> {
+    try {
+      if (id.startsWith("org_")) {
+        const entity = await this.organizationModel.findUnique({
+          where: { organizationId: id },
+          include: { config: true, plan: true },
+        })
+        return entity ? this.mapper.toDomain(entity) : null
+      }
+      return super.findById(id);
+    } catch (error) {
+      translatePrismaError(error, "Organización")
+    }
+  }
+
   async findCurrent(): Promise<Organization | null> {
     try {
       if (!this.organizationId) return null;
+      // Identify if organizationId is a CUID or Clerk ID by simple length check or prefix
+      const isClerkId = this.organizationId.startsWith("org_");
+
       const org = await this.organizationModel.findUnique({
-        where: { id: this.organizationId },
+        where: isClerkId ? { organizationId: this.organizationId } : { id: this.organizationId },
         include: { config: true, plan: true }
       });
 
@@ -199,6 +217,22 @@ export class OrganizationsRepository
       });
 
       return record ? this.mapper.toDomain(record) : null;
+    } catch (error) {
+      translatePrismaError(error, "Organización")
+    }
+  }
+
+  async findByIdWithPlan(id: string): Promise<Organization | null> {
+    try {
+      const isClerkId = id.startsWith("org_");
+
+      const org = await this.organizationModel.findUnique({
+        where: isClerkId ? { organizationId: id } : { id },
+        include: { config: true, plan: true },
+      })
+
+      if (!org) return null
+      return this.mapper.toDomain(org)
     } catch (error) {
       translatePrismaError(error, "Organización")
     }

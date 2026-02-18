@@ -5,6 +5,15 @@ import { ZodError } from "zod";
 import { getContainer } from "../di/container";
 
 // ----------------------------------------------------------------------
+// 0. Monkey Patch BigInt Serialization
+// ----------------------------------------------------------------------
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore: Monkey patch for JSON serialization of BigInt
+BigInt.prototype.toJSON = function (): string | number {
+  return Number(this); // Returning as Number since storage bytes won't exceed safe integer limits for a while
+};
+
+// ----------------------------------------------------------------------
 // 1. Definición de Tipos Flexibles
 // ----------------------------------------------------------------------
 

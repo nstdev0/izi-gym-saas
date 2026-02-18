@@ -13,17 +13,18 @@ import { UpdateUserController } from "@/server/interface-adapters/controllers/us
 import { DeleteUserController } from "@/server/interface-adapters/controllers/users/delete-user.controller";
 import { RestoreUserController } from "@/server/interface-adapters/controllers/users/restore-user.controller";
 import { PrismaClient } from "@/generated/prisma/client";
+import type { AuthModule } from "@/server/di/modules/auth.module";
 
-export function createUsersModule(prisma: PrismaClient, tenantId: string, currentUserId: string) {
+export function createUsersModule(prisma: PrismaClient, tenantId: string, currentUserId: string, authModule: AuthModule) {
     const clerkAuthService = new ClerkAuthService();
     const usersRepository = new UsersRepository(prisma.user, tenantId);
 
-    const getAllUsersUseCase = new GetAllUsersUseCase(usersRepository);
-    const createUserUseCase = new CreateUserUseCase(clerkAuthService);
-    const getUserByIdUseCase = new GetUserByIdUseCase(usersRepository);
-    const updateUserUseCase = new UpdateUserUseCase(usersRepository, currentUserId);
-    const deleteUserUseCase = new DeleteUserUseCase(usersRepository);
-    const restoreUserUseCase = new RestoreUserUseCase(usersRepository);
+    const getAllUsersUseCase = new GetAllUsersUseCase(usersRepository, authModule.permissionService);
+    const createUserUseCase = new CreateUserUseCase(clerkAuthService, authModule.permissionService, authModule.entitlementService);
+    const getUserByIdUseCase = new GetUserByIdUseCase(usersRepository, authModule.permissionService);
+    const updateUserUseCase = new UpdateUserUseCase(usersRepository, currentUserId, authModule.permissionService);
+    const deleteUserUseCase = new DeleteUserUseCase(usersRepository, authModule.permissionService);
+    const restoreUserUseCase = new RestoreUserUseCase(usersRepository, authModule.permissionService);
 
     const getAllUsersController = new GetAllUsersController(getAllUsersUseCase);
     const createUserController = new CreateUserController(createUserUseCase);

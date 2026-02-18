@@ -14,4 +14,5 @@ export interface IUsersRepository extends IBaseRepository<
   UpdateUserInput,
   UsersFilters
 > {
+  countActive(organizationId: string): Promise<number>
 }

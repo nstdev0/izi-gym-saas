@@ -3,10 +3,16 @@ import { CreateMembershipInput } from "@/server/domain/types/memberships";
 import { ConflictError } from "@/server/domain/errors/common";
 import { Membership } from "@/server/domain/entities/Membership";
 
+import { IPermissionService } from "@/server/application/services/permission.service.interface";
+
 export class CreateMembershipUseCase {
-  constructor(private repo: IMembershipsRepository) { }
+  constructor(
+    private repo: IMembershipsRepository,
+    private readonly permissions: IPermissionService
+  ) { }
 
   async execute(input: CreateMembershipInput): Promise<Membership> {
+    this.permissions.require('memberships:create');
     const existingMembership = await this.repo.findActiveMembershipByMemberId(
       input.memberId
     );

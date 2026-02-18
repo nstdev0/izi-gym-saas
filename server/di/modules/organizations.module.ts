@@ -18,15 +18,12 @@ import { PlansRepository } from "@/server/infrastructure/persistence/repositorie
 import { SubscriptionRepository } from "@/server/infrastructure/persistence/repositories/subscription.repository";
 import { UsersRepository } from "@/server/infrastructure/persistence/repositories/users.repository";
 import { ClerkAuthService } from "@/server/infrastructure/services/clerk-auth.service";
+import type { AuthModule } from "@/server/di/modules/auth.module";
 
-export function createOrganizationsModule(prisma: PrismaClient, tenantId: string) {
+export function createOrganizationsModule(prisma: PrismaClient, tenantId: string, authModule: AuthModule) {
     const organizationsRepository = new OrganizationsRepository(
         prisma.organization,
         tenantId,
-    );
-
-    const getAllOrganizationsUseCase = new GetAllOrganizationsUseCase(
-        organizationsRepository,
     );
     const plansRepository = new PlansRepository(prisma.plan, tenantId);
     const subscriptionRepository = new SubscriptionRepository(prisma.subscription, tenantId);
@@ -34,6 +31,11 @@ export function createOrganizationsModule(prisma: PrismaClient, tenantId: string
 
     const authProvider = new ClerkAuthService();
 
+    // Use cases
+    const getAllOrganizationsUseCase = new GetAllOrganizationsUseCase(
+        organizationsRepository,
+        authModule.permissionService,
+    );
     const createOrganizationUseCase = new CreateOrganizationUseCase(
         organizationsRepository,
         plansRepository,
@@ -43,12 +45,15 @@ export function createOrganizationsModule(prisma: PrismaClient, tenantId: string
     );
     const upgradeOrganizationPlanUseCase = new UpgradeOrganizationPlanUseCase(
         organizationsRepository,
+        authModule.permissionService,
     );
     const updateOrganizationSettingsUseCase = new UpdateOrganizationSettingsUseCase(
         organizationsRepository,
         authProvider,
+        authModule.permissionService,
     )
 
+    // Controllers
     const getAllOrganizationsController = new GetAllOrganizationsController(
         getAllOrganizationsUseCase,
     );
@@ -56,16 +61,16 @@ export function createOrganizationsModule(prisma: PrismaClient, tenantId: string
         createOrganizationUseCase,
     );
     const getOrganizationByIdController = new GetOrganizationByIdController(
-        new GetOrganizationByIdUseCase(organizationsRepository),
+        new GetOrganizationByIdUseCase(organizationsRepository, authModule.permissionService),
     );
     const getOrganizationController = new GetOrganizationByIdController(
-        new GetOrganizationByIdUseCase(organizationsRepository),
+        new GetOrganizationByIdUseCase(organizationsRepository, authModule.permissionService),
     );
     const updateOrganizationController = new UpdateOrganizationController(
-        new UpdateOrganizationUseCase(organizationsRepository),
+        new UpdateOrganizationUseCase(organizationsRepository, authModule.permissionService),
     );
     const deleteOrganizationController = new DeleteOrganizationController(
-        new DeleteOrganizationUseCase(organizationsRepository),
+        new DeleteOrganizationUseCase(organizationsRepository, authModule.permissionService),
     );
     const updateOrganizationSettingsController = new UpdateOrganizationSettingsController(
         updateOrganizationSettingsUseCase,

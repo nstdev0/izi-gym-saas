@@ -270,4 +270,10 @@ export class MembersRepository
       translatePrismaError(error, "Miembro")
     }
   }
+
+  async countActive(organizationId: string): Promise<number> {
+    return this.model.count({
+      where: { organizationId, deletedAt: null, isActive: true },
+    })
+  }
 }

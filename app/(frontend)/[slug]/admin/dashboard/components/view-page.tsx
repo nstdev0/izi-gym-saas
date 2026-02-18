@@ -154,7 +154,7 @@ export default function DashboardViewPage() {
 
     return (
         <DashboardLayout breadcrumbs={[{ label: "Admin" }, { label: "Panel General" }]}>
-            <div className="space-y-8 pb-10 relative">
+            <div className="space-y-8 pb-4 relative">
 
                 {/* HEADER & FILTERS */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 min-h-[50px]">
@@ -180,13 +180,14 @@ export default function DashboardViewPage() {
                                     !date && "text-muted-foreground"
                                 )}
                             >
-                                <CalendarIcon className={cn("h-4 w-4 opacity-70", isScrolled ? "mr-2" : "mr-2")} />Del
+                                <CalendarIcon className={cn("h-4 w-4 opacity-70", isScrolled ? "mr-2" : "mr-2")} />
+                                <span className="opacity-70 text-sm">Del</span>
                                 {date?.from ? (
                                     date.to ? (
                                         <span className="text-sm font-medium truncate">
-                                            {format(date.from, "dd MMM", { locale: es })}
-                                            <span className="opacity-70">  al  </span>
-                                            {format(date.to, "dd MMM, yyyy", { locale: es })}
+                                            {format(date.from, "dd 'de' MMM", { locale: es })}
+                                            <span className="opacity-70 text-sm"> al </span>
+                                            {format(date.to, "dd 'de' MMM 'del' yyyy", { locale: es })}
                                         </span>
                                     ) : (
                                         format(date.from, "PPP", { locale: es })

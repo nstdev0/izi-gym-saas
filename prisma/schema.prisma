@@ -144,8 +144,9 @@ model Organization {
   organizationPlanId String
   deletedAt          DateTime?
   organizationPlan   String
-  organizationId     String
+  organizationId     String              @unique
   status             Boolean             @default(true)
+  storageUsed        BigInt              @default(0)
   attendances        Attendance[]
   invoices           Invoice[]
   members            Member[]
@@ -156,6 +157,25 @@ model Organization {
   products           Product[]
   subscription       Subscription?
   users              User[]
+  apiKeys            ApiKey[]
+}
+
+model ApiKey {
+  id             String       @id @default(cuid())
+  name           String
+  keyHash        String       @unique
+  scopes         String[]
+  organizationId String
+  lastUsedAt     DateTime?
+  expiresAt      DateTime?
+  isActive       Boolean      @default(true)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([keyHash])
 }
 
 model OrganizationConfig {

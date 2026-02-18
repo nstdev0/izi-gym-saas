@@ -66,7 +66,8 @@ export function Sidebar({
   // Safe access to ID
   const orgId = clerkOrganization?.id;
   const { data: organizationDetail } = useOrganizationDetail(orgId || "");
-  const organizationPlan = organizationDetail?.organizationPlan || "";
+  // Fallback to plan relation name if scalar is empty, or default to generic if both missing but org exists
+  const organizationPlan = organizationDetail?.organizationPlan || organizationDetail?.plan?.name || (organizationDetail ? "Sin Plan" : "");
 
   // If forceExpanded is true, we treat sidebar as NOT collapsed.
   const isSidebarCollapsed = forceExpanded ? false : contextCollapsed;
@@ -147,7 +148,7 @@ export function Sidebar({
         pathname === `/${safeSlug}/admin/settings` ||
         pathname.startsWith(`/${safeSlug}/admin/settings/`),
     },
-    ...(clerkUser?.publicMetadata?.role === "GOD"
+    ...(clerkUser?.publicMetadata?.role === "GOD" || user?.role === "GOD"
       ? [
         {
           label: "GOD Panel",
@@ -230,7 +231,7 @@ export function Sidebar({
     <div
       className={cn(
         "relative flex flex-col h-screen bg-muted/40 border-r transition-all duration-300 ease-in-out",
-        isSidebarCollapsed ? "w-[70px]" : "w-64",
+        isSidebarCollapsed ? "w-[72px]" : "w-56",
         className,
       )}
     >
@@ -312,7 +313,7 @@ export function Sidebar({
             )}
 
             {/* SECCIÓN DEL PLAN */}
-            {mode === "organization" && organizationPlan && (
+            {mode === "organization" && organizationDetail && (user?.role === "GOD" || user?.role === "OWNER") && (
               <div className="mt-4 pt-4 border-t border-border/50">
                 {isSidebarCollapsed ? (
                   <Tooltip>
@@ -322,7 +323,7 @@ export function Sidebar({
                       </div>
                     </TooltipTrigger>
                     <TooltipContent side="right">
-                      <p className="font-medium">Plan Actual:</p>
+                      <p className="font-medium">Plan:</p>
                       <p className="capitalize text-xs text-muted-foreground">
                         {organizationPlan.replace(/-/g, " ")}
                       </p>
@@ -337,16 +338,55 @@ export function Sidebar({
                     </div>
                     <div className="flex flex-col overflow-hidden">
                       <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
-                        Plan Actual
+                        Plan
                       </span>
                       <span className="truncate text-sm font-semibold capitalize text-foreground">
-                        {organizationPlan.replace(/-/g, " ")}
+                        {organizationPlan.toLowerCase()}
                       </span>
                     </div>
                   </div>
                 )}
               </div>
             )}
+            {/* SECCIÓN DEL ROL */}
+            {/* {mode === "organization" && user?.role && (
+              <div className="mt-2 pt-2 border-t border-border/50">
+                {isSidebarCollapsed ? (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400 mx-auto cursor-help">
+                        <UserCog className="h-4 w-4" />
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent side="right">
+                      <p className="font-medium">Rol:</p>
+                      <p className="capitalize text-xs text-muted-foreground">
+                        {user.role.toLowerCase()}
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                ) : (
+                  <div
+                    className="flex w-full items-center gap-3 rounded-lg border bg-card p-3 shadow-sm animate-in fade-in zoom-in duration-300"
+                  >
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400">
+                      <UserCog className="h-4 w-4" />
+                    </div>
+                    <div className="flex flex-col overflow-hidden">
+                      <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+                        Rol
+                      </span>
+                      <span className={`${user.role === "GOD" ? "text-yellow-300" : ""} truncate text-sm font-semibold capitalize text-foreground`}>
+                        {user.role === "GOD" ? user.role.toUpperCase()
+                          : user.role === "OWNER" ? "Propietario"
+                            : user.role === "ADMIN" ? "Administrador"
+                              : user.role.toLowerCase()}
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )} */}
           </TooltipProvider>
         </nav>
       </div>
@@ -380,15 +420,21 @@ export function Sidebar({
                 {!isSidebarCollapsed && (
                   <>
                     <div className="flex flex-col items-start min-w-0">
+
                       <span className="text-sm font-medium truncate w-[120px] text-left">
                         {process.env.NODE_ENV === "development" && !user?.firstName
                           ? "Dev User"
                           : user?.firstName + " " + user?.lastName || clerkUser?.fullName || "Usuario"}
                       </span>
-                      <span className="text-xs text-muted-foreground truncate w-[120px] text-left">
+                      {/* <span className="text-xs text-muted-foreground truncate w-[120px] text-left">
                         {process.env.NODE_ENV === "development" && !user?.email
                           ? "dev@local.host"
                           : user?.email || clerkUser?.primaryEmailAddress?.emailAddress || ""}
+                      </span> */}
+                      <span className="text-xs italic opacity-50">
+                        {user?.role === "OWNER" ? "Propietario"
+                          : user?.role === "ADMIN" ? "Administrador"
+                            : user?.role}
                       </span>
                     </div>
                     <ChevronsUpDown className="ml-auto h-4 w-4 text-muted-foreground" />

@@ -19,6 +19,7 @@ export class Organization extends BaseEntity<EntityStatus> {
     public config?: OrganizationConfig | null,
     public organizationPlanId?: string,
     public plan?: OrganizationPlan,
+    public storageUsed?: bigint,
   ) {
     super(id, organizationId, createdAt, updatedAt, status, deletedAt);
   }

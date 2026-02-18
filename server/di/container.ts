@@ -1,6 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { cache } from "react";
 import { prisma } from "../infrastructure/persistence/prisma";
+import type { Role } from "@/shared/types/permissions.types";
 import { createAttendanceModule } from "./modules/attendances.module";
 import { createDashboardModule } from "./modules/dashboard.module";
 import { createMembersModule } from "./modules/members.module";
@@ -10,39 +11,53 @@ import { createPlansModule } from "./modules/plans.module";
 import { createProductsModule } from "./modules/products.module";
 import { createSystemModule } from "./modules/system.module";
 import { createUsersModule } from "./modules/users.module";
+import { createAuthModule } from "./modules/auth.module";
+import { MembersRepository } from "@/server/infrastructure/persistence/repositories/members.repository";
+import { UsersRepository } from "@/server/infrastructure/persistence/repositories/users.repository";
+import { OrganizationsRepository } from "@/server/infrastructure/persistence/repositories/organizations.repository";
+import { UnauthorizedError } from "@/server/domain/errors/common";
 
-// Factory function "memoizada" por request
 export const getContainer = cache(async () => {
-  const { orgId, userId } = await auth(); // Clerk cachea esto, no es doble llamada lenta
+  const { orgId, userId } = await auth();
 
-  // Si llegamos aquí, el middleware ya validó que orgId existe.
+
   const tenantId = orgId ?? "";
 
-  // 1. ATTENDANCE
-  const attendanceModule = createAttendanceModule(prisma, tenantId);
+  if (!userId) {
+    throw new UnauthorizedError('Se requiere autenticación')
+  }
 
-  // 2. DASHBOARD
-  const dashboardModule = createDashboardModule(prisma, tenantId);
+  const dbUser = await prisma.user.findFirst({
+    where: { id: userId, organizationId: tenantId },
+    select: { role: true },
+  })
 
-  // 3. MEMBERS
-  const membersModule = createMembersModule(prisma, tenantId);
+  if (!dbUser) {
+    throw new UnauthorizedError('Usuario no encontrado en esta organización')
+  }
 
-  // 4. MEMBERSHIPS
-  const membershipsModule = createMembershipsModule(prisma, tenantId);
+  const userRole = dbUser.role as Role
 
-  // 5. ORGANIZATIONS
-  const organizationsModule = createOrganizationsModule(prisma, tenantId);
+  const organizationsRepo = new OrganizationsRepository(prisma.organization, tenantId)
+  const membersRepo = new MembersRepository(prisma.member, tenantId)
+  const usersRepo = new UsersRepository(prisma.user, tenantId)
 
-  // 6. PLANS
-  const plansModule = createPlansModule(prisma, tenantId);
+  const authModule = createAuthModule(
+    organizationsRepo,
+    membersRepo,
+    usersRepo,
+    userRole,
+    tenantId,
+  )
 
-  // 7. PRODUCTS
-  const productsModule = createProductsModule(prisma, tenantId);
-
-  // 8. USERS
-  const usersModule = createUsersModule(prisma, tenantId, userId ?? "");
-
-  // 9. SYSTEM (GOD MODE)
+  const attendanceModule = createAttendanceModule(prisma, tenantId, authModule);
+  const dashboardModule = createDashboardModule(prisma, tenantId, authModule);
+  const membersModule = createMembersModule(prisma, tenantId, authModule);
+  const membershipsModule = createMembershipsModule(prisma, tenantId, authModule);
+  const organizationsModule = createOrganizationsModule(prisma, tenantId, authModule);
+  const plansModule = createPlansModule(prisma, tenantId, authModule);
+  const productsModule = createProductsModule(prisma, tenantId, authModule);
+  const usersModule = createUsersModule(prisma, tenantId, userId, authModule);
   const systemModule = createSystemModule();
 
   return {

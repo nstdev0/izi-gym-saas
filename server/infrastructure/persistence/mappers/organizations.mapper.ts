@@ -50,7 +50,8 @@ export class OrganizationMapper implements IMapperInterface<Organization, Prisma
                 raw.config.staffSettings as any,
             ) : null,
             raw.organizationPlanId,
-            planEntity
+            planEntity,
+            raw.storageUsed,
         )
     }
 

@@ -4,13 +4,18 @@ import { ConflictError } from "@/server/domain/errors/common";
 import { IIMCCalculator } from "@/server/application/services/imc-calculator.interface";
 import { Member } from "@/server/domain/entities/Member";
 
+import { IPermissionService } from "@/server/application/services/permission.service.interface";
+
 export class UpdateMemberUseCase {
   constructor(
     private readonly repository: IMembersRepository,
-    private readonly imcCalculator: IIMCCalculator
+    private readonly imcCalculator: IIMCCalculator,
+    private readonly permissions: IPermissionService
   ) { }
 
   async execute(id: string, data: UpdateMemberInput): Promise<Member> {
+    this.permissions.require('members:update');
+
     if (data.email) {
       const existingWithEmail = await this.repository.validateUniqueEmail(data.email);
 

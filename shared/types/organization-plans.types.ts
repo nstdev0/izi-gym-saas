@@ -14,11 +14,11 @@ export interface OrganizationPlan extends BaseEntity {
 }
 
 export const createOrganizationPlanSchema = z.object({
-    name: z.string().min(1, "Name is required"),
+    name: z.string().min(1, "El nombre es requerido"),
     slug: z.string().min(1),
     description: z.string().nullable().optional(),
     image: z.string().nullable().optional(),
-    price: z.number().min(0),
+    price: z.number().min(0, "El precio debe ser mayor a 0"),
     currency: z.string().default("USD"),
     limits: z.record(z.unknown()).default({}),
     isActive: z.boolean().default(true),

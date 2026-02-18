@@ -13,16 +13,17 @@ import { UpdateProductController } from "@/server/interface-adapters/controllers
 import { DeleteProductController } from "@/server/interface-adapters/controllers/products/delete-product.controller";
 import { RestoreProductController } from "@/server/interface-adapters/controllers/products/restore-product.controller";
 import { PrismaClient } from "@/generated/prisma/client";
+import type { AuthModule } from "@/server/di/modules/auth.module";
 
-export function createProductsModule(prisma: PrismaClient, tenantId: string) {
+export function createProductsModule(prisma: PrismaClient, tenantId: string, authModule: AuthModule) {
     const productsRepository = new ProductsRepository(prisma.product, tenantId);
 
-    const getAllProductsUseCase = new GetAllProductsUseCase(productsRepository);
-    const createProductUseCase = new CreateProductUseCase(productsRepository);
-    const getProductByIdUseCase = new GetProductByIdUseCase(productsRepository);
-    const updateProductUseCase = new UpdateProductUseCase(productsRepository);
-    const deleteProductUseCase = new DeleteProductUseCase(productsRepository);
-    const restoreProductUseCase = new RestoreProductUseCase(productsRepository);
+    const getAllProductsUseCase = new GetAllProductsUseCase(productsRepository, authModule.permissionService);
+    const createProductUseCase = new CreateProductUseCase(productsRepository, authModule.permissionService);
+    const getProductByIdUseCase = new GetProductByIdUseCase(productsRepository, authModule.permissionService);
+    const updateProductUseCase = new UpdateProductUseCase(productsRepository, authModule.permissionService);
+    const deleteProductUseCase = new DeleteProductUseCase(productsRepository, authModule.permissionService);
+    const restoreProductUseCase = new RestoreProductUseCase(productsRepository, authModule.permissionService);
 
     const getAllProductsController = new GetAllProductsController(
         getAllProductsUseCase,
