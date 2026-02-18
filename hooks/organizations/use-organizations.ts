@@ -18,7 +18,7 @@ export const useOrganizationDetail = (id: string, enabled = true) => {
     return useQuery({
         queryKey: organizationKeys.detail(id),
         queryFn: () => organizationsApi.getById(id),
-        enabled,
+        enabled: enabled && !!id,
     });
 };
 

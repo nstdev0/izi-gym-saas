@@ -19,7 +19,7 @@ export const usePlanDetail = (id: string, enabled = true) => {
     return useQuery({
         queryKey: planKeys.detail(id),
         queryFn: () => plansApi.getById(id),
-        enabled,
+        enabled: enabled && !!id,
     });
 };
 

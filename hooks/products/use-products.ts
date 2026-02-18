@@ -20,7 +20,7 @@ export const useProductDetail = (id: string, enabled = true) => {
     return useQuery({
         queryKey: productKeys.detail(id),
         queryFn: () => productsApi.getById(id),
-        enabled,
+        enabled: enabled && !!id,
     });
 };
 

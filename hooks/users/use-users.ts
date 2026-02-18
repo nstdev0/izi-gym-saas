@@ -18,7 +18,7 @@ export const useUserDetail = (id: string, enabled = true) => {
     return useQuery({
         queryKey: userKeys.detail(id),
         queryFn: () => usersApi.getById(id),
-        enabled,
+        enabled: enabled && !!id,
     });
 };
 

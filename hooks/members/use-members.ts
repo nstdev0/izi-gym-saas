@@ -19,7 +19,7 @@ export const useMemberDetail = (id: string, enabled = true) => {
     return useQuery({
         queryKey: memberKeys.detail(id),
         queryFn: () => membersApi.getById(id),
-        enabled,
+        enabled: enabled && !!id,
     });
 };
 
