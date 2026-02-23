@@ -18,13 +18,9 @@ export interface IOrganizationRepository extends IBaseRepository<
   UpdateOrganizationInput,
   OrganizationsFilters
 > {
-  // createWithTransaction(
-  //   input: CreateOrganizationInput,
-  //   userId: string,
-  // ): Promise<Organization>;
   findCurrent(): Promise<Organization | null>;
-  upgradePlan(slug: string): Promise<Organization>;
   updateSettings(id: string, settings: any): Promise<Organization>;
   findBySlug(slug: string): Promise<Organization | null>;
   findByIdWithPlan(id: string): Promise<Organization | null>;
+  findOrganizationPlanBySlug(slug: string): Promise<{ id: string; name: string; price: number } | null>;
 }

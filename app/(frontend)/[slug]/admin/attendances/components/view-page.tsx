@@ -27,7 +27,6 @@ import { attendanceParsers } from "@/lib/nuqs/search-params/attendance";
 import { useQueryStates } from "nuqs";
 import { columns } from "./attendance-columns";
 import SmartFilters, { FilterConfiguration } from "@/components/ui/smart-filters";
-import { Attendance } from "@/server/domain/entities/Attendance";
 import {
     DropdownMenu,
     DropdownMenuCheckboxItem,

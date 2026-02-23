@@ -15,7 +15,7 @@ export default async function AttendancePage({ searchParams }: PageProps) {
     const { page, limit, search, sort, method } = await attendanceSearchParamsCache.parse(searchParams);
 
     const filters = {
-        page, limit, filters: { search, sort, method }
+        page, limit, filters: { search, sort, method: method ?? undefined }
     }
 
     await queryClient.prefetchQuery({

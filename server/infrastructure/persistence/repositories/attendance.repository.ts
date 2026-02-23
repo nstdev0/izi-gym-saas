@@ -1,9 +1,8 @@
 import { BaseRepository } from "./base.repository";
 import {
     IAttendanceRepository,
-    AttendanceFilters,
 } from "@/server/application/repositories/attendance.repository.interface";
-import { RegisterAttendanceInput, UpdateAttendanceInput } from "@/server/application/dtos/attendance.dto";
+import { AttendanceFilters, RegisterAttendanceInput, UpdateAttendanceInput } from "@/server/application/dtos/attendance.dto";
 import { Prisma } from "@/generated/prisma/client";
 import {
     PageableRequest,
@@ -176,7 +175,7 @@ export class AttendanceRepository
             const searchTerms = filters.search.trim().split(/\s+/).filter(Boolean);
 
             if (searchTerms.length > 0) {
-                searchTerms.forEach((term) => {
+                searchTerms.forEach((term: string) => {
                     conditions.push({
                         member: {
                             OR: [
@@ -190,7 +189,7 @@ export class AttendanceRepository
         }
 
         // Filter by method (QR / MANUAL)
-        if (filters.method && filters.method !== "all") {
+        if (filters.method) {
             const methodUpper = filters.method.toUpperCase();
             if (methodUpper === "QR" || methodUpper === "MANUAL") {
                 conditions.push({ method: methodUpper as "QR" | "MANUAL" });

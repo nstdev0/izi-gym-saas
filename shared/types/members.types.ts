@@ -50,6 +50,7 @@ export interface MemberResponse extends BaseResponse {
     weight: number | null;
     imc: number | null;
     image: string | null;
+    memberships?: Array<{ status: string; plan?: { name: string } }>;
 }
 
 export interface MembersFilters {

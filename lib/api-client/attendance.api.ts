@@ -1,8 +1,7 @@
 import { fetchClient } from "@/lib/fetch-client";
-import { AttendanceFilters } from "@/shared/types/attendance.types";
+import { AttendanceFilters, AttendanceResponse, Attendance } from "@/shared/types/attendance.types";
 import { UpdateAttendanceInput } from "@/shared/types/attendance.types";
 import { PageableRequest, PageableResponse } from "@/shared/types/pagination.types";
-import { Attendance } from "@/shared/types/attendance.types";
 
 export interface RegisterAttendanceInput {
     memberId: string;
@@ -31,7 +30,7 @@ export const attendanceApi = {
         const queryString = searchParams.toString();
         const endpoint = queryString ? `${BASE_API_PATH}?${queryString}` : BASE_API_PATH;
 
-        return fetchClient<PageableResponse<Attendance>>(endpoint);
+        return fetchClient<PageableResponse<AttendanceResponse>>(endpoint);
     },
 
     register: (data: RegisterAttendanceInput) => {
@@ -42,11 +41,11 @@ export const attendanceApi = {
     },
 
     getById: (id: string) => {
-        return fetchClient<Attendance>(`${BASE_API_PATH}/${id}`);
+        return fetchClient<AttendanceResponse>(`${BASE_API_PATH}/${id}`);
     },
 
     update: (id: string, data: UpdateAttendanceInput) => {
-        return fetchClient<Attendance>(`${BASE_API_PATH}/${id}`, {
+        return fetchClient<AttendanceResponse>(`${BASE_API_PATH}/${id}`, {
             method: "PATCH",
             body: JSON.stringify(data),
         });
@@ -59,7 +58,7 @@ export const attendanceApi = {
     },
 
     restore: (id: string) => {
-        return fetchClient<Attendance>(`${BASE_API_PATH}/id/${id}/restore`, {
+        return fetchClient<AttendanceResponse>(`${BASE_API_PATH}/id/${id}/restore`, {
             method: "POST",
         });
     }

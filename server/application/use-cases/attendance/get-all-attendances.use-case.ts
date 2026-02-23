@@ -1,7 +1,8 @@
 import { PageableRequest, PageableResponse } from "@/shared/common/pagination";
-import { IAttendanceRepository, AttendanceFilters } from "@/server/application/repositories/attendance.repository.interface";
+import { IAttendanceRepository } from "@/server/application/repositories/attendance.repository.interface";
 import { Attendance } from "@/server/domain/entities/Attendance";
 import { IPermissionService } from "@/server/application/services/permission.service.interface";
+import { AttendanceFilters } from "@/shared/types/attendance.types";
 
 export class GetAllAttendancesUseCase {
     constructor(

@@ -1,10 +1,17 @@
-import { BaseEntity } from "./common.types";
+import { BaseEntity, BaseResponse } from "./common.types";
 import { Member } from "./members.types";
 import { z } from "zod";
 
 export interface Attendance extends BaseEntity {
     memberId: string;
     date: Date;
+    method: string;
+    member?: Member;
+}
+
+export interface AttendanceResponse extends BaseResponse {
+    memberId: string;
+    date: string | Date;
     method: string;
     member?: Member;
 }
@@ -27,5 +34,5 @@ export type UpdateAttendanceInput = z.infer<typeof UpdateAttendanceSchema>;
 export interface AttendanceFilters {
     search?: string;
     sort?: string;
-    method?: string;
+    method?: "QR" | "MANUAL" | null;
 }

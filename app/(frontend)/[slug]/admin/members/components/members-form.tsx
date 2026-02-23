@@ -21,10 +21,10 @@ import { AvatarUploader } from "@/components/avatar-uploader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import QRCode from "react-qr-code";
 
-type MemberFormProps = {
+interface MemberFormProps {
   initialData?: MemberResponse;
   redirectUrl?: string;
-};
+}
 
 export default function MemberForm({
   initialData,
@@ -375,7 +375,7 @@ export default function MemberForm({
         </CardContent>
       </Card>
 
-      {/* BOTONES DE ACCIÓN */}
+      {/* BOTON DE ACCIÓN */}
       <div className="flex justify-end gap-4 sticky bottom-4 z-10">
         <Button type="submit" disabled={isCreating || isUpdating && !canSubmit} size="lg">
           {isCreating || isUpdating ? (

@@ -27,9 +27,9 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useDeleteAttendance } from "@/hooks/attendance/use-attendance";
 import { useState } from "react";
-import { Attendance } from "@/shared/types/attendance.types";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { AttendanceResponse } from "@/shared/types/attendance.types";
 
 // --- HELPERS VISUALES ---
 const getMethodStyles = (method: string) => {
@@ -41,7 +41,7 @@ const getMethodStyles = (method: string) => {
 
 // --- COMPONENTES DE CELDA ---
 
-const MemberCell = ({ attendance }: { attendance: Attendance }) => {
+const MemberCell = ({ attendance }: { attendance: AttendanceResponse }) => {
     const params = useParams();
     const slug = params.slug as string;
     const member = attendance.member;
@@ -71,7 +71,7 @@ const MemberCell = ({ attendance }: { attendance: Attendance }) => {
     );
 };
 
-const AttendanceActions = ({ attendance }: { attendance: Attendance }) => {
+const AttendanceActions = ({ attendance }: { attendance: AttendanceResponse }) => {
     const params = useParams();
     const slug = params.slug as string;
     const { mutate: deleteAttendance, isPending } = useDeleteAttendance();
@@ -155,7 +155,7 @@ const AttendanceActions = ({ attendance }: { attendance: Attendance }) => {
 };
 
 // --- DEFINICIÓN DE COLUMNAS ---
-export const columns: ColumnDef<Attendance>[] = [
+export const columns: ColumnDef<AttendanceResponse>[] = [
     {
         accessorKey: "member",
         header: "Miembro",

@@ -8,7 +8,7 @@ export const GET = createContext(
   (c) => c.getAllMembersController,
   async (req): Promise<PageableRequest<MembersFilters>> => {
     const { page, limit } = parsePagination(req);
-    const { search, sort, status } = Object.fromEntries(req.nextUrl.searchParams.entries());
+    const { search, sort, status, gender } = Object.fromEntries(req.nextUrl.searchParams.entries());
     return {
       page,
       limit,
@@ -16,6 +16,7 @@ export const GET = createContext(
         search: search || undefined,
         sort: sort || undefined,
         status: status || undefined,
+        gender: gender || undefined,
       },
     };
   },

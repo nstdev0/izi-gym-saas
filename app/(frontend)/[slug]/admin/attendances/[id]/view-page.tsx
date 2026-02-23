@@ -68,7 +68,10 @@ export default function AttendanceDetailViewPage() {
                 {isLoading || !attendanceDetail ? (
                     <AttendanceDetailSkeleton />
                 ) : (
-                    <AttendanceForm data={attendanceDetail} />
+                    <AttendanceForm
+                        initialData={attendanceDetail}
+                        redirectUrl={`/${slug}/admin/attendances`}
+                    />
                 )}
             </div>
         </DashboardLayout>

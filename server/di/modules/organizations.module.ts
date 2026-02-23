@@ -15,9 +15,9 @@ import { UpgradeOrganizationPlanController } from "@/server/interface-adapters/c
 import { UpgradeOrganizationPlanUseCase } from "@/server/application/use-cases/organizations/upgrade-organization-plan.use-case";
 import { PrismaClient } from "@/generated/prisma/client";
 import { PlansRepository } from "@/server/infrastructure/persistence/repositories/plans.repository";
-import { SubscriptionRepository } from "@/server/infrastructure/persistence/repositories/subscription.repository";
 import { UsersRepository } from "@/server/infrastructure/persistence/repositories/users.repository";
 import { ClerkAuthService } from "@/server/infrastructure/services/clerk-auth.service";
+import { PrismaUnitOfWork } from "@/server/infrastructure/persistence/prisma-unit-of-work";
 import type { AuthModule } from "@/server/di/modules/auth.module";
 
 export function createOrganizationsModule(prisma: PrismaClient, tenantId: string, authModule: AuthModule) {
@@ -26,10 +26,10 @@ export function createOrganizationsModule(prisma: PrismaClient, tenantId: string
         tenantId,
     );
     const plansRepository = new PlansRepository(prisma.plan, tenantId);
-    const subscriptionRepository = new SubscriptionRepository(prisma.subscription, tenantId);
     const usersRepository = new UsersRepository(prisma.user, tenantId);
 
     const authProvider = new ClerkAuthService();
+    const unitOfWork = new PrismaUnitOfWork(prisma);
 
     // Use cases
     const getAllOrganizationsUseCase = new GetAllOrganizationsUseCase(
@@ -37,20 +37,23 @@ export function createOrganizationsModule(prisma: PrismaClient, tenantId: string
         authModule.permissionService,
     );
     const createOrganizationUseCase = new CreateOrganizationUseCase(
-        organizationsRepository,
         plansRepository,
-        subscriptionRepository,
+        organizationsRepository,
         usersRepository,
         authProvider,
+        unitOfWork,
     );
     const upgradeOrganizationPlanUseCase = new UpgradeOrganizationPlanUseCase(
         organizationsRepository,
         authModule.permissionService,
+        unitOfWork,
+        tenantId,
     );
     const updateOrganizationSettingsUseCase = new UpdateOrganizationSettingsUseCase(
         organizationsRepository,
         authProvider,
         authModule.permissionService,
+        unitOfWork,
     )
 
     // Controllers

@@ -181,6 +181,15 @@ export class MembersRepository
       }
     }
 
+    // Gender filter
+    if (filters.gender && filters.gender !== "all") {
+      const genderUpper = filters.gender.toUpperCase();
+      if (["MALE", "FEMALE"].includes(genderUpper)) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        conditions.push({ gender: genderUpper as any });
+      }
+    }
+
     const WhereClause: Prisma.MemberWhereInput = conditions.length > 0 ? { AND: conditions } : {}
 
     // OrderBy

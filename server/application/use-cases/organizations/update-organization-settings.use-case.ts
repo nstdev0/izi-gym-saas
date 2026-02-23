@@ -2,20 +2,22 @@ import { UpdateOrganizationSettingsInput } from "../../dtos/organizations.dto";
 import { IOrganizationRepository } from "@/server/application/repositories/organizations.repository.interface";
 import { IAuthProvider } from "../../services/auth-provider.interface";
 import { IPermissionService } from "@/server/application/services/permission.service.interface";
+import { IUnitOfWork } from "../../services/unit-of-work.interface";
 
 export class UpdateOrganizationSettingsUseCase {
     constructor(
         private readonly repository: IOrganizationRepository,
         private readonly authService: IAuthProvider,
-        private readonly permissions: IPermissionService
+        private readonly permissions: IPermissionService,
+        private readonly unitOfWork: IUnitOfWork,
     ) { }
 
     async execute(input: UpdateOrganizationSettingsInput): Promise<void> {
         this.permissions.require('org:update');
         const { name, image, config } = input;
 
+        // ── 1. Business Validations ────────────────────────────
         const session = await this.authService.getSession();
-
         const organizationId = session?.orgId;
 
         if (!session?.userId || !organizationId) {
@@ -23,14 +25,13 @@ export class UpdateOrganizationSettingsUseCase {
         }
 
         const currentOrg = await this.repository.findUnique({ id: organizationId });
-
         if (!currentOrg) {
             throw new Error("Organization not found");
         }
 
+        // ── 2. Build Config Update ─────────────────────────────
         const currentSettings = (currentOrg.config as any) || {};
-
-        const configUpdateData: any = {};
+        const configUpdateData: Record<string, unknown> = {};
 
         if (config?.identity) {
             if (config.identity.currency) configUpdateData.currency = config.identity.currency;
@@ -42,7 +43,6 @@ export class UpdateOrganizationSettingsUseCase {
             };
         }
 
-        // 2. Access Control
         if (config?.accessControl) {
             configUpdateData.accessControl = {
                 ...((currentSettings.accessControl as object) || {}),
@@ -50,7 +50,6 @@ export class UpdateOrganizationSettingsUseCase {
             };
         }
 
-        // 3. Booking
         if (config?.booking) {
             configUpdateData.booking = {
                 ...((currentSettings.booking as object) || {}),
@@ -58,7 +57,6 @@ export class UpdateOrganizationSettingsUseCase {
             };
         }
 
-        // 4. Notifications
         if (config?.notifications) {
             configUpdateData.notifications = {
                 ...((currentSettings.notifications as object) || {}),
@@ -66,7 +64,6 @@ export class UpdateOrganizationSettingsUseCase {
             };
         }
 
-        // 5. Branding
         if (config?.branding) {
             configUpdateData.branding = {
                 ...((currentSettings.branding as object) || {}),
@@ -74,7 +71,6 @@ export class UpdateOrganizationSettingsUseCase {
             };
         }
 
-        // 6. Billing
         if (config?.billing) {
             configUpdateData.billing = {
                 ...((currentSettings.billing as object) || {}),
@@ -82,7 +78,6 @@ export class UpdateOrganizationSettingsUseCase {
             };
         }
 
-        // 7. Features
         if (config?.features) {
             configUpdateData.features = {
                 ...((currentSettings.features as object) || {}),
@@ -90,7 +85,6 @@ export class UpdateOrganizationSettingsUseCase {
             };
         }
 
-        // 8. Staff Settings
         if (config?.staffSettings) {
             configUpdateData.staffSettings = {
                 ...((currentSettings.staffSettings as object) || {}),
@@ -98,76 +92,15 @@ export class UpdateOrganizationSettingsUseCase {
             };
         }
 
-        // Update using Repository
-        // Note: Repository update expects UpdateOrganizationInput
-        // We construct the data to match that
-        await this.repository.update(organizationId, {
+        // ── 3. Delegate Atomic Write to UoW ────────────────────
+        await this.unitOfWork.updateOrganizationSettings({
+            organizationId,
             ...(name && { name }),
             ...(image !== undefined && { image }),
-            config: {
-                ...currentSettings, // Keep existing top-level keys if not handled above? 
-                // The above logic constructed `configUpdateData`, but that only contains *changed* sections merged.
-                // We need to merge `configUpdateData` into `currentSettings`.
-                // Actually, the original code used Prisma upsert inside the update.
-                // Repository generic update usually replaces the field if provided.
-                // To mimic "Upsert/Deep Merge", we need to provide the FULL config object to repo.update().
-
-                ...configUpdateData,
-                // But `configUpdateData` only has the sections that were present in `input`.
-                // What about sections NOT in input? They should stay as is.
-                // `currentSettings` has everything.
-                // So we start with `currentSettings`, and overwrite with `configUpdateData`.
-                // However, `configUpdateData` itself was constructed by explicitly merging `currentSettings.section` + `input.section`.
-            }
+            ...(Object.keys(configUpdateData).length > 0 && { config: configUpdateData }),
         });
 
-        // Wait, the original code did:
-        /*
-            config: {
-                upsert: {
-                    create: { ...defaults... },
-                    update: configUpdateData
-                }
-            }
-        */
-        // Prisma `config` is likely a relation or a Json? 
-        // In schema.prisma `config` is `OrganizationConfig?`. It's a relation (one-to-one).
-        // Generic Repository `update` might not handle relation update/upsert syntax if `TUpdate` just expects `config`.
-        // `UpdateOrganizationInput` (from `organizations.types.ts`) has `config?: any`.
-        // The `OrganizationRepository.update` (from BaseRepository) calls `prisma.organization.update(data: { ...data })`.
-        // If I pass `{ config: { upsert: ... } }` to `repository.update`, it *might* work if `TUpdate` allows it and if Prisma delegate allows it.
-        // `UpdateOrganizationInput` defines `config` as `any` (in my updated types).
-        // So passing the Prisma nested update structure *should* work through `BaseRepository` since it casts to `any`.
-        // This relies on Implementation Details (Prisma) leaking via the Input object structure, but technically the repository contract allows `any`.
-
-        // Alternatively, checking `OrganizationsRepository.updateSettings` (custom method), it explicitly handled this complexity:
-        /*
-           await this.organizationModel.update({
-             where: { id },
-             data: {
-               config: {
-                 upsert: { ... }
-               }
-             }
-           });
-        */
-        // So `OrganizationsRepository.updateSettings` was designed for this!
-        // Use Case should use `repository.updateSettings`.
-
-        await this.repository.updateSettings(organizationId, {
-            name,
-            image,
-            config: configUpdateData // updateSettings implementation handles the upsert logic if I pass the raw partials?
-            // Let's re-read OrganizationsRepository.updateSettings in step 849.
-            // It builds payload and does `upsert: { create: payload, update: payload }`.
-            // So I just need to pass the merged (or sparse) config data.
-            // The Use Case logic constructing `configUpdateData` effectively prepares the payload for the update part.
-            // If I pass `configUpdateData` to `repository.updateSettings`, the repository will use it.
-            // BUT `OrganizationsRepository.updateSettings` logic for `payload` seems to assume `config` input structure.
-        });
-
-
-        // Sync with Clerk
+        // ── 4. Sync with Clerk (External — outside transaction) ─
         if (name && name !== currentOrg.name) {
             try {
                 const clerk = await this.authService.getClient();

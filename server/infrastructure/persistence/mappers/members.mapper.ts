@@ -27,7 +27,13 @@ export class MemberMapper implements IMapperInterface<Member, Prisma.MemberUnche
             raw.weight,
             raw.imc,
             raw.image,
-            undefined, // memberships not loaded by default here
+            // @ts-ignore: Prisma dynamic includes
+            raw.memberships?.map((m: any) => ({
+                id: m.id,
+                status: m.status,
+                planId: m.planId,
+                plan: m.plan ? { name: m.plan.name } : undefined
+            }))
         )
     }
 

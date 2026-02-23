@@ -15,7 +15,7 @@ export default async function MembershipsPage({ searchParams }: PageProps) {
     const { page, limit, search, sort, status } = await membershipsSearchParamsCache.parse(searchParams)
 
     const filters = {
-        page, limit, filters: { search, sort, status }
+        page, limit, filters: { search, sort, status: status ?? undefined }
     }
 
     await queryClient.prefetchQuery({

@@ -1,5 +1,5 @@
 import { Prisma } from "@/generated/prisma/client";
-import { prisma } from "@/server/infrastructure/persistence/prisma";
+import { prisma as globalPrisma } from "@/server/infrastructure/persistence/prisma";
 import { BaseRepository } from "./base.repository";
 import { IOrganizationRepository } from "@/server/application/repositories/organizations.repository.interface";
 import {
@@ -10,7 +10,7 @@ import {
 import { Organization } from "@/server/domain/entities/Organization";
 import { OrganizationMapper } from "../mappers/organizations.mapper";
 import { translatePrismaError } from "../prisma-error-translator";
-import { InternalError, NotFoundError } from "@/server/domain/errors/common";
+import { NotFoundError } from "@/server/domain/errors/common";
 
 export class OrganizationsRepository
   extends BaseRepository<
@@ -103,60 +103,16 @@ export class OrganizationsRepository
     return [whereClause, orderByClause];
   }
 
-  // async createWithTransaction(
-  //   input: CreateOrganizationInput,
-  //   userId: string,
-  // ): Promise<Organization> {
-
-
-  // }
-
-  async upgradePlan(slug: string): Promise<Organization> {
+  async findOrganizationPlanBySlug(slug: string): Promise<{ id: string; name: string; price: number } | null> {
     try {
-      if (!this.organizationId) throw new InternalError("Organization Context required");
-
-      // 1. Find the plan
-      const plan = await prisma.organizationPlan.findUnique({
+      const plan = await globalPrisma.organizationPlan.findUnique({
         where: { slug },
+        select: { id: true, name: true, price: true },
       });
-
-      if (!plan) {
-        throw new NotFoundError(`El plan '${slug}' no es válido o no existe.`);
-      }
-
-      // 2. Execute transaction
-      await prisma.$transaction(async (tx) => {
-        await tx.organization.update({
-          where: { id: this.organizationId },
-          data: {
-            organizationPlanId: plan.id,
-            organizationPlan: plan.name
-          }
-        });
-
-        await tx.subscription.update({
-          where: { organizationId: this.organizationId },
-          data: {
-            pricePaid: plan.price
-          },
-        });
-      });
-
-      // 3. Return updated organization
-      const updatedOrg = await this.organizationModel.findUnique({
-        where: { id: this.organizationId },
-        include: {
-          config: true,
-          plan: true
-        }
-      });
-
-      if (!updatedOrg) throw new NotFoundError("Organization not found after upgrade");
-
-      return this.mapper.toDomain(updatedOrg);
+      if (!plan) return null;
+      return { id: plan.id, name: plan.name, price: Number(plan.price) };
     } catch (error) {
-      if (error instanceof NotFoundError || error instanceof InternalError) throw error;
-      translatePrismaError(error, "Organización")
+      translatePrismaError(error, "Plan de Organización")
     }
   }
 

@@ -8,7 +8,8 @@ import {
 export interface MembersFilters {
   search?: string;
   sort?: string;
-  status?: string
+  status?: string;
+  gender?: string;
 }
 
 export interface IMembersRepository extends IBaseRepository<

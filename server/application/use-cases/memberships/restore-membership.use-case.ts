@@ -1,19 +1,20 @@
-import { IMembershipsRepository } from "../../repositories/memberships.repository.interface";
+import { IPermissionService } from "@/server/application/services/permission.service.interface";
+import { IUnitOfWork } from "@/server/application/services/unit-of-work.interface";
 
 export interface IRestoreMembershipUseCase {
     execute(id: string): Promise<void>;
 }
 
-import { IPermissionService } from "@/server/application/services/permission.service.interface";
-
 export class RestoreMembershipUseCase implements IRestoreMembershipUseCase {
     constructor(
-        private readonly repo: IMembershipsRepository,
-        private readonly permissions: IPermissionService
+        private readonly permissions: IPermissionService,
+        private readonly unitOfWork: IUnitOfWork,
+        private readonly organizationId: string,
     ) { }
 
     async execute(id: string): Promise<void> {
         this.permissions.require('memberships:delete');
-        await this.repo.restore(id);
+        // Atomically restore membership + re-activate member if status is ACTIVE
+        await this.unitOfWork.restoreMembershipAndActivate(id, this.organizationId);
     }
 }

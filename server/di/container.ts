@@ -140,3 +140,11 @@ export const getContainer = cache(async () => {
   };
 
 });
+
+import { createClerkWebhookModule } from "./modules/clerk-webhook.module";
+
+// Factory for webhook events running without user session
+export const getClerkWebhookContainer = cache(async () => {
+  const clerkWebhookModule = createClerkWebhookModule(prisma);
+  return clerkWebhookModule;
+});

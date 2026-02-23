@@ -1,16 +1,16 @@
-import { IMembershipsRepository } from "../../repositories/memberships.repository.interface";
-
 import { IPermissionService } from "@/server/application/services/permission.service.interface";
+import { IUnitOfWork } from "@/server/application/services/unit-of-work.interface";
 
 export class CancelMembershipUseCase {
     constructor(
-        private readonly repo: IMembershipsRepository,
-        private readonly permissions: IPermissionService
+        private readonly permissions: IPermissionService,
+        private readonly unitOfWork: IUnitOfWork,
+        private readonly organizationId: string,
     ) { }
 
     async execute(id: string): Promise<void> {
         this.permissions.require('memberships:update');
-        await this.repo.cancel(id);
+        await this.unitOfWork.cancelMembershipAndDeactivate(id, this.organizationId);
     }
 }
 

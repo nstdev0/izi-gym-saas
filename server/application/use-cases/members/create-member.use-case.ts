@@ -39,6 +39,7 @@ export class CreateMemberUseCase {
 
     const qrToken = generateMemberQrToken();
     input.qr = qrToken;
+    input.isActive = false; // Members start inactive — activated when a membership is created
 
     return await this.repo.create(input);
   }

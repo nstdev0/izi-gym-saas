@@ -25,6 +25,10 @@ export class MemberResponseMapper {
             createdAt: entity.createdAt.toISOString(),
             updatedAt: entity.updatedAt.toISOString(),
             deletedAt: entity.deletedAt?.toISOString() ?? null,
+            memberships: entity.memberships?.map(m => ({
+                status: m.status,
+                plan: m.plan ? { name: m.plan!.name } : undefined
+            })),
         };
     }
 
