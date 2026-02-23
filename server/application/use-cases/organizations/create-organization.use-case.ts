@@ -3,7 +3,7 @@ import { Role } from "@/shared/types/users.types";
 import { SubscriptionStatus } from "@/shared/types/subscription.types";
 import { CreateOrganizationInput } from "@/server/domain/types/organizations";
 import { IOrganizationRepository } from "../../repositories/organizations.repository.interface";
-import { IPlansRepository } from "../../repositories/plans.repository.interface";
+import { ISystemRepository } from "../../repositories/system.repository.interface";
 import { IUsersRepository } from "../../repositories/users.repository.interface";
 import { IAuthProvider } from "../../services/auth-provider.interface";
 import { IUnitOfWork } from "../../services/unit-of-work.interface";
@@ -11,7 +11,7 @@ import { defaultOrganizationConfig } from "@/server/domain/value-objects/organiz
 
 export class CreateOrganizationUseCase {
   constructor(
-    private readonly plansRepo: IPlansRepository,
+    private readonly systemRepo: ISystemRepository,
     private readonly organizationsRepo: IOrganizationRepository,
     private readonly usersRepo: IUsersRepository,
     private readonly authProvider: IAuthProvider,
@@ -20,7 +20,7 @@ export class CreateOrganizationUseCase {
 
   async execute(input: CreateOrganizationInput, userId: string): Promise<void> {
     // ── 1. Business Validations ──────────────────────────────
-    const plan = await this.plansRepo.findBySlug(input.planSlug ?? "free-trial")
+    const plan = await this.systemRepo.getPlanBySlug(input.planSlug ?? "free-trial")
     if (!plan) throw new NotFoundError(`El plan '${input.planSlug}' no existe`)
 
     const existingOrg = await this.organizationsRepo.findBySlug(input.slug)
@@ -51,6 +51,21 @@ export class CreateOrganizationUseCase {
       isNewUser = false;
     }
 
+    const now = new Date();
+    let endDate: Date | null = new Date(now);
+    let subscriptionStatus = SubscriptionStatus.ACTIVE;
+
+    if (plan.slug === "free-trial" || plan.price === 0) {
+      endDate = null;
+      subscriptionStatus = SubscriptionStatus.TRIALING;
+    } else {
+      if (plan.interval === "YEAR") {
+        endDate.setFullYear(endDate.getFullYear() + 1);
+      } else {
+        endDate.setMonth(endDate.getMonth() + 1);
+      }
+    }
+
     // ── 2. Delegate Transactional Write to UoW ───────────────
     await this.unitOfWork.createOrganizationWithOwner({
       orgData: {
@@ -62,9 +77,11 @@ export class CreateOrganizationUseCase {
       subscriptionData: {
         organizationId: "", // Set by UoW inside transaction
         planId: plan.id,
-        status: SubscriptionStatus.TRIALING,
-        pricePaid: 0,
-        currentPeriodEnd: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
+        status: subscriptionStatus,
+        pricePaid: plan.price,
+        currentPeriodStart: now,
+        currentPeriodEnd: endDate,
+        cancelAtPeriodEnd: false,
       },
       ownerData,
       isNewUser,

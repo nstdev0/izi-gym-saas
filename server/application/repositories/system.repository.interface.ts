@@ -14,6 +14,7 @@ export interface ISystemRepository {
     getSystemConfig(): Promise<SystemConfig>;
     updateSystemConfig(data: Partial<SystemConfig>): Promise<void>;
     getPlans(): Promise<OrganizationPlan[]>;
+    getPlanBySlug(slug: string): Promise<OrganizationPlan | null>;
     createPlan(data: CreatePlanInput): Promise<void>;
     updatePlan(id: string, data: UpdatePlanInput): Promise<void>;
 }

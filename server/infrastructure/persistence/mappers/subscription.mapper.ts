@@ -18,7 +18,9 @@ export class SubscriptionMapper implements IMapperInterface<Subscription, Prisma
             raw.stripeCustomerId,
             raw.stripeSubscriptionId,
             raw.status as unknown as SubscriptionStatus,
+            raw.currentPeriodStart,
             raw.currentPeriodEnd,
+            raw.cancelAtPeriodEnd,
             raw.pricePaid.toNumber()
         );
     }
@@ -31,7 +33,9 @@ export class SubscriptionMapper implements IMapperInterface<Subscription, Prisma
             stripeCustomerId: domain.stripeCustomerId,
             stripeSubscriptionId: domain.stripeSubscriptionId,
             status: domain.subscriptionStatus,
+            currentPeriodStart: domain.currentPeriodStart,
             currentPeriodEnd: domain.currentPeriodEnd,
+            cancelAtPeriodEnd: domain.cancelAtPeriodEnd,
             pricePaid: domain.pricePaid,
             createdAt: domain.createdAt,
             updatedAt: domain.updatedAt,

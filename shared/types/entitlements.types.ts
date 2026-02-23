@@ -8,19 +8,19 @@ export interface PlanLimits {
 }
 
 export const PLAN_LIMITS: Record<string, PlanLimits> = {
-    FREE: {
+    FREE_TRIAL: {
         maxMembers: 50,
         maxStaff: 2,
         maxStorageBytes: 524_288_000,
         features: { invoicing: false, api_access: false },
     },
-    PRO: {
+    PRO_MONTHLY: {
         maxMembers: 500,
         maxStaff: 5,
         maxStorageBytes: 5_368_709_120,
         features: { invoicing: true, api_access: false },
     },
-    ENTERPRISE: {
+    ENTERPRISE_MONTHLY: {
         maxMembers: null,
         maxStaff: null,
         maxStorageBytes: 53_687_091_200,

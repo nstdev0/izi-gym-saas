@@ -1,4 +1,5 @@
 import { prisma } from "@/server/infrastructure/persistence/prisma";
+import { PLAN_LIMITS } from "@/shared/types/entitlements.types";
 
 async function main() {
     console.log("🌱 Starting Organization Plans Seeding...");
@@ -18,46 +19,34 @@ async function main() {
 
     const plans = [
         {
-            name: "Free Trial",
+            name: "FREE_TRIAL",
             slug: "free-trial",
-            description: "14-day free trial for new gyms. No credit card required.",
+            description: "Free plan for small gyms. No credit card required.",
             price: 0,
             currency: "USD",
             stripePriceId: "",
-            limits: {
-                maxMembers: 20,
-                canExport: false,
-                maxStaff: 2,
-                maxLocations: 1
-            }
+            interval: "MONTH",
+            limits: PLAN_LIMITS.FREE_TRIAL
         },
         {
-            name: "Pro Plan",
+            name: "PRO_MONTHLY",
             slug: "pro-monthly",
-            description: "Unlimited access for growing gyms.",
-            price: 39,
+            description: "Grow your gym with our Pro plan.",
+            price: 49,
             currency: "USD",
             stripePriceId: process.env.STRIPE_PRICE_PRO_MONTHLY || "price_fake_pro_monthly",
-            limits: {
-                maxMembers: 1000,
-                canExport: true,
-                maxStaff: 10,
-                maxLocations: 1
-            }
+            interval: "MONTH",
+            limits: PLAN_LIMITS.PRO_MONTHLY
         },
         {
-            name: "Enterprise",
+            name: "ENTERPRISE_MONTHLY",
             slug: "enterprise-monthly",
             description: "For multi-location gym chains.",
             price: 99,
             currency: "USD",
             stripePriceId: process.env.STRIPE_PRICE_ENTERPRISE_MONTHLY || "price_fake_enterprise",
-            limits: {
-                maxMembers: 999999, // Ilimitado visualmente
-                canExport: true,
-                maxStaff: 999,
-                maxLocations: 5
-            }
+            interval: "MONTH",
+            limits: PLAN_LIMITS.ENTERPRISE_MONTHLY
         }
     ];
 
@@ -68,13 +57,14 @@ async function main() {
         const result = await prisma.organizationPlan.upsert({
             where: { slug: plan.slug },
             update: {
-                // En cada deploy, actualizamos descripciones o límites si cambiaron
                 ...planData,
-                limits: limits as any // 👈 FIX: Casteo explícito para evitar error de Prisma Json
+                limits: limits as any,
+                interval: plan.interval as "MONTH" | "YEAR",
             },
             create: {
                 ...planData,
-                limits: limits as any // 👈 FIX
+                limits: limits as any,
+                interval: plan.interval as "MONTH" | "YEAR",
             },
         });
 

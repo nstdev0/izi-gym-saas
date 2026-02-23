@@ -18,6 +18,7 @@ import { PlansRepository } from "@/server/infrastructure/persistence/repositorie
 import { UsersRepository } from "@/server/infrastructure/persistence/repositories/users.repository";
 import { ClerkAuthService } from "@/server/infrastructure/services/clerk-auth.service";
 import { PrismaUnitOfWork } from "@/server/infrastructure/persistence/prisma-unit-of-work";
+import { SystemRepository } from "@/server/infrastructure/persistence/repositories/system.repository";
 import type { AuthModule } from "@/server/di/modules/auth.module";
 
 export function createOrganizationsModule(prisma: PrismaClient, tenantId: string, authModule: AuthModule) {
@@ -31,13 +32,15 @@ export function createOrganizationsModule(prisma: PrismaClient, tenantId: string
     const authProvider = new ClerkAuthService();
     const unitOfWork = new PrismaUnitOfWork(prisma);
 
+    const systemRepository = new SystemRepository();
+
     // Use cases
     const getAllOrganizationsUseCase = new GetAllOrganizationsUseCase(
         organizationsRepository,
         authModule.permissionService,
     );
     const createOrganizationUseCase = new CreateOrganizationUseCase(
-        plansRepository,
+        systemRepository,
         organizationsRepository,
         usersRepository,
         authProvider,

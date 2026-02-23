@@ -13,7 +13,9 @@ export class Subscription extends BaseEntity {
         public stripeCustomerId: string | null,
         public stripeSubscriptionId: string | null,
         public subscriptionStatus: SubscriptionStatus,
-        public currentPeriodEnd: Date,
+        public currentPeriodStart: Date,
+        public currentPeriodEnd: Date | null,
+        public cancelAtPeriodEnd: boolean,
         public pricePaid: number,
     ) {
         super(id, organizationId, createdAt, updatedAt, status, deletedAt);

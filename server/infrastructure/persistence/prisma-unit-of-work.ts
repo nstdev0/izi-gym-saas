@@ -50,7 +50,9 @@ export class PrismaUnitOfWork implements IUnitOfWork {
                         organizationPlanId: params.subscriptionData.planId,
                         status: params.subscriptionData.status,
                         pricePaid: params.subscriptionData.pricePaid,
-                        currentPeriodEnd: params.subscriptionData.currentPeriodEnd ?? new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
+                        currentPeriodStart: params.subscriptionData.currentPeriodStart ?? new Date(),
+                        currentPeriodEnd: params.subscriptionData.currentPeriodEnd !== null ? params.subscriptionData.currentPeriodEnd : new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
+                        cancelAtPeriodEnd: params.subscriptionData.cancelAtPeriodEnd ?? false,
                     },
                 });
 

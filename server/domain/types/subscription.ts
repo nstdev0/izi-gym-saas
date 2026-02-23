@@ -6,7 +6,9 @@ export interface CreateSubscriptionInput {
     stripeCustomerId?: string;
     stripeSubscriptionId?: string;
     status: SubscriptionStatus;
-    currentPeriodEnd?: Date;
+    currentPeriodStart?: Date;
+    currentPeriodEnd?: Date | null;
+    cancelAtPeriodEnd?: boolean;
     pricePaid: number;
     trialDays?: number;
 }

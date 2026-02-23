@@ -206,6 +206,7 @@ model OrganizationPlan {
   image         String?
   price         Decimal        @default(0) @db.Decimal(10, 2)
   currency      String         @default("USD")
+  interval      PlanInterval   @default(MONTH)
   limits        Json
   stripePriceId String?
   createdAt     DateTime       @default(now())
@@ -272,7 +273,9 @@ model Subscription {
   stripeCustomerId     String?
   stripeSubscriptionId String?            @unique
   status               SubscriptionStatus
-  currentPeriodEnd     DateTime
+  currentPeriodStart   DateTime           @default(now())
+  currentPeriodEnd     DateTime?
+  cancelAtPeriodEnd    Boolean            @default(false)
   createdAt            DateTime           @default(now())
   updatedAt            DateTime           @updatedAt
   deletedAt            DateTime?
@@ -379,4 +382,9 @@ enum PaymentMethod {
   YAPE
   PLIN
   STRIPE
+}
+
+enum PlanInterval {
+  MONTH
+  YEAR
 }

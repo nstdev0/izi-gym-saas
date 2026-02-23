@@ -11,5 +11,7 @@ export interface Subscription {
     organizationId: string;
     status: SubscriptionStatus;
     planId: string;
-    currentPeriodEnd: Date;
+    currentPeriodStart: Date;
+    currentPeriodEnd: Date | null;
+    cancelAtPeriodEnd: boolean;
 }

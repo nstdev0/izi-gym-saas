@@ -12,6 +12,7 @@ export class OrganizationPlan extends BaseEntity {
         public slug: string,
         public price: number,
         public currency: string,
+        public interval: string,
         public description: string | null,
         public image: string | null,
         public stripePriceId: string | null,

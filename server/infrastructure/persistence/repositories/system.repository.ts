@@ -227,6 +227,19 @@ export class SystemRepository implements ISystemRepository {
         }
     }
 
+    async getPlanBySlug(slug: string): Promise<OrganizationPlan | null> {
+        try {
+            const plan = await prisma.organizationPlan.findUnique({
+                where: { slug }
+            });
+            if (!plan) return null;
+            return this.planMapper.toDomain(plan);
+        } catch (error) {
+            translatePrismaError(error, "Sistema");
+            return null;
+        }
+    }
+
     async createPlan(data: CreatePlanInput): Promise<void> {
         try {
             await prisma.organizationPlan.create({
