@@ -20,6 +20,8 @@ import { ClerkAuthService } from "@/server/infrastructure/services/clerk-auth.se
 import { PrismaUnitOfWork } from "@/server/infrastructure/persistence/prisma-unit-of-work";
 import { SystemRepository } from "@/server/infrastructure/persistence/repositories/system.repository";
 import type { AuthModule } from "@/server/di/modules/auth.module";
+import { CreateCheckoutSessionUseCase } from "@/server/application/use-cases/organizations/create-checkout-session.use-case";
+import { CreateCheckoutSessionController } from "@/server/interface-adapters/controllers/organizations/create-checkout-session.controller";
 
 export function createOrganizationsModule(prisma: PrismaClient, tenantId: string, authModule: AuthModule) {
     const organizationsRepository = new OrganizationsRepository(
@@ -58,6 +60,11 @@ export function createOrganizationsModule(prisma: PrismaClient, tenantId: string
         authModule.permissionService,
         unitOfWork,
     )
+    const createCheckoutSessionUseCase = new CreateCheckoutSessionUseCase(
+        organizationsRepository,
+        usersRepository,
+        systemRepository
+    );
 
     // Controllers
     const getAllOrganizationsController = new GetAllOrganizationsController(
@@ -84,6 +91,9 @@ export function createOrganizationsModule(prisma: PrismaClient, tenantId: string
     const upgradeOrganizationPlanController = new UpgradeOrganizationPlanController(
         upgradeOrganizationPlanUseCase,
     );
+    const createCheckoutSessionController = new CreateCheckoutSessionController(
+        createCheckoutSessionUseCase,
+    );
 
     return {
         getAllOrganizationsController,
@@ -94,5 +104,6 @@ export function createOrganizationsModule(prisma: PrismaClient, tenantId: string
         deleteOrganizationController,
         updateOrganizationSettingsController,
         upgradeOrganizationPlanController,
+        createCheckoutSessionController,
     };
 }

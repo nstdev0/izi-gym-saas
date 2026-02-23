@@ -1,5 +1,5 @@
 import { PrismaClient } from "@/generated/prisma/client";
-import { WebhookRepository } from "@/server/infrastructure/persistence/repositories/webhook.repository";
+import { ClerkWebhookRepository } from "@/server/infrastructure/persistence/repositories/clerk-webhook.repository";
 import { SyncUserWebhookUseCase } from "@/server/application/use-cases/webhooks/clerk/sync-user.use-case";
 import { DeleteUserWebhookUseCase } from "@/server/application/use-cases/webhooks/clerk/delete-user.use-case";
 import { SyncOrganizationWebhookUseCase } from "@/server/application/use-cases/webhooks/clerk/sync-organization.use-case";
@@ -8,7 +8,7 @@ import { SyncMembershipWebhookUseCase } from "@/server/application/use-cases/web
 import { RemoveMembershipWebhookUseCase } from "@/server/application/use-cases/webhooks/clerk/remove-membership.use-case";
 
 export function createClerkWebhookModule(prisma: PrismaClient) {
-    const webhookRepository = new WebhookRepository(prisma);
+    const webhookRepository = new ClerkWebhookRepository(prisma);
 
     const syncUserUseCase = new SyncUserWebhookUseCase(webhookRepository);
     const deleteUserUseCase = new DeleteUserWebhookUseCase(webhookRepository);

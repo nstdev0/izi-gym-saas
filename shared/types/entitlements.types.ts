@@ -26,4 +26,16 @@ export const PLAN_LIMITS: Record<string, PlanLimits> = {
         maxStorageBytes: 53_687_091_200,
         features: { invoicing: true, api_access: true },
     },
+    PRO_YEARLY: {
+        maxMembers: 500,
+        maxStaff: 5,
+        maxStorageBytes: 5_368_709_120,
+        features: { invoicing: true, api_access: false },
+    },
+    ENTERPRISE_YEARLY: {
+        maxMembers: null,
+        maxStaff: null,
+        maxStorageBytes: 53_687_091_200,
+        features: { invoicing: true, api_access: true },
+    },
 }

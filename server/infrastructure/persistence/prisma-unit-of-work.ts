@@ -11,6 +11,7 @@ import type {
     UpgradeOrganizationPlanParams,
     UpdateOrganizationSettingsParams,
     CreateMembershipAndActivateParams,
+    SyncStripeSubscriptionEventParams,
 } from "@/server/application/services/unit-of-work.interface";
 
 // ──────────────────────────────────────────────
@@ -316,6 +317,76 @@ export class PrismaUnitOfWork implements IUnitOfWork {
             });
         } catch (error) {
             translatePrismaError(error, "Membresía");
+        }
+    }
+
+    // ─── Stripe Webhook Sync ─────────────────────────────────────────
+    async syncStripeSubscriptionEvent(params: SyncStripeSubscriptionEventParams): Promise<void> {
+        try {
+            await this.prisma.$transaction(async (tx) => {
+                // Upsert subscription
+                // Not all organizations will have a subscription created yet
+                const existingSub = await tx.subscription.findUnique({
+                    where: { organizationId: params.organizationId }
+                });
+
+                if (existingSub) {
+                    await tx.subscription.update({
+                        where: { id: existingSub.id },
+                        data: {
+                            organizationPlanId: params.organizationPlanId,
+                            stripeCustomerId: params.stripeCustomerId,
+                            stripeSubscriptionId: params.stripeSubscriptionId,
+                            status: params.status,
+                            pricePaid: params.pricePaid,
+                            currentPeriodStart: params.currentPeriodStart,
+                            currentPeriodEnd: params.currentPeriodEnd,
+                            cancelAtPeriodEnd: params.cancelAtPeriodEnd,
+                        }
+                    });
+                } else {
+                    await tx.subscription.create({
+                        data: {
+                            organizationId: params.organizationId,
+                            organizationPlanId: params.organizationPlanId,
+                            stripeCustomerId: params.stripeCustomerId,
+                            stripeSubscriptionId: params.stripeSubscriptionId,
+                            status: params.status,
+                            pricePaid: params.pricePaid,
+                            currentPeriodStart: params.currentPeriodStart,
+                            currentPeriodEnd: params.currentPeriodEnd,
+                            cancelAtPeriodEnd: params.cancelAtPeriodEnd,
+                        }
+                    });
+                }
+
+                // Retrieve the plan explicitly to get its name for the organization update
+                const plan = await tx.organizationPlan.findUnique({
+                    where: { id: params.organizationPlanId }
+                });
+
+                if (plan) {
+                    await tx.organization.update({
+                        where: { id: params.organizationId },
+                        data: {
+                            organizationPlanId: params.organizationPlanId,
+                            organizationPlan: plan.name,
+                        }
+                    });
+                }
+
+                // If Trialing, update User hasUsedTrial
+                if (params.status === 'TRIALING' && params.userId) {
+                    await tx.user.update({
+                        where: { id: params.userId },
+                        data: {
+                            hasUsedTrial: true
+                        }
+                    });
+                }
+            });
+        } catch (error) {
+            translatePrismaError(error, "Sincronización Stripe");
         }
     }
 }

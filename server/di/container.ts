@@ -100,6 +100,7 @@ export const getContainer = cache(async () => {
     deleteOrganizationController: organizationsModule.deleteOrganizationController,
     updateOrganizationSettingsController: organizationsModule.updateOrganizationSettingsController,
     upgradeOrganizationPlanController: organizationsModule.upgradeOrganizationPlanController,
+    createCheckoutSessionController: organizationsModule.createCheckoutSessionController,
 
     // Plans
     getAllPlansController: plansModule.getAllPlansController,

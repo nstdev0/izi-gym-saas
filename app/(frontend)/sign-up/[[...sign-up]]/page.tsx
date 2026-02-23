@@ -11,7 +11,8 @@ export default async function SignUpPage({
     <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-slate-950">
       <div className="w-full max-w-md p-4">
         <SignUp
-          forceRedirectUrl={`/onboarding?plan=${plan}`} />
+          unsafeMetadata={{ plan: plan }}
+          fallbackRedirectUrl={`/onboarding?plan=${plan}`} />
       </div>
     </div>
   );

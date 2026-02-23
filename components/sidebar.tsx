@@ -43,6 +43,8 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useOrganizationDetail } from "@/hooks/organizations/use-organizations";
 import { useUserDetail } from "@/hooks/users/use-users";
+import { UpgradePlanModal } from "@/components/upgrade-plan-modal";
+import { useState } from "react";
 
 export function Sidebar({
   className,
@@ -62,8 +64,7 @@ export function Sidebar({
   const { signOut } = useClerk();
   const { organization: clerkOrganization } = useOrganization();
   const { data: user } = useUserDetail(clerkUser?.id || "");
-
-  // Safe access to ID
+  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
   const orgId = clerkOrganization?.id;
   const { data: organizationDetail } = useOrganizationDetail(orgId || "");
   // Fallback to plan relation name if scalar is empty, or default to generic if both missing but org exists
@@ -325,25 +326,36 @@ export function Sidebar({
                     <TooltipContent side="right">
                       <p className="font-medium">Plan:</p>
                       <p className="capitalize text-xs text-muted-foreground">
-                        {organizationPlan.replace(/-/g, " ")}
+                        {organizationPlan.split("_").join(" ")}
                       </p>
                     </TooltipContent>
                   </Tooltip>
                 ) : (
                   <div
-                    className="flex w-full items-center gap-3 rounded-lg border bg-card p-3 shadow-sm animate-in fade-in zoom-in duration-300"
+                    className="flex flex-col w-full gap-2 rounded-lg border bg-card p-3 shadow-sm animate-in fade-in zoom-in duration-300"
                   >
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-                      <Crown className="h-4 w-4" />
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                        <Crown className="h-4 w-4" />
+                      </div>
+                      <div className="flex flex-col overflow-hidden">
+                        <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+                          Plan Actual
+                        </span>
+                        <span className="truncate text-sm font-semibold capitalize text-foreground">
+                          {organizationPlan === "PRO_MONTHLY" ? "PRO" : organizationPlan === "PRO_YEARLY" ? "PRO" :
+                            organizationPlan === "ENTERPRISE_MONTHLY" ? "EMPRESARIAL" : organizationPlan === "ENTERPRISE_YEARLY" ? "EMPRESARIAL" : "Prueba gratis"}
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex flex-col overflow-hidden">
-                      <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
-                        Plan
-                      </span>
-                      <span className="truncate text-sm font-semibold capitalize text-foreground">
-                        {organizationPlan.toLowerCase()}
-                      </span>
-                    </div>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      className="w-full text-xs"
+                      onClick={() => setIsUpgradeModalOpen(true)}
+                    >
+                      Actualizar Plan
+                    </Button>
                   </div>
                 )}
               </div>
@@ -477,6 +489,11 @@ export function Sidebar({
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+
+      <UpgradePlanModal
+        isOpen={isUpgradeModalOpen}
+        onOpenChange={setIsUpgradeModalOpen}
+      />
     </div>
   );
 }

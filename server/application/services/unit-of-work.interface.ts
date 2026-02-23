@@ -37,6 +37,21 @@ export interface CreateMembershipAndActivateParams {
     organizationId: string;
 }
 
+export interface SyncStripeSubscriptionEventParams {
+    eventType: 'checkout.session.completed' | 'invoice.payment_succeeded' | 'customer.subscription.deleted';
+    organizationId: string;
+    organizationPlanId: string;
+    stripeCustomerId: string;
+    stripeSubscriptionId: string;
+    status: 'ACTIVE' | 'PAST_DUE' | 'CANCELED' | 'TRIALING' | 'INCOMPLETE';
+    pricePaid: number;
+    currentPeriodEnd: Date;
+    currentPeriodStart: Date;
+    cancelAtPeriodEnd: boolean;
+    userId?: string;
+    isTrialing: boolean;
+}
+
 export interface IUnitOfWork {
     // ─── Organization Operations ─────────────────────────────
     createOrganizationWithOwner(params: CreateOrganizationWithOwnerParams): Promise<Organization>;
@@ -52,5 +67,8 @@ export interface IUnitOfWork {
     deleteMembershipAndDeactivate(membershipId: string, organizationId: string): Promise<void>;
     /** Restores a membership and re-activates the member (if status is ACTIVE) — atomically. */
     restoreMembershipAndActivate(membershipId: string, organizationId: string): Promise<void>;
+
+    // ─── Stripe Operations ───────────────────────────────────
+    syncStripeSubscriptionEvent(params: SyncStripeSubscriptionEventParams): Promise<void>;
 }
 

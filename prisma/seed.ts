@@ -39,6 +39,16 @@ async function main() {
             limits: PLAN_LIMITS.PRO_MONTHLY
         },
         {
+            name: "PRO_YEARLY",
+            slug: "pro-yearly",
+            description: "Grow your gym with our Pro plan.",
+            price: 49,
+            currency: "USD",
+            stripePriceId: process.env.STRIPE_PRICE_PRO_YEARLY || "price_fake_pro_yearly",
+            interval: "YEAR",
+            limits: PLAN_LIMITS.PRO_YEARLY
+        },
+        {
             name: "ENTERPRISE_MONTHLY",
             slug: "enterprise-monthly",
             description: "For multi-location gym chains.",
@@ -47,7 +57,27 @@ async function main() {
             stripePriceId: process.env.STRIPE_PRICE_ENTERPRISE_MONTHLY || "price_fake_enterprise",
             interval: "MONTH",
             limits: PLAN_LIMITS.ENTERPRISE_MONTHLY
-        }
+        },
+        {
+            name: "ENTERPRISE_YEARLY",
+            slug: "enterprise-yearly",
+            description: "For multi-location gym chains.",
+            price: 99,
+            currency: "USD",
+            stripePriceId: process.env.STRIPE_PRICE_ENTERPRISE_YEARLY || "price_fake_enterprise",
+            interval: "YEAR",
+            limits: PLAN_LIMITS.ENTERPRISE_YEARLY
+        },
+        // {
+        //     name: "LIFETIME",
+        //     slug: "lifetime",
+        //     description: "For multi-location gym chains.",
+        //     price: 5000,
+        //     currency: "USD",
+        //     stripePriceId: process.env.STRIPE_PRICE_LIFETIME || "price_fake_lifetime",
+        //     interval: "LIFETIME",
+        //     limits: PLAN_LIMITS.LIFETIME
+        // }
     ];
 
     for (const plan of plans) {

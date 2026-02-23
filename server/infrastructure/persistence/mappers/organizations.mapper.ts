@@ -8,6 +8,7 @@ import { Prisma, Organization as PrismaOrganization, OrganizationConfig as Prism
 type PrismaOrganizationWithRelations = PrismaOrganization & {
     config?: PrismaOrganizationConfig | null;
     plan?: OrganizationPlan | null;
+    subscription?: any;
 };
 
 export class OrganizationMapper implements IMapperInterface<Organization, PrismaOrganization> {
@@ -52,6 +53,7 @@ export class OrganizationMapper implements IMapperInterface<Organization, Prisma
             raw.organizationPlanId,
             planEntity,
             raw.storageUsed,
+            raw.subscription,
         )
     }
 

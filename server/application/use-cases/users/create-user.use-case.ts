@@ -36,20 +36,5 @@ export class CreateUserUseCase implements ICreateUserUseCase {
       organizationId: orgId,
       inviterUserId: inviterId,
     });
-
-    // 2. Retornar un objeto dummy para satisfacer la interfaz hasta que el webhook cree el real.
-    // Esto es un compromiso temporal. El frontend refrescará y quizás no vea al usuario todavía.
-    //   return {
-    //     id: "pending_invitation",
-    //     email: input.email,
-    //     firstName: input.firstName || "",
-    //     lastName: input.lastName || "",
-    //     role: input.role,
-    //     isActive: false,
-    //     organizationId: orgId,
-    //     createdAt: new Date(),
-    //     updatedAt: new Date(),
-    //     image: null,
-    //   } as User;
   }
 }

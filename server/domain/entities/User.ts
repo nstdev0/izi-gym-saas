@@ -16,6 +16,7 @@ export class User extends BaseEntity<EntityStatus> {
     public isActive: boolean,
     public image: string | null,
     public preferences: Record<string, unknown> | null = null,
+    public hasUsedTrial: boolean = false,
   ) {
     super(id, organizationId, createdAt, updatedAt, status, deletedAt);
   }

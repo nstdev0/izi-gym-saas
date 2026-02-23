@@ -19,6 +19,7 @@ export class UserMapper implements IMapperInterface<User, PrismaUser> {
             raw.isActive,
             raw.image,
             raw.preferences as any,
+            raw.hasUsedTrial,
         )
     }
 
@@ -36,6 +37,7 @@ export class UserMapper implements IMapperInterface<User, PrismaUser> {
             isActive: domain.isActive,
             image: domain.image,
             preferences: domain.preferences as any,
+            hasUsedTrial: domain.hasUsedTrial,
         }
     }
 }

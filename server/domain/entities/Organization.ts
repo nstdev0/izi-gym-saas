@@ -20,6 +20,7 @@ export class Organization extends BaseEntity<EntityStatus> {
     public organizationPlanId?: string,
     public plan?: OrganizationPlan,
     public storageUsed?: bigint,
+    public subscription?: any, // Using any for simplicity as it's just passing stripeCustomerId for now, but ideally a defined SubscriptionEntity type
   ) {
     super(id, organizationId, createdAt, updatedAt, status, deletedAt);
   }
