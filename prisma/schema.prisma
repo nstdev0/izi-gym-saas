@@ -336,7 +336,6 @@ enum DocType {
 enum Gender {
   MALE
   FEMALE
-  OTHER
 }
 
 enum ProductType {

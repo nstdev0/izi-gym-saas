@@ -4,8 +4,9 @@ function makeQueryClient() {
     return new QueryClient({
         defaultOptions: {
             queries: {
-                // En el servidor, el staleTime debe ser mayor a 0 para evitar refetching inmediato
-                staleTime: 60 * 1000,
+                staleTime: 5 * 1000,
+                retry: 1,
+                refetchOnWindowFocus: true
             },
         },
     });

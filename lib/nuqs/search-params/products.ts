@@ -3,8 +3,8 @@ import { createSearchParamsCache, parseAsInteger, parseAsString, parseAsStringEn
 export const productsParsers = {
     page: parseAsInteger.withDefault(1),
     limit: parseAsInteger.withDefault(10),
-    search: parseAsString,
-    sort: parseAsString,
+    search: parseAsString.withDefault(''),
+    sort: parseAsString.withDefault('createdAt-desc'),
     type: parseAsStringEnum(["CONSUMABLE", "GEAR", "MERCH", "SERVICE"]),
     status: parseAsStringEnum(["active", "inactive"]),
 };

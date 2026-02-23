@@ -17,9 +17,8 @@ import { flexRender } from "@tanstack/react-table";
 import { StatCardSkeleton } from "@/components/ui/skeletons/stat-card-skeleton";
 import { DataTableSkeleton } from "@/components/ui/skeletons/data-table-skeleton";
 import Loading from "../loading";
-import { FilterConfiguration } from "@/components/ui/smart-filters";
+import SmartFilters, { FilterConfiguration } from "@/components/ui/smart-filters";
 import { useParams } from "next/navigation";
-import SmartFilters from "@/components/ui/smart-filters";
 import { Plus, ChevronDown, Users, UserCheck, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
@@ -59,32 +58,41 @@ export default function MembersViewPage() {
   const { data: paginatedMembers, isLoading, isFetching } = useMembersList({
     page,
     limit,
-    filters: restFilters
+    filters: {
+      search: restFilters.search ?? undefined,
+      sort: restFilters.sort ?? undefined,
+      status: restFilters.status ?? undefined,
+      gender: restFilters.gender ?? undefined,
+    }
   });
 
-  const filtersConfig: FilterConfiguration<Member> = {
+  const filtersConfig: FilterConfiguration = {
     sort: [
-      {
-        label: "Nombres (A-Z)",
-        field: "firstName",
-        value: "firstName-asc"
-      },
-      {
-        label: "Nombres (Z-A)",
-        field: "firstName",
-        value: "firstName-desc"
-      }
+      { label: "Recientes primero", value: "createdAt-desc" },
+      { label: "Antiguos primero", value: "createdAt-asc" },
+      { label: "Nombres (A-Z)", value: "firstName-asc" },
+      { label: "Nombres (Z-A)", value: "firstName-desc" },
+      { label: "Apellidos (A-Z)", value: "lastName-asc" },
+      { label: "Apellidos (Z-A)", value: "lastName-desc" },
     ],
     filters: [
       {
         key: "status",
         label: "Membresía",
         options: [
-          { label: "Activo", value: "active" },
-          { label: "Inactivo", value: "inactive" }
-        ]
-      }
-    ]
+          { label: "Con membresía", value: "active" },
+          { label: "Sin membresía", value: "inactive" },
+        ],
+      },
+      {
+        key: "gender",
+        label: "Género",
+        options: [
+          { label: "Masculino", value: "MALE" },
+          { label: "Femenino", value: "FEMALE" },
+        ],
+      },
+    ],
   };
 
   const members = paginatedMembers?.records || [];
@@ -195,7 +203,7 @@ export default function MembersViewPage() {
             <div className="flex gap-2 items-center">
               <SmartFilters
                 config={filtersConfig}
-                activeValues={{ sort: queryStates.sort, status: queryStates.status }}
+                activeValues={{ sort: queryStates.sort, status: queryStates.status ?? undefined, gender: queryStates.gender ?? undefined }}
                 onFilterChange={handleFilterChange}
               />
 

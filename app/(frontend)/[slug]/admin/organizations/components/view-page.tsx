@@ -7,9 +7,8 @@ import { Organization } from "@/shared/types/organizations.types";
 import { SearchInput } from "@/components/ui/search-input";
 import { Pagination } from "@/components/ui/pagination";
 import Loading from "../loading";
-import { FilterConfiguration } from "@/components/ui/smart-filters";
+import SmartFilters, { FilterConfiguration } from "@/components/ui/smart-filters";
 import { useParams } from "next/navigation";
-import SmartFilters from "@/components/ui/smart-filters";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
 import { Plus, Users, Building2, ChevronDown } from "lucide-react";
@@ -80,24 +79,23 @@ export default function OrganizationsViewPage() {
         },
     });
 
-    const filtersConfig: FilterConfiguration<Organization> = {
+    const filtersConfig: FilterConfiguration = {
         sort: [
-            { label: "Nombre (A-Z)", field: "name", value: "name-asc" },
-            { label: "Nombre (Z-A)", field: "name", value: "name-desc" },
-            { label: "Slug (A-Z)", field: "slug", value: "slug-asc" },
-            { label: "Slug (Z-A)", field: "slug", value: "slug-desc" },
+            { label: "Recientes primero", value: "createdAt-desc" },
+            { label: "Antiguos primero", value: "createdAt-asc" },
+            { label: "Nombre (A-Z)", value: "name-asc" },
+            { label: "Nombre (Z-A)", value: "name-desc" },
         ],
-
         filters: [
             {
                 key: "status",
                 label: "Estado",
                 options: [
                     { label: "Activo", value: "active" },
-                    { label: "Inactivo", value: "inactive" }
-                ]
-            }
-        ]
+                    { label: "Inactivo", value: "inactive" },
+                ],
+            },
+        ],
     };
 
     const handleFilterChange = (key: string, value: string | null) => {
@@ -169,7 +167,7 @@ export default function OrganizationsViewPage() {
                         <div className="flex gap-2">
                             <SmartFilters
                                 config={filtersConfig}
-                                activeValues={{ sort: queryStates.sort, status: queryStates.status }}
+                                activeValues={{ sort: queryStates.sort, status: queryStates.status ?? undefined }}
                                 onFilterChange={handleFilterChange}
                             />
                             <DropdownMenu>

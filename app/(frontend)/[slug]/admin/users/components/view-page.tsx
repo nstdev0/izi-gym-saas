@@ -5,9 +5,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Suspense, useState } from "react";
 import { SearchInput } from "@/components/ui/search-input";
 import { Pagination } from "@/components/ui/pagination";
-import { FilterConfiguration } from "@/components/ui/smart-filters";
+import SmartFilters, { FilterConfiguration } from "@/components/ui/smart-filters";
 import { useParams } from "next/navigation";
-import SmartFilters from "@/components/ui/smart-filters";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
 import { Plus, ChevronDown, Users2, ShieldCheck, Download } from "lucide-react";
@@ -71,20 +70,13 @@ export default function UsersViewPage() {
     const totalRecords = paginatedUsers?.totalRecords || 0;
     const currentRecordsCount = users.length;
 
-    const filtersConfig: FilterConfiguration<User> = {
+    const filtersConfig: FilterConfiguration = {
         sort: [
-            {
-                label: "Nombres (A-Z)",
-                field: "firstName",
-                value: "firstName-asc"
-            },
-            {
-                label: "Nombres (Z-A)",
-                field: "firstName",
-                value: "firstName-desc"
-            }
+            { label: "Recientes primero", value: "createdAt-desc" },
+            { label: "Antiguos primero", value: "createdAt-asc" },
+            { label: "Nombres (A-Z)", value: "firstName-asc" },
+            { label: "Nombres (Z-A)", value: "firstName-desc" },
         ],
-
         filters: [
             {
                 key: "role",
@@ -93,18 +85,18 @@ export default function UsersViewPage() {
                     { label: "Propietario", value: "OWNER" },
                     { label: "Administrador", value: "ADMIN" },
                     { label: "Staff", value: "STAFF" },
-                    { label: "Entrenador", value: "TRAINER" }
-                ]
+                    { label: "Entrenador", value: "TRAINER" },
+                ],
             },
             {
                 key: "status",
                 label: "Estado",
                 options: [
                     { label: "Activo", value: "active" },
-                    { label: "Inactivo", value: "inactive" }
-                ]
-            }
-        ]
+                    { label: "Inactivo", value: "inactive" },
+                ],
+            },
+        ],
     };
 
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
@@ -208,8 +200,8 @@ export default function UsersViewPage() {
                                 config={filtersConfig}
                                 activeValues={{
                                     sort: queryStates.sort,
-                                    role: queryStates.role,
-                                    status: queryStates.status
+                                    role: queryStates.role ?? undefined,
+                                    status: queryStates.status ?? undefined,
                                 }}
                                 onFilterChange={handleFilterChange}
                             />

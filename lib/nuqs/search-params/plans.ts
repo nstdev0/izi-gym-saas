@@ -3,8 +3,8 @@ import { createSearchParamsCache, parseAsInteger, parseAsString, parseAsStringEn
 export const plansParsers = {
     page: parseAsInteger.withDefault(1),
     limit: parseAsInteger.withDefault(10),
-    search: parseAsString,
-    sort: parseAsString,
+    search: parseAsString.withDefault(''),
+    sort: parseAsString.withDefault('createdAt-desc'),
     status: parseAsStringEnum(["active", "inactive"]),
 };
 

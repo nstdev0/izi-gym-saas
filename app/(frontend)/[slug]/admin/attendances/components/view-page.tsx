@@ -26,6 +26,8 @@ import { useAttendanceList } from "@/hooks/attendance/use-attendance";
 import { attendanceParsers } from "@/lib/nuqs/search-params/attendance";
 import { useQueryStates } from "nuqs";
 import { columns } from "./attendance-columns";
+import SmartFilters, { FilterConfiguration } from "@/components/ui/smart-filters";
+import { Attendance } from "@/server/domain/entities/Attendance";
 import {
     DropdownMenu,
     DropdownMenuCheckboxItem,
@@ -34,12 +36,11 @@ import {
     DropdownMenuLabel,
     DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { ChevronDown, Plus, Filter, UserCheck, CalendarCheck } from "lucide-react";
+import { ChevronDown, Plus, UserCheck, CalendarCheck } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { AttendanceModal } from "../../dashboard/components/attendance-modal";
-import { Badge } from "@/components/ui/badge";
 
 export default function AttendanceViewPage() {
     const params = useParams();
@@ -55,8 +56,31 @@ export default function AttendanceViewPage() {
     const { data: paginatedAttendances, isLoading, isFetching } = useAttendanceList({
         page,
         limit,
-        filters: restFilters
+        filters: {
+            search: restFilters.search ?? undefined,
+            sort: restFilters.sort ?? undefined,
+            method: restFilters.method ?? undefined,
+        }
     });
+
+    const filtersConfig: FilterConfiguration = {
+        sort: [
+            { label: "Registros recientes", value: "createdAt-desc" },
+            { label: "Registros antiguos", value: "createdAt-asc" },
+            { label: "Por fecha (Más reciente)", value: "date-desc" },
+            { label: "Por fecha (Más antiguo)", value: "date-asc" },
+        ],
+        filters: [
+            {
+                key: "method",
+                label: "Método",
+                options: [
+                    { label: "QR", value: "QR" },
+                    { label: "Manual", value: "MANUAL" },
+                ],
+            },
+        ],
+    };
 
     const attendances = paginatedAttendances?.records || [];
     const totalPages = paginatedAttendances?.totalPages || 0;
@@ -156,34 +180,16 @@ export default function AttendanceViewPage() {
                                 onChange={(value) => setQueryStates({ search: value, page: 1 })}
                             />
                         </div>
-                        <div className="flex gap-2">
-                            {/* Filtro de Método (QR vs Manual) */}
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button variant="outline" className="gap-2 shadow-sm border-dashed">
-                                        <Filter className="w-4 h-4 text-muted-foreground" />
-                                        <span className="hidden sm:inline">Método</span>
-                                        {queryStates.method && <Badge variant="secondary" className="ml-1 px-1 py-0 h-5 text-[10px]">{queryStates.method}</Badge>}
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="w-48">
-                                    <DropdownMenuLabel>Filtrar por método</DropdownMenuLabel>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuCheckboxItem checked={queryStates.method === null} onCheckedChange={() => handleFilterChange('method', null)}>
-                                        Todos
-                                    </DropdownMenuCheckboxItem>
-                                    <DropdownMenuCheckboxItem checked={queryStates.method === 'QR'} onCheckedChange={() => handleFilterChange('method', 'QR')}>
-                                        QR
-                                    </DropdownMenuCheckboxItem>
-                                    <DropdownMenuCheckboxItem checked={queryStates.method === 'MANUAL'} onCheckedChange={() => handleFilterChange('method', 'MANUAL')}>
-                                        Manual
-                                    </DropdownMenuCheckboxItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
+                        <div className="flex gap-2 items-center">
+                            <SmartFilters
+                                config={filtersConfig}
+                                activeValues={{ sort: queryStates.sort, method: queryStates.method ?? undefined }}
+                                onFilterChange={handleFilterChange}
+                            />
 
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                    <Button variant="outline" className="gap-2 shadow-sm">
+                                    <Button variant="outline" className="gap-2 shadow-sm border-dashed">
                                         Columnas <ChevronDown className="ml-2 h-4 w-4 text-muted-foreground" />
                                     </Button>
                                 </DropdownMenuTrigger>

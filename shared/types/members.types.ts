@@ -6,7 +6,6 @@ import { Membership } from "./memberships.types";
 export enum Gender {
     MALE = "MALE",
     FEMALE = "FEMALE",
-    OTHER = "OTHER",
 }
 
 export enum DocType {
@@ -57,6 +56,7 @@ export interface MembersFilters {
     search?: string;
     sort?: string;
     status?: string;
+    gender?: string;
 }
 
 // --- Zod Schemas ---

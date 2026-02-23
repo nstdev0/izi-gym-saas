@@ -48,14 +48,14 @@ export default function AttendanceDetailViewPage() {
         <DashboardLayout
             breadcrumbs={[
                 { label: "Admin", href: `/${slug}/admin/dashboard` },
-                { label: "Asistencias", href: `/${slug}/admin/attendance` },
+                { label: "Asistencias", href: `/${slug}/admin/attendances` },
                 { label: "Detalle" },
             ]}
         >
             <div className="flex flex-col gap-6">
                 <div className="flex items-center gap-2">
                     <Button variant="ghost" size="icon" asChild>
-                        <Link href={`/${slug}/admin/attendance`}>
+                        <Link href={`/${slug}/admin/attendances`}>
                             <ChevronLeft className="h-4 w-4" />
                         </Link>
                     </Button>

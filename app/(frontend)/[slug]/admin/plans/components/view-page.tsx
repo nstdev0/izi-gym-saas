@@ -73,13 +73,15 @@ export default function PlansViewPage() {
     // Note: This only counts loaded active plans, ideally backend provides stats
     const activePlansCount = plans.filter(p => p.isActive).length;
 
-    const filtersConfig: FilterConfiguration<Plan> = {
+    const filtersConfig: FilterConfiguration = {
         sort: [
-            { label: "Precio (Mayor a Menor)", field: "price", value: "price-desc" },
-            { label: "Precio (Menor a Mayor)", field: "price", value: "price-asc" },
-            { label: "Duración (Mayor a Menor)", field: "durationDays", value: "durationDays-desc" },
-            { label: "Duración (Menor a Mayor)", field: "durationDays", value: "durationDays-asc" },
-            { label: "Nombre (A-Z)", field: "name", value: "name-asc" },
+            { label: "Recientes primero", value: "createdAt-desc" },
+            { label: "Antiguos primero", value: "createdAt-asc" },
+            { label: "Precio (Mayor a Menor)", value: "price-desc" },
+            { label: "Precio (Menor a Mayor)", value: "price-asc" },
+            { label: "Duración (Mayor a Menor)", value: "durationDays-desc" },
+            { label: "Duración (Menor a Mayor)", value: "durationDays-asc" },
+            { label: "Nombre (A-Z)", value: "name-asc" },
         ],
         filters: [
             {
@@ -197,7 +199,7 @@ export default function PlansViewPage() {
                                 config={filtersConfig}
                                 activeValues={{
                                     sort: queryStates.sort,
-                                    status: queryStates.status
+                                    status: queryStates.status ?? undefined,
                                 }}
                                 onFilterChange={handleFilterChange}
                             />

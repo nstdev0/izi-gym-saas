@@ -15,9 +15,8 @@ import {
 } from "@/components/ui/table";
 import { flexRender } from "@tanstack/react-table";
 import Loading from "../loading";
-import { FilterConfiguration } from "@/components/ui/smart-filters";
+import SmartFilters, { FilterConfiguration } from "@/components/ui/smart-filters";
 import { useParams } from "next/navigation";
-import SmartFilters from "@/components/ui/smart-filters";
 import { Plus, ChevronDown, CreditCard, Activity, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
@@ -57,21 +56,23 @@ export default function MembershipsViewPage() {
     const { data: paginatedMemberships, isLoading, isFetching } = useMembershipsList({
         page,
         limit,
-        filters: restFilters
+        filters: {
+            search: restFilters.search ?? undefined,
+            sort: restFilters.sort ?? undefined,
+            status: restFilters.status ?? undefined,
+        }
     });
 
-    const filtersConfig: FilterConfiguration<Membership> = {
+    const filtersConfig: FilterConfiguration = {
         sort: [
-            {
-                label: "Fecha Inicio (Más reciente)",
-                field: "startDate",
-                value: "startDate-desc"
-            },
-            {
-                label: "Fecha Inicio (Más antiguo)",
-                field: "startDate",
-                value: "startDate-asc"
-            }
+            { label: "Recientes primero", value: "createdAt-desc" },
+            { label: "Antiguos primero", value: "createdAt-asc" },
+            { label: "Fecha Inicio (Más reciente)", value: "startDate-desc" },
+            { label: "Fecha Inicio (Más antiguo)", value: "startDate-asc" },
+            { label: "Vencimiento (Próximo)", value: "endDate-asc" },
+            { label: "Vencimiento (Lejano)", value: "endDate-desc" },
+            { label: "Monto Pagado (Mayor)", value: "pricePaid-desc" },
+            { label: "Monto Pagado (Menor)", value: "pricePaid-asc" },
         ],
         filters: [
             {
@@ -81,10 +82,10 @@ export default function MembershipsViewPage() {
                     { label: "Activa", value: "ACTIVE" },
                     { label: "Pendiente", value: "PENDING" },
                     { label: "Vencida", value: "EXPIRED" },
-                    { label: "Cancelada", value: "CANCELLED" }
-                ]
-            }
-        ]
+                    { label: "Cancelada", value: "CANCELLED" },
+                ],
+            },
+        ],
     };
 
     const memberships = (paginatedMemberships?.records || []) as any[];
@@ -187,7 +188,7 @@ export default function MembershipsViewPage() {
                         <div className="flex gap-2 items-center">
                             <SmartFilters
                                 config={filtersConfig}
-                                activeValues={{ sort: queryStates.sort, status: queryStates.status }}
+                                activeValues={{ sort: queryStates.sort, status: queryStates.status ?? undefined }}
                                 onFilterChange={handleFilterChange}
                             />
 

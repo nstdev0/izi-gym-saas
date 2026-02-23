@@ -6,9 +6,8 @@ import { Suspense, useState } from "react";
 import { Product, ProductType } from "@/shared/types/products.types";
 import { SearchInput } from "@/components/ui/search-input";
 import { Pagination } from "@/components/ui/pagination";
-import { FilterConfiguration } from "@/components/ui/smart-filters";
+import SmartFilters, { FilterConfiguration } from "@/components/ui/smart-filters";
 import { useParams } from "next/navigation";
-import SmartFilters from "@/components/ui/smart-filters";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
 import { Plus, ChevronDown, Package, Layers, Download } from "lucide-react";
@@ -71,16 +70,17 @@ export default function ProductsViewPage() {
     const totalRecords = paginatedProducts?.totalRecords || 0;
     const currentRecordsCount = products.length;
 
-    const filtersConfig: FilterConfiguration<Product> = {
+    const filtersConfig: FilterConfiguration = {
         sort: [
-            { label: "Nombre (A-Z)", field: "name", value: "name-asc" },
-            { label: "Nombre (Z-A)", field: "name", value: "name-desc" },
-            { label: "Precio (Mayor a Menor)", field: "price", value: "price-desc" },
-            { label: "Precio (Menor a Mayor)", field: "price", value: "price-asc" },
-            { label: "Stock (Mayor a Menor)", field: "stock", value: "stock-desc" },
-            { label: "Stock (Menor a Mayor)", field: "stock", value: "stock-asc" },
+            { label: "Recientes primero", value: "createdAt-desc" },
+            { label: "Antiguos primero", value: "createdAt-asc" },
+            { label: "Nombre (A-Z)", value: "name-asc" },
+            { label: "Nombre (Z-A)", value: "name-desc" },
+            { label: "Precio (Mayor a Menor)", value: "price-desc" },
+            { label: "Precio (Menor a Mayor)", value: "price-asc" },
+            { label: "Stock (Mayor a Menor)", value: "stock-desc" },
+            { label: "Stock (Menor a Mayor)", value: "stock-asc" },
         ],
-
         filters: [
             {
                 key: "type",
@@ -90,17 +90,17 @@ export default function ProductsViewPage() {
                     { label: "Equipamiento", value: ProductType.GEAR },
                     { label: "Merch", value: ProductType.MERCH },
                     { label: "Servicio", value: ProductType.SERVICE },
-                ]
+                ],
             },
             {
                 key: "status",
                 label: "Estado",
                 options: [
                     { label: "Activo", value: "active" },
-                    { label: "Inactivo", value: "inactive" }
-                ]
-            }
-        ]
+                    { label: "Inactivo", value: "inactive" },
+                ],
+            },
+        ],
     };
 
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
@@ -205,8 +205,8 @@ export default function ProductsViewPage() {
                                 config={filtersConfig}
                                 activeValues={{
                                     sort: queryStates.sort,
-                                    type: queryStates.type,
-                                    status: queryStates.status
+                                    type: queryStates.type ?? undefined,
+                                    status: queryStates.status ?? undefined,
                                 }}
                                 onFilterChange={handleFilterChange}
                             />

@@ -3,8 +3,8 @@ import { createSearchParamsCache, parseAsInteger, parseAsString, parseAsStringEn
 export const usersParsers = {
     page: parseAsInteger.withDefault(1),
     limit: parseAsInteger.withDefault(10),
-    search: parseAsString,
-    sort: parseAsString,
+    search: parseAsString.withDefault(''),
+    sort: parseAsString.withDefault('createdAt-desc'),
     role: parseAsStringEnum(["OWNER", "ADMIN", "STAFF", "TRAINER"]),
     status: parseAsStringEnum(["active", "inactive"]),
 };
