@@ -54,3 +54,8 @@ next-env.d.ts
 .eslintcache
 lint_final.log
 lint.log
+
+# vitest
+vitest.cache
+*.test.ts
+vitest.config.ts
