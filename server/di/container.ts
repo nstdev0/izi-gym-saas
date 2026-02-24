@@ -101,6 +101,7 @@ export const getContainer = cache(async () => {
     updateOrganizationSettingsController: organizationsModule.updateOrganizationSettingsController,
     upgradeOrganizationPlanController: organizationsModule.upgradeOrganizationPlanController,
     createCheckoutSessionController: organizationsModule.createCheckoutSessionController,
+    getOrganizationBySlugController: organizationsModule.getOrganizationBySlugController,
 
     // Plans
     getAllPlansController: plansModule.getAllPlansController,
@@ -141,11 +142,17 @@ export const getContainer = cache(async () => {
   };
 
 });
-
 import { createClerkWebhookModule } from "./modules/clerk-webhook.module";
+import { createStripeWebhookModule } from "./modules/stripe-webhook.module";
 
 // Factory for webhook events running without user session
 export const getClerkWebhookContainer = cache(async () => {
   const clerkWebhookModule = createClerkWebhookModule(prisma);
   return clerkWebhookModule;
+});
+
+// Factory for stripe webhook events running without user session
+export const getStripeWebhookContainer = cache(async () => {
+  const stripeWebhookModule = createStripeWebhookModule(prisma);
+  return stripeWebhookModule;
 });

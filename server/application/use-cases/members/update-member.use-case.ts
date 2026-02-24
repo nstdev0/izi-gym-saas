@@ -15,14 +15,14 @@ export class UpdateMemberUseCase {
   async execute(id: string, data: UpdateMemberInput): Promise<Member> {
     this.permissions.require('members:update');
 
-    const currentMember = await this.repository.findUnique({ id } as any);
+    const currentMember = await this.repository.findUnique({ id });
 
     if (!currentMember) {
       throw new NotFoundError("Miembro no encontrado");
     }
 
     if (data.email) {
-      const existingWithEmail = await this.repository.findUnique({ email: data.email } as any);
+      const existingWithEmail = await this.repository.findUnique({ email: data.email });
 
       if (existingWithEmail && existingWithEmail.id !== id) {
         throw new ConflictError(`El email registrado ya esta en uso`);

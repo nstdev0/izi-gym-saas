@@ -13,6 +13,8 @@ import { UpdateOrganizationSettingsController } from "@/server/interface-adapter
 import { UpdateOrganizationSettingsUseCase } from "@/server/application/use-cases/organizations/update-organization-settings.use-case";
 import { UpgradeOrganizationPlanController } from "@/server/interface-adapters/controllers/organizations/upgrade-organization-plan.controller";
 import { UpgradeOrganizationPlanUseCase } from "@/server/application/use-cases/organizations/upgrade-organization-plan.use-case";
+import { GetOrganizationBySlugUseCase } from "@/server/application/use-cases/organizations/get-organization-by-slug.use-case";
+import { GetOrganizationBySlugController } from "@/server/interface-adapters/controllers/organizations/get-organization-by-slug.controller";
 import { PrismaClient } from "@/generated/prisma/client";
 import { PlansRepository } from "@/server/infrastructure/persistence/repositories/plans.repository";
 import { UsersRepository } from "@/server/infrastructure/persistence/repositories/users.repository";
@@ -22,6 +24,7 @@ import { SystemRepository } from "@/server/infrastructure/persistence/repositori
 import type { AuthModule } from "@/server/di/modules/auth.module";
 import { CreateCheckoutSessionUseCase } from "@/server/application/use-cases/organizations/create-checkout-session.use-case";
 import { CreateCheckoutSessionController } from "@/server/interface-adapters/controllers/organizations/create-checkout-session.controller";
+import { StripeBillingProvider } from "@/server/infrastructure/billing/stripe.provider";
 
 export function createOrganizationsModule(prisma: PrismaClient, tenantId: string, authModule: AuthModule) {
     const organizationsRepository = new OrganizationsRepository(
@@ -59,10 +62,13 @@ export function createOrganizationsModule(prisma: PrismaClient, tenantId: string
         authModule.permissionService,
         unitOfWork,
     )
+    const billingProvider = new StripeBillingProvider();
+
     const createCheckoutSessionUseCase = new CreateCheckoutSessionUseCase(
         organizationsRepository,
         usersRepository,
-        systemRepository
+        systemRepository,
+        billingProvider
     );
 
     // Controllers
@@ -93,6 +99,9 @@ export function createOrganizationsModule(prisma: PrismaClient, tenantId: string
     const createCheckoutSessionController = new CreateCheckoutSessionController(
         createCheckoutSessionUseCase,
     );
+    const getOrganizationBySlugController = new GetOrganizationBySlugController(
+        new GetOrganizationBySlugUseCase(organizationsRepository),
+    );
 
     return {
         getAllOrganizationsController,
@@ -104,5 +113,6 @@ export function createOrganizationsModule(prisma: PrismaClient, tenantId: string
         updateOrganizationSettingsController,
         upgradeOrganizationPlanController,
         createCheckoutSessionController,
+        getOrganizationBySlugController,
     };
 }

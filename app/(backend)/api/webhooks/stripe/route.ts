@@ -1,10 +1,7 @@
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { SyncStripeEventUseCase } from "@/server/application/use-cases/webhooks/stripe/sync-stripe-event.use-case";
-import { getContainer } from "@/server/di/container";
-import { PrismaUnitOfWork } from "@/server/infrastructure/persistence/prisma-unit-of-work";
-import { prisma } from "@/server/infrastructure/persistence/prisma";
+import { getStripeWebhookContainer } from "@/server/di/container";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
     apiVersion: "2026-01-28.clover" as any,
@@ -29,10 +26,8 @@ export async function POST(req: Request) {
     }
 
     try {
-        const uow = new PrismaUnitOfWork(prisma);
-        const useCase = new SyncStripeEventUseCase(uow);
-
-        await useCase.execute(event);
+        const container = await getStripeWebhookContainer();
+        await container.syncStripeEventUseCase.execute(event);
 
         return NextResponse.json({ received: true }, { status: 200 });
     } catch (error) {

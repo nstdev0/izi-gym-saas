@@ -3,7 +3,7 @@ import { Header } from "@/components/header";
 import { DashboardProvider } from "@/components/dashboard/dashboard-provider";
 import { auth } from "@clerk/nextjs/server";
 import { notFound, redirect } from "next/navigation";
-import { prisma } from "@/server/infrastructure/persistence/prisma";
+import { getContainer } from "@/server/di/container";
 
 export default async function AdminLayout({
   children,
@@ -13,25 +13,14 @@ export default async function AdminLayout({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const { orgId, userId } = await auth();
+  const { orgId, userId, orgSlug } = await auth();
 
   if (!userId) {
     redirect("/sign-in");
   }
 
-  // 2. Buscar la organización por el SLUG de la URL
-  const organization = await prisma.organization.findUnique({
-    where: { slug: slug },
-    select: { id: true, name: true, slug: true },
-  });
-
-  // A. Si el slug no existe en la DB -> 404
-  if (!organization) {
-    return notFound();
-  }
-
   // B. Seguridad SaaS: ¿El usuario pertenece a esta organización?
-  if (organization.id !== orgId) {
+  if (orgSlug !== slug) {
     return (
       <div className="h-screen flex flex-col items-center justify-center bg-background text-foreground">
         <h1 className="text-2xl font-bold">No tienes acceso a {slug}</h1>

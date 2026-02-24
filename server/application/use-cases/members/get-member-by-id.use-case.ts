@@ -15,7 +15,7 @@ export class GetMemberByIdUseCase implements IGetMemberByIdUseCase {
 
   async execute(id: string): Promise<Member | null> {
     this.permissions.require('members:read');
-    const member = await this.membersRepository.findUnique({ id } as any);
+    const member = await this.membersRepository.findUnique({ id });
 
     if (!member) {
       throw new NotFoundError("Miembro no encontrado");
