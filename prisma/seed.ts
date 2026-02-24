@@ -4,7 +4,7 @@ import { PLAN_LIMITS } from "@/shared/types/entitlements.types";
 async function main() {
     console.log("🌱 Starting Organization Plans Seeding...");
 
-    const existingPlans = await prisma.plan.findMany({
+    const existingPlans = await prisma.organizationPlan.findMany({
         where: {
             slug: {
                 in: ["free-trial", "pro-monthly", "enterprise-monthly"]
