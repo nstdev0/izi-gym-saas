@@ -887,7 +887,7 @@ export default async function MembersPage({ searchParams }) {
   // Prefetch en servidor
   await queryClient.prefetchQuery({
     queryKey: memberKeys.list(filters),
-    queryFn: () => membersApi.getAll(filters),
+    queryFn: () => membersApi.getAll(filters), // ← USO CORRECTO: API Client
   });
 
   return (
@@ -898,7 +898,10 @@ export default async function MembersPage({ searchParams }) {
 }
 ```
 
-**¿Por qué?** — La data se carga en el servidor (SSR), se deshidrata, y se hidrata en el cliente. El Client Component (`MembersViewPage`) llama `useMembersList()` y obtiene los datos **instantáneamente** del cache hidratado, sin un loading state.
+> [!WARNING]
+> **Server Components en el Frontend:** Nunca llames al contenedor de Inyección de Dependencias (`getContainer()`) del backend directamente desde un componente del frontend, incluso si es un Server Component (e.g., `page.tsx` o `layout.tsx`). Aunque ambos ejecutan en el servidor, los Server Components del frontend deben usar **siempre la capa de API Client** (`fetchClient` o las APIs definidas en `lib/api-client/`). Esto mantiene una estricta separación de responsabilidades y asegura que el middleware, auth guards de sesión y parsing Zod de las rutas del API sigan protegiendo y estructurando correctamente las peticiones.
+
+**¿Por qué SSR + Hydration?** — La data se carga en el servidor, se deshidrata, y se hidrata en el cliente. El Client Component (`MembersViewPage`) llama `useMembersList()` y obtiene los datos **instantáneamente** del cache hidratado, sin un loading state molesto en primer plano.
 
 ### 9.5 URL State con nuqs
 
@@ -916,6 +919,26 @@ export const membersSearchParamsCache = createSearchParamsCache(membersParsers);
 ```
 
 **¿Por qué nuqs?** — Los filtros de tabla, paginación y búsqueda se persisten en la URL. El usuario puede compartir/refrescar la página y mantener el estado.
+
+### 9.6 UI Skeletons y Carga Progresiva
+
+Para mejorar al máximo la experiencia de usuario y el rendimiento percibido durante la resolución de datos (especialmente en componentes pesados y listados gruesos o cuando las caches son invalidadas), se aplican patrones de carga progresiva usando interfaces esqueleto (UI Skeletons) junto de la mano con React Suspense.
+
+```tsx
+// app/(frontend)/[slug]/admin/members/page.tsx
+import { Suspense } from "react";
+import { MembersSkeleton } from "./members-skeleton";
+
+export default function MembersWrapper() {
+  return (
+    <Suspense fallback={<MembersSkeleton />}>
+      <MembersViewPage />
+    </Suspense>
+  );
+}
+```
+
+**¿Por qué Skeletons?** — Entregan de inmediato una estructura visual que imita y anticipa la forma final del layout cargado. Reemplaza los spinners circulares bloqueantes o pantallas en blanco, lo que reduce radicalmente la fricción en percibir la carga y previene el desorden visual en pantalla (Cumulative Layout Shift) a medida que van renderizando trozos de la app.
 
 ---
 

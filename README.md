@@ -40,6 +40,7 @@
 - **Soft Delete + Restore** — Eliminación reversible con undo via toast
 - **Theming** — Modo claro/oscuro, color primario personalizable, preferencias por usuario
 - **SSR + Hydration** — Prefetch en servidor, hidratación instantánea en cliente
+- **UI Skeletons y Carga Progresiva** — Interfaces esqueleto dinámicas con React Suspense que logran que la experiencia de carga sea visualmente agradable e inmediata, previniendo rebotes en los componentes.
 
 ---
 
