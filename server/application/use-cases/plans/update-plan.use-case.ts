@@ -13,7 +13,7 @@ export class UpdatePlanUseCase {
 
   async execute(id: string, data: UpdatePlanInput): Promise<Plan> {
     this.permissions.require('plans:update');
-    const validateUniqueName = await this.repository.findUnique({ name: data.name })
+    const validateUniqueName = await this.repository.findUnique({ name: data.name } as any)
 
     if (validateUniqueName && validateUniqueName.id !== id) {
       throw new ConflictError(`El plan "${data.name}" ya existe`);

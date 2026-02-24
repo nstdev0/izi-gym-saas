@@ -13,6 +13,7 @@ export class RegisterAttendanceUseCase {
 
     async execute(input: RegisterAttendanceInput): Promise<void> {
         this.permissions.require('attendance:create');
+
         const member = await this.membersRepository.findUnique({ id: input.memberId });
 
         if (!member) {

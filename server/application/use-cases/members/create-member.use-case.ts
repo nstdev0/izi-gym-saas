@@ -21,8 +21,8 @@ export class CreateMemberUseCase {
 
     const errors: string[] = [];
 
-    const validateUniqueDocument = await this.repo.validateUniqueDocument(input.docType, input.docNumber);
-    const validateUniqueEmail = await this.repo.validateUniqueEmail(input.email);
+    const validateUniqueDocument = await this.repo.findUnique({ docNumber: input.docNumber, docType: input.docType } as any);
+    const validateUniqueEmail = await this.repo.findUnique({ email: input.email } as any);
 
     if (validateUniqueDocument) errors.push("El número de documento ya esta en uso");
     if (validateUniqueEmail) errors.push("El correo electrónico ya esta en uso");

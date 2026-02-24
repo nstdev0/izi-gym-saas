@@ -17,6 +17,7 @@ export class CreateMembershipUseCase {
     this.permissions.require('memberships:create');
 
     // ── Business Validation ────────────────────────────────
+    // Check if the member already has an active or pending membership
     const existingMembership = await this.membershipsRepo.findActiveMembershipByMemberId(
       input.memberId
     );

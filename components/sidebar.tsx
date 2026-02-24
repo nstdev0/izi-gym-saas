@@ -68,7 +68,7 @@ export function Sidebar({
   const orgId = clerkOrganization?.id;
   const { data: organizationDetail } = useOrganizationDetail(orgId || "");
   // Fallback to plan relation name if scalar is empty, or default to generic if both missing but org exists
-  const organizationPlan = organizationDetail?.organizationPlan || organizationDetail?.plan?.name || (organizationDetail ? "Sin Plan" : "");
+  const organizationPlan = organizationDetail?.plan?.name
 
   // If forceExpanded is true, we treat sidebar as NOT collapsed.
   const isSidebarCollapsed = forceExpanded ? false : contextCollapsed;

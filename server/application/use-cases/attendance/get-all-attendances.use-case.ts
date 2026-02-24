@@ -11,7 +11,7 @@ export class GetAllAttendancesUseCase {
     ) { }
 
     async execute(
-        request: PageableRequest<AttendanceFilters>,
+        request: PageableRequest<AttendanceFilters>
     ): Promise<PageableResponse<Attendance>> {
         this.permissions.require('attendance:read');
         return await this.repository.findAll(request);

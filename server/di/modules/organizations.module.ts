@@ -52,7 +52,6 @@ export function createOrganizationsModule(prisma: PrismaClient, tenantId: string
         organizationsRepository,
         authModule.permissionService,
         unitOfWork,
-        tenantId,
     );
     const updateOrganizationSettingsUseCase = new UpdateOrganizationSettingsUseCase(
         organizationsRepository,

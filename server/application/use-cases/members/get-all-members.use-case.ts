@@ -2,11 +2,11 @@ import {
   PageableRequest,
   PageableResponse,
 } from "@/shared/common/pagination";
-import { Member } from "@entities/Member";
+import { Member } from "@/server/domain/entities/Member";
 import {
   IMembersRepository,
   MembersFilters,
-} from "@repositories/members.repository.interface";
+} from "@/server/application/repositories/members.repository.interface";
 
 import { IPermissionService } from "@/server/application/services/permission.service.interface";
 
@@ -17,7 +17,7 @@ export class GetAllMembersUseCase {
   ) { }
 
   async execute(
-    request: PageableRequest<MembersFilters>,
+    request: PageableRequest<MembersFilters>
   ): Promise<PageableResponse<Member>> {
     this.permissions.require('members:read');
     return await this.repository.findAll(request);

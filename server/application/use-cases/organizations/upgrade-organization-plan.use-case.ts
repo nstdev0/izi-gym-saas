@@ -9,10 +9,9 @@ export class UpgradeOrganizationPlanUseCase {
         private readonly organizationRepo: IOrganizationRepository,
         private readonly permissions: IPermissionService,
         private readonly unitOfWork: IUnitOfWork,
-        private readonly organizationId: string,
     ) { }
 
-    async execute(planSlug: string): Promise<Organization> {
+    async execute(planSlug: string, organizationId: string): Promise<Organization> {
         this.permissions.require('org:billing');
 
         // ── Business Validation ────────────────────────────────
@@ -21,7 +20,7 @@ export class UpgradeOrganizationPlanUseCase {
 
         // ── Delegate Transaction to UoW ────────────────────────
         return this.unitOfWork.upgradeOrganizationPlan({
-            organizationId: this.organizationId,
+            organizationId, // Re-added because UnitOfWork explicitly requires it
             planId: plan.id,
             planName: plan.name,
             planPrice: plan.price,

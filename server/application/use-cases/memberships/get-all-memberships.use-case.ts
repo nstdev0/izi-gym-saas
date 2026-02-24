@@ -2,12 +2,11 @@ import { IMembershipsRepository } from "@/server/application/repositories/member
 import { MembershipsFilters } from "@/server/domain/types/memberships";
 import { Membership } from "@/server/domain/entities/Membership";
 import { PageableRequest, PageableResponse } from "@/shared/common/pagination";
+import { IPermissionService } from "@/server/application/services/permission.service.interface";
 
 export interface IGetAllMembershipsUseCase {
   execute(request: PageableRequest<MembershipsFilters>): Promise<PageableResponse<Membership>>;
 }
-
-import { IPermissionService } from "@/server/application/services/permission.service.interface";
 
 export class GetAllMembershipsUseCase implements IGetAllMembershipsUseCase {
   constructor(
@@ -17,6 +16,7 @@ export class GetAllMembershipsUseCase implements IGetAllMembershipsUseCase {
 
   async execute(request: PageableRequest<MembershipsFilters>): Promise<PageableResponse<Membership>> {
     this.permissions.require('memberships:read');
+
     const response = await this.membershipsRepository.findAll(request);
     response.records.forEach((membership) => {
       membership.pricePaid = Number(membership.pricePaid);

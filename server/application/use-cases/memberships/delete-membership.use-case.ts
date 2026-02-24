@@ -5,7 +5,7 @@ export class DeleteMembershipUseCase {
   constructor(
     private readonly permissions: IPermissionService,
     private readonly unitOfWork: IUnitOfWork,
-    private readonly organizationId: string,
+    private readonly organizationId: string
   ) { }
 
   async execute(id: string): Promise<void> {

@@ -9,9 +9,10 @@ export class DeleteOrganizationUseCase {
 
   async execute(id: string): Promise<void> {
     this.permissions.require('org:delete');
+
+    // Note: If you're a super admin, perhaps id matters. If not, standard DI organization repo delete(id) suffices
     await this.repository.delete(id);
   }
 }
 
 export type IDeleteOrganizationUseCase = InstanceType<typeof DeleteOrganizationUseCase>;
-

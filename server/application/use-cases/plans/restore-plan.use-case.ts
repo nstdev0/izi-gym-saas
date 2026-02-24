@@ -1,6 +1,5 @@
 import { IPlansRepository } from "@/server/application/repositories/plans.repository.interface";
 import { NotFoundError } from "@/server/domain/errors/common";
-
 import { IPermissionService } from "@/server/application/services/permission.service.interface";
 
 export class RestorePlanUseCase {
@@ -11,13 +10,13 @@ export class RestorePlanUseCase {
 
     async execute(id: string): Promise<void> {
         this.permissions.require('plans:delete');
-        const plan = await this.repo.findUnique({ id });
+        const plan = await this.repo.findUnique({ id } as any);
 
         if (!plan) throw new NotFoundError("Plan no encontrado");
 
         await this.repo.restore(id);
 
-        await this.repo.findUnique({ id });
+        await this.repo.findUnique({ id } as any);
     }
 }
 

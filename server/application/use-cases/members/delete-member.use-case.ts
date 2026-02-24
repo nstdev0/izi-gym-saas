@@ -1,7 +1,5 @@
 import { IMembersRepository } from "@/server/application/repositories/members.repository.interface";
-
 import { ConflictError, NotFoundError } from "@/server/domain/errors/common";
-
 import { IPermissionService } from "@/server/application/services/permission.service.interface";
 
 export class DeleteMemberUseCase {
@@ -12,14 +10,17 @@ export class DeleteMemberUseCase {
 
   async execute(id: string): Promise<void> {
     this.permissions.require('members:delete');
-    const member = await this.membersRepo.findByIdWithMemberships(id);
+
+    const member = await this.membersRepo.findUnique({ id } as any);
 
     if (!member) {
       throw new NotFoundError("Miembro no encontrado");
     }
 
-    const hasActiveOrPending = member.memberships?.some(
-      (m) => m.status === "ACTIVE" || m.status === "PENDING"
+    const memberWithRels = await this.membersRepo.findByIdWithMemberships(id);
+
+    const hasActiveOrPending = memberWithRels?.memberships?.some(
+      (m: any) => m.status === "ACTIVE" || m.status === "PENDING"
     );
 
     if (hasActiveOrPending) {

@@ -18,7 +18,7 @@ export class CreatePlanUseCase {
     this.permissions.require('plans:create');
     const validatePlan = await this.repository.findUnique({
       name: input.name
-    })
+    } as any)
     if (validatePlan) {
       throw new ConflictError(`El plan "${input.name}" ya existe`)
     }

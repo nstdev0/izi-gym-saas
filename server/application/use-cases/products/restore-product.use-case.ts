@@ -1,12 +1,11 @@
 import { IProductsRepository } from "@/server/application/repositories/products.repository.interface";
 import { Product } from "@/server/domain/entities/Product";
 import { NotFoundError } from "@/server/domain/errors/common";
+import { IPermissionService } from "@/server/application/services/permission.service.interface";
 
 export interface IRestoreProductUseCase {
     execute(id: string): Promise<Product | null>;
 }
-
-import { IPermissionService } from "@/server/application/services/permission.service.interface";
 
 export class RestoreProductUseCase implements IRestoreProductUseCase {
     constructor(
@@ -22,6 +21,6 @@ export class RestoreProductUseCase implements IRestoreProductUseCase {
 
         await this.repo.restore(id);
 
-        return await this.repo.findUnique({ id });
+        return await this.repo.findUnique({ id } as any);
     }
 }

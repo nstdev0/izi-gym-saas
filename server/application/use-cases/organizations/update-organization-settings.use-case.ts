@@ -94,7 +94,7 @@ export class UpdateOrganizationSettingsUseCase {
 
         // ── 3. Delegate Atomic Write to UoW ────────────────────
         await this.unitOfWork.updateOrganizationSettings({
-            organizationId,
+            organizationId, // Re-added because the UoW might actually require it for certain DB operations outside DI injected ones
             ...(name && { name }),
             ...(image !== undefined && { image }),
             ...(Object.keys(configUpdateData).length > 0 && { config: configUpdateData }),

@@ -12,7 +12,8 @@ export default async function SignUpPage({
       <div className="w-full max-w-md p-4">
         <SignUp
           unsafeMetadata={{ plan: plan }}
-          fallbackRedirectUrl={`/onboarding?plan=${plan}`} />
+          fallbackRedirectUrl={`/onboarding?plan=${plan}`}
+          forceRedirectUrl={`/onboarding?plan=${plan}`} />
       </div>
     </div>
   );

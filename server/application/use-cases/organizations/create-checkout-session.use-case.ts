@@ -58,8 +58,16 @@ export class CreateCheckoutSessionUseCase {
             success_url: `${baseUrl}/${organization.slug}/admin/dashboard?checkout=success`,
             cancel_url: `${baseUrl}/${organization.slug}/admin/dashboard?checkout=canceled`,
             metadata: {
+                organizationId: organization.id,
                 organizationPlanId: plan.id,
                 userId: user.id,
+            },
+            subscription_data: {
+                metadata: {
+                    organizationId: organization.id,
+                    organizationPlanId: plan.id,
+                    userId: user.id,
+                }
             },
             allow_promotion_codes: true,
         };
@@ -75,7 +83,7 @@ export class CreateCheckoutSessionUseCase {
 
         // Trial config
         if (isTrialEligible) {
-            sessionParams.subscription_data = { trial_period_days: 14 };
+            sessionParams.subscription_data.trial_period_days = 14;
             sessionParams.payment_method_collection = "if_required";
         }
 

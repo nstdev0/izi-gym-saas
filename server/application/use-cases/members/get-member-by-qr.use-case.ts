@@ -1,5 +1,4 @@
 import { IMembersRepository } from "@/server/application/repositories/members.repository.interface";
-
 import { IPermissionService } from "@/server/application/services/permission.service.interface";
 
 export class GetMemberByQrCodeUseCase {
@@ -10,7 +9,7 @@ export class GetMemberByQrCodeUseCase {
 
     async execute(qrCode: string) {
         this.permissions.require('members:read');
-        return this.repo.findByQrCode(qrCode);
+        return await this.repo.findByQrCode(qrCode);
     }
 }
 

@@ -8,14 +8,14 @@ import { SyncMembershipWebhookUseCase } from "@/server/application/use-cases/web
 import { RemoveMembershipWebhookUseCase } from "@/server/application/use-cases/webhooks/clerk/remove-membership.use-case";
 
 export function createClerkWebhookModule(prisma: PrismaClient) {
-    const webhookRepository = new ClerkWebhookRepository(prisma);
+    const clerkWebhookRepository = new ClerkWebhookRepository(prisma);
 
-    const syncUserUseCase = new SyncUserWebhookUseCase(webhookRepository);
-    const deleteUserUseCase = new DeleteUserWebhookUseCase(webhookRepository);
-    const syncOrganizationUseCase = new SyncOrganizationWebhookUseCase(webhookRepository);
-    const deleteOrganizationUseCase = new DeleteOrganizationWebhookUseCase(webhookRepository);
-    const syncMembershipUseCase = new SyncMembershipWebhookUseCase(webhookRepository);
-    const removeMembershipUseCase = new RemoveMembershipWebhookUseCase(webhookRepository);
+    const syncUserUseCase = new SyncUserWebhookUseCase(clerkWebhookRepository);
+    const deleteUserUseCase = new DeleteUserWebhookUseCase(clerkWebhookRepository);
+    const syncOrganizationUseCase = new SyncOrganizationWebhookUseCase(clerkWebhookRepository);
+    const deleteOrganizationUseCase = new DeleteOrganizationWebhookUseCase(clerkWebhookRepository);
+    const syncMembershipUseCase = new SyncMembershipWebhookUseCase(clerkWebhookRepository);
+    const removeMembershipUseCase = new RemoveMembershipWebhookUseCase(clerkWebhookRepository);
 
     return {
         syncUserUseCase,

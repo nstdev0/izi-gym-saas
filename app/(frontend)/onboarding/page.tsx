@@ -17,14 +17,9 @@ export default function OnboardingPage() {
     useEffect(() => {
         if (!isLoaded) return;
 
-        // Si no hay organizacion, Clerk suele encargarse de la redirección. 
-        // Si no la hay, redirigimos al home.
         if (!orgSlug || !orgId) {
-            router.push(`/`);
             return;
         }
-
-        // Si es free-trial o null, lo mandamos directo al dashboard
         if (!planSlug || planSlug === "free-trial") {
             router.push(`/${orgSlug}/admin/dashboard`);
             return;
