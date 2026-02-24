@@ -4,6 +4,23 @@ import { ISystemRepository } from "@/server/application/repositories/system.repo
 import { stripeClient } from "@/server/infrastructure/billing/stripe.client";
 import { NotFoundError, ValidationError } from "@/server/domain/errors/common";
 
+const getBaseUrl = () => {
+    // 1. Si la definiste a mano en Vercel/Local (quitamos el slash final si lo tiene)
+    if (process.env.NEXT_PUBLIC_APP_URL) {
+        return process.env.NEXT_PUBLIC_APP_URL.replace(/\/$/, "");
+    }
+    // 2. Variable automática de Vercel para Producción
+    if (process.env.VERCEL_PROJECT_PRODUCTION_URL) {
+        return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`;
+    }
+    // 3. Variable automática de Vercel (Previews/Deployments)
+    if (process.env.VERCEL_URL) {
+        return `https://${process.env.VERCEL_URL}`;
+    }
+    // 4. Fallback seguro para desarrollo local
+    return "http://localhost:3000";
+};
+
 export class CreateCheckoutSessionUseCase {
     constructor(
         private readonly organizationsRepository: IOrganizationRepository,
@@ -26,6 +43,8 @@ export class CreateCheckoutSessionUseCase {
             (plan.slug.startsWith("pro") || plan.slug.startsWith("enterprise")) &&
             user.hasUsedTrial === false;
 
+        const baseUrl = getBaseUrl();
+
         // Default params
         const sessionParams: any = {
             payment_method_types: ["card"],
@@ -36,8 +55,8 @@ export class CreateCheckoutSessionUseCase {
                 },
             ],
             mode: "subscription",
-            success_url: `${process.env.NEXT_PUBLIC_APP_URL}/${organizationId}/admin/dashboard?checkout=success`,
-            cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/${organizationId}/admin/dashboard?checkout=canceled`,
+            success_url: `${baseUrl}/${organization.slug}/admin/dashboard?checkout=success`,
+            cancel_url: `${baseUrl}/${organization.slug}/admin/dashboard?checkout=canceled`,
             metadata: {
                 organizationPlanId: plan.id,
                 userId: user.id,
