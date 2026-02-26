@@ -34,7 +34,7 @@ export function ProfileForm({ defaultValues, email }: ProfileFormProps) {
     async function onSubmit(data: UpdateUserInput) {
         setIsLoading(true);
         try {
-            const response = await fetch("/api/user/profile", {
+            const response = await fetch("/api/users/profile", {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(data),

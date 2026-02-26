@@ -25,43 +25,40 @@ export class ClerkWebhookRepository implements IClerkWebhookRepository {
     }
 
     async syncUser(input: SyncUserInput): Promise<void> {
-        if (input.email) {
-            const existingUser = await this.prisma.user.findFirst({
-                where: { email: input.email },
-            });
-
-            if (existingUser && existingUser.id !== input.id) {
-                console.log(`🧟 Zombie detectado (User): ${input.email}. Desactivando en lugar de eliminar...`);
-                try {
-                    await this.prisma.user.update({
-                        where: { id: existingUser.id },
-                        data: { email: `borrado_${existingUser.id}@zombie.local`, isActive: false }
-                    });
-                } catch (e) {
-                    console.log(`No se pudo desactivar el zombie: ${e}`);
-                }
-            }
-        }
-
-        await this.prisma.user.upsert({
-            where: { id: input.id },
-            create: {
-                id: input.id,
-                email: input.email,
-                firstName: input.firstName,
-                lastName: input.lastName,
-                image: input.image,
-                role: Role.STAFF,
-                isActive: true,
-            },
-            update: {
-                email: input.email || undefined,
-                firstName: input.firstName,
-                lastName: input.lastName,
-                image: input.image,
-            }
+        const existingUser = await this.prisma.user.findUnique({
+            where: { email: input.email }
         });
-        console.log(`👤 Usuario procesado: ${input.email}`);
+
+        if (existingUser) {
+            await this.prisma.user.update({
+                where: { email: input.email },
+                data: {
+                    id: input.id,
+                    firstName: input.firstName,
+                    lastName: input.lastName,
+                    image: input.image,
+                    isActive: true
+                }
+            });
+            console.log(`👤 Usuario actualizado (resolución por email): ${input.email}`);
+        } else {
+            await this.prisma.user.create({
+                data: {
+                    id: input.id,
+                    email: input.email,
+                    firstName: input.firstName,
+                    lastName: input.lastName,
+                    image: input.image,
+                    isActive: true,
+                    preferences: {
+                        theme: "system",
+                        notifications: { email: true, push: false },
+                        language: "es"
+                    }
+                }
+            });
+            console.log(`👤 Usuario creado nuevo: ${input.email}`);
+        }
     }
 
     async deleteUser(id: string): Promise<void> {
@@ -81,35 +78,51 @@ export class ClerkWebhookRepository implements IClerkWebhookRepository {
         }
     }
 
+    private async generateUniqueSlug(baseSlug: string): Promise<string> {
+        let currentSlug = baseSlug;
+        let counter = 2;
+        while (true) {
+            const exists = await this.prisma.organization.findUnique({ where: { slug: currentSlug } });
+            if (!exists) return currentSlug;
+            currentSlug = `${baseSlug}-${counter}`;
+            counter++;
+        }
+    }
+
     async syncOrganization(input: SyncOrganizationInput, freePlanId: string, freePlanName: string, freePlanPrice: number): Promise<void> {
-        // 🟢 FIX: Confiamos 100% en el slug de Clerk. 
-        // Solo si no viene, generamos uno limpio quitando tildes y caracteres especiales.
-        const cleanSlug = input.slug || input.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, '');
+        let cleanSlug = input.slug;
+        if (!cleanSlug) {
+            const baseSlug = input.name.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, '');
+            cleanSlug = await this.generateUniqueSlug(baseSlug);
+        }
 
         await this.prisma.$transaction(async (tx) => {
-            await tx.organization.upsert({
-                where: { id: input.id },
-                update: {
-                    name: input.name,
-                    slug: cleanSlug, // Actualizamos con el slug de Clerk
-                    image: input.image,
-                },
-                create: {
-                    id: input.id,
-                    organizationId: input.id,
-                    name: input.name,
-                    slug: cleanSlug,
-                    image: input.image,
-                    organizationPlanId: freePlanId,
-                    organizationPlan: freePlanName,
-                },
+            const existingOrg = await tx.organization.findUnique({
+                where: { id: input.id }
             });
 
-            const sub = await tx.subscription.findUnique({
-                where: { organizationId: input.id }
-            });
+            if (existingOrg) {
+                await tx.organization.update({
+                    where: { id: input.id },
+                    data: {
+                        name: input.name,
+                        slug: cleanSlug,
+                        image: input.image,
+                    }
+                });
+            } else {
+                await tx.organization.create({
+                    data: {
+                        id: input.id,
+                        organizationId: input.id,
+                        name: input.name,
+                        slug: cleanSlug,
+                        image: input.image,
+                        organizationPlanId: freePlanId,
+                        organizationPlan: freePlanName,
+                    },
+                });
 
-            if (!sub) {
                 await tx.subscription.create({
                     data: {
                         organizationId: input.id,
@@ -137,76 +150,50 @@ export class ClerkWebhookRepository implements IClerkWebhookRepository {
     }
 
     async syncMembership(input: SyncMembershipInput, freePlanId: string, freePlanName: string): Promise<void> {
-        if (input.email) {
-            const existingUser = await this.prisma.user.findFirst({ where: { email: input.email } });
-            if (existingUser && existingUser.id !== input.userId) {
-                console.log(`🧟 Zombie detectado (Membership): ${input.email}. Desactivando...`);
-                try {
-                    await this.prisma.user.update({
-                        where: { id: existingUser.id },
-                        data: { email: `borrado_${existingUser.id}@zombie.local`, isActive: false }
-                    });
-                } catch (e) {
-                    console.log(`No se pudo desactivar el zombie en membresía: ${e}`);
-                }
-            }
+        const userExists = await this.prisma.user.findUnique({ where: { id: input.userId } });
+        const orgExists = await this.prisma.organization.findUnique({ where: { id: input.organization.id } });
+
+        if (!userExists || !orgExists) {
+            throw new Error(`[Sincronización Asíncrona] Usuario o Organización faltante. userId: ${input.userId}, orgId: ${input.organization.id}. Reintentando evento...`);
         }
 
-        const orgCleanSlug = input.organization.slug || input.organization.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, '');
+        // 2. Extraemos el rol desde Clerk, mapenado los valores de Clerk a nuestros enums
+        let parsedRole: Role = Role.STAFF;
+        if (input.role === "org:admin") parsedRole = Role.ADMIN;
+        if (input.role === "org:owner") parsedRole = Role.OWNER;
 
-        await this.prisma.user.upsert({
-            where: { id: input.userId },
-            create: {
-                id: input.userId,
-                email: input.email,
-                firstName: input.firstName,
-                lastName: input.lastName,
-                image: input.image,
-                role: Role.OWNER,
-                isActive: true,
-                organization: {
-                    connectOrCreate: {
-                        where: { id: input.organization.id },
-                        create: {
-                            id: input.organization.id,
-                            organizationId: input.organization.id,
-                            name: input.organization.name,
-                            slug: orgCleanSlug,
-                            image: input.organization.image,
-                            organizationPlanId: freePlanId,
-                            organizationPlan: freePlanName,
-                        }
-                    }
+        // 3. Upsert en la tabla Pivot (OrganizationMembership)
+        await this.prisma.organizationMembership.upsert({
+            where: {
+                userId_organizationId: {
+                    userId: input.userId,
+                    organizationId: input.organization.id
                 }
             },
+            create: {
+                userId: input.userId,
+                organizationId: input.organization.id,
+                role: parsedRole,
+                isActive: true
+            },
             update: {
-                role: Role.OWNER,
-                isActive: true,
-                organization: {
-                    connectOrCreate: {
-                        where: { id: input.organization.id },
-                        create: {
-                            id: input.organization.id,
-                            organizationId: input.organization.id,
-                            name: input.organization.name,
-                            slug: orgCleanSlug,
-                            image: input.organization.image,
-                            organizationPlanId: freePlanId,
-                            organizationPlan: freePlanName,
-                        }
-                    }
-                }
+                role: parsedRole,
+                isActive: true
             }
         });
-        console.log(`🔗 Membresía vinculada: ${input.email} -> ${input.organization.name}`);
+
+        console.log(`🔗 Membresía vinculada: ${input.email} -> ${input.organization.name} [Rol: ${parsedRole}]`);
     }
 
-    async removeMembership(userId: string): Promise<void> {
+    async removeMembership(userId: string, organizationId: string): Promise<void> {
         try {
-            await this.prisma.user.update({
-                where: { id: userId },
-                data: { organizationId: null, isActive: false }
+            await this.prisma.organizationMembership.update({
+                where: {
+                    userId_organizationId: { userId, organizationId }
+                },
+                data: { isActive: false }
             });
+            console.log(`❌ Membresía desactivada: ${userId} de ${organizationId}`);
         } catch (error: any) {
             if (error?.code !== 'P2025') throw error;
         }

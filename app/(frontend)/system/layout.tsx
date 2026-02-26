@@ -4,6 +4,7 @@ import { currentUser } from "@clerk/nextjs/server";
 import { notFound, redirect } from "next/navigation";
 import { DashboardProvider } from "@/components/dashboard/dashboard-provider";
 import { Header } from "@/components/header";
+import { prisma } from "@/server/infrastructure/persistence/prisma";
 
 export default async function SystemLayout({
   children,
@@ -16,9 +17,13 @@ export default async function SystemLayout({
     redirect("/sign-in");
   }
 
-  // Check publicMetadata for GOD role
-  if (user?.publicMetadata?.role !== "GOD") {
-    console.log("⛔ Access Denied: User is not GOD", user?.id);
+  // Check Prisma for GOD role in any membership
+  const godMembership = await prisma.organizationMembership.findFirst({
+    where: { userId: user.id, role: "GOD", isActive: true }
+  });
+
+  if (!godMembership) {
+    console.log("⛔ Access Denied: User is not GOD", user.id);
     return notFound();
   }
 

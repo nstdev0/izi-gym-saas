@@ -1,14 +1,14 @@
 "use client";
 
-import { useUserDetail } from "@/hooks/users/use-users";
+import { useUserProfile } from "@/hooks/users/use-users";
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
 import { PageHeader } from "@/components/ui/page-header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ProfileForm } from "./profile-form";
 import { PreferencesForm } from "./preferences-form";
 
-export default function ProfileViewPage({ userId }: { userId: string }) {
-    const { data: user, isLoading } = useUserDetail(userId);
+export default function ProfileViewPage() {
+    const { data: user, isLoading } = useUserProfile();
 
     if (isLoading) {
         return <DashboardLayout breadcrumbs={[{ label: "Admin" }, { label: "Perfil" }]}><div className="flex justify-center p-8">Cargando...</div></DashboardLayout>;

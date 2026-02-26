@@ -15,6 +15,6 @@ export class GetUserByIdUseCase implements IGetUserByIdUseCase {
 
   async execute(id: string): Promise<User | null> {
     this.permissions.require('users:read');
-    return this.usersRepository.findUnique({ id });
+    return this.usersRepository.findById(id);
   }
 }

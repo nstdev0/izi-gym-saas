@@ -12,11 +12,11 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { CreateUserSchema } from "@/shared/types/users.types";
+import { CreateUserSchema, Role, UserResponse } from "@/shared/types/users.types";
 import { Loader2, Save, User, Mail, Shield, CheckCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { ApiError } from "@/lib/api";
-import { UserResponse } from "@/shared/types/users.types";
+// import UserResponse from top block
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { AvatarUploader } from "@/components/avatar-uploader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -41,8 +41,7 @@ export default function UserForm({
         resolver: zodResolver(CreateUserSchema),
         defaultValues: {
             email: initialData?.email || "",
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            role: (initialData?.role as any) || "STAFF",
+            role: (initialData?.membership?.role as Role) || Role.STAFF,
             isActive: initialData?.isActive ?? true,
             image: initialData?.image || "",
             firstName: initialData?.firstName || "",

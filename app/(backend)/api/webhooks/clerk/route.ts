@@ -105,8 +105,8 @@ export async function POST(req: Request) {
 
       case "organizationMembership.deleted": {
         const data = event.data;
-        if (data.public_user_data?.user_id) {
-          await container.removeMembershipUseCase.execute(data.public_user_data.user_id);
+        if (data.public_user_data?.user_id && data.organization?.id) {
+          await container.removeMembershipUseCase.execute(data.public_user_data.user_id, data.organization.id);
         }
         break;
       }

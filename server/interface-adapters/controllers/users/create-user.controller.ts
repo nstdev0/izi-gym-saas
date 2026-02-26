@@ -17,12 +17,17 @@ export class CreateUserController implements ControllerExecutor<CreateUserInput,
     if (!session.orgId) throw new Error("No organization selected");
     if (!session.userId) throw new Error("Unauthorized: inviter ID missing");
 
-    const currentUser = await prisma.user.findUnique({
-      where: { id: session.userId },
+    const currentMembership = await prisma.organizationMembership.findUnique({
+      where: {
+        userId_organizationId: {
+          userId: session.userId,
+          organizationId: session.orgId
+        }
+      },
       select: { role: true },
     });
 
-    if (!currentUser || !ALLOWED_ROLES.includes(currentUser.role)) {
+    if (!currentMembership || !ALLOWED_ROLES.includes(currentMembership.role)) {
       throw new ForbiddenError("No tienes permisos para crear usuarios");
     }
     await this.useCase.execute(input, session.orgId, session.userId);

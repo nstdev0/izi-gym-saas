@@ -7,7 +7,7 @@ import { Prisma } from "@/generated/prisma/client";
 import {
     PageableRequest,
     PageableResponse,
-} from "@/shared/common/pagination";
+} from "@/shared/types/pagination.types";
 import { AttendanceMapper } from "../mappers/attendance.mapper";
 import { translatePrismaError } from "../prisma-error-translator";
 import { Attendance } from "@/server/domain/entities/Attendance";

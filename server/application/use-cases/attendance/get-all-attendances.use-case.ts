@@ -1,4 +1,4 @@
-import { PageableRequest, PageableResponse } from "@/shared/common/pagination";
+import { PageableRequest, PageableResponse } from "@/shared/types/pagination.types";
 import { IAttendanceRepository } from "@/server/application/repositories/attendance.repository.interface";
 import { Attendance } from "@/server/domain/entities/Attendance";
 import { IPermissionService } from "@/server/application/services/permission.service.interface";

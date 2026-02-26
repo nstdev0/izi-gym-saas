@@ -68,14 +68,34 @@ export function Sidebar({
   const orgId = clerkOrganization?.id;
   const { data: organizationDetail } = useOrganizationDetail(orgId || "");
   // Fallback to plan relation name if scalar is empty, or default to generic if both missing but org exists
-  const organizationPlan = organizationDetail?.plan?.name
+  const organizationPlanName = organizationDetail?.plan?.name || organizationDetail?.organizationPlan;
+
+  const formatPlanName = (name?: string) => {
+    if (!name) return "Prueba gratis";
+    const lower = name.toLowerCase();
+    if (lower.includes("free") || lower === "trialing") return "Prueba gratis";
+
+    // Determine tier
+    let tier = name;
+    if (lower.includes("pro")) tier = "Pro";
+    else if (lower.includes("enterprise") || lower.includes("empresarial")) tier = "Empresarial";
+
+    // Determine period
+    let period = "";
+    if (lower.includes("monthly") || lower.includes("mensual")) period = "Mensual";
+    else if (lower.includes("yearly") || lower.includes("anual")) period = "Anual";
+    else if (lower.includes("lifetime") || lower.includes("vitalicio")) period = "Vitalicio";
+
+    return period ? `${tier} ${period}` : tier;
+  };
+
+  const isFreePlan = !organizationPlanName || organizationPlanName.toLowerCase().includes("free") || organizationPlanName === "TRIALING";
 
   // If forceExpanded is true, we treat sidebar as NOT collapsed.
   const isSidebarCollapsed = forceExpanded ? false : contextCollapsed;
 
   interface RouteProps {
     label: string;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     icon: any;
     href: string;
     active: boolean;
@@ -149,7 +169,7 @@ export function Sidebar({
         pathname === `/${safeSlug}/admin/settings` ||
         pathname.startsWith(`/${safeSlug}/admin/settings/`),
     },
-    ...(clerkUser?.publicMetadata?.role === "GOD" || user?.role === "GOD"
+    ...(clerkUser?.publicMetadata?.role === "GOD" || user?.membership?.role === "GOD"
       ? [
         {
           label: "GOD Panel",
@@ -314,7 +334,7 @@ export function Sidebar({
             )}
 
             {/* SECCIÓN DEL PLAN */}
-            {mode === "organization" && organizationDetail && (user?.role === "GOD" || user?.role === "OWNER") && (
+            {mode === "organization" && organizationDetail && (user?.membership?.role === "GOD" || user?.membership?.role === "OWNER") && (
               <div className="mt-4 pt-4 border-t border-border/50">
                 {isSidebarCollapsed ? (
                   <Tooltip>
@@ -326,7 +346,7 @@ export function Sidebar({
                     <TooltipContent side="right">
                       <p className="font-medium">Plan:</p>
                       <p className="capitalize text-xs text-muted-foreground">
-                        {organizationPlan.split("_").join(" ")}
+                        {formatPlanName(organizationPlanName)}
                       </p>
                     </TooltipContent>
                   </Tooltip>
@@ -343,15 +363,14 @@ export function Sidebar({
                           Plan Actual
                         </span>
                         <span className="truncate text-sm font-semibold capitalize text-foreground">
-                          {organizationPlan === "PRO_MONTHLY" ? "PRO" : organizationPlan === "PRO_YEARLY" ? "PRO" :
-                            organizationPlan === "ENTERPRISE_MONTHLY" ? "EMPRESARIAL" : organizationPlan === "ENTERPRISE_YEARLY" ? "EMPRESARIAL" : "Prueba gratis"}
+                          {formatPlanName(organizationPlanName)}
                         </span>
                       </div>
                     </div>
                     <Button
                       size="sm"
                       variant="secondary"
-                      className="w-full text-xs"
+                      className="w-full text-xs mt-2"
                       onClick={() => setIsUpgradeModalOpen(true)}
                     >
                       Actualizar Plan
@@ -444,9 +463,9 @@ export function Sidebar({
                           : user?.email || clerkUser?.primaryEmailAddress?.emailAddress || ""}
                       </span> */}
                       <span className="text-xs italic opacity-50">
-                        {user?.role === "OWNER" ? "Propietario"
-                          : user?.role === "ADMIN" ? "Administrador"
-                            : user?.role}
+                        {user?.membership?.role === "OWNER" ? "Propietario"
+                          : user?.membership?.role === "ADMIN" ? "Administrador"
+                            : user?.membership?.role}
                       </span>
                     </div>
                     <ChevronsUpDown className="ml-auto h-4 w-4 text-muted-foreground" />

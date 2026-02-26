@@ -1,5 +1,5 @@
 import { Prisma } from "@/generated/prisma/client";
-import { User } from "@/server/domain/entities/User";
+import { User, UserWithMembership } from "@/server/domain/entities/User";
 import { BaseRepository } from "./base.repository";
 import { IUsersRepository } from "@/server/application/repositories/users.repository.interface";
 import {
@@ -9,6 +9,7 @@ import {
 } from "@/server/domain/types/users";
 import { UserMapper } from "../mappers/users.mapper";
 import { translatePrismaError } from "../prisma-error-translator";
+import { PageableRequest, PageableResponse } from "@/shared/types/pagination.types";
 
 export class UsersRepository
   extends BaseRepository<
@@ -25,8 +26,7 @@ export class UsersRepository
   }
   async create(data: CreateUserInput): Promise<User> {
     try {
-      const { password, id, ...rest } = data;
-      // Si viene ID (de Clerk), lo usamos.
+      const { password, id, role, ...rest } = data;
       const prismaData = {
         ...rest,
         id: id,
@@ -34,7 +34,15 @@ export class UsersRepository
       };
 
       const entity = await this.model.create({
-        data: { ...prismaData, organizationId: this.organizationId },
+        data: {
+          ...prismaData,
+          memberships: this.organizationId ? {
+            create: {
+              organizationId: this.organizationId,
+              role: role ? (role.toUpperCase() as any) : "STAFF",
+            }
+          } : undefined
+        },
       });
       return this.mapper.toDomain(entity);
     } catch (error) {
@@ -44,20 +52,53 @@ export class UsersRepository
 
   async update(id: string, data: UpdateUserInput): Promise<User> {
     try {
-      const { password, ...rest } = data;
+      const { password, role, ...rest } = data;
       const prismaData: any = { ...rest };
       if (password) {
         prismaData.passwordHash = password;
       }
 
+      const updateData: Prisma.UserUpdateInput = { ...prismaData };
+
+      if (role && this.organizationId) {
+        updateData.memberships = {
+          update: {
+            where: {
+              userId_organizationId: {
+                userId: id,
+                organizationId: this.organizationId
+              }
+            },
+            data: {
+              role: role.toUpperCase() as any
+            }
+          }
+        };
+      }
+
       const entity = await this.model.update({
-        data: { ...prismaData, organizationId: this.organizationId } as any,
+        data: updateData,
         where: { id },
       });
       return this.mapper.toDomain(entity);
     } catch (error) {
       translatePrismaError(error, "Usuario")
     }
+  }
+
+  async countActive(organizationId: string): Promise<number> {
+    return this.model.count({
+      where: {
+        deletedAt: null,
+        isActive: true,
+        memberships: {
+          some: {
+            organizationId,
+            isActive: true
+          }
+        }
+      },
+    })
   }
 
   protected async buildPrismaClauses(
@@ -67,7 +108,13 @@ export class UsersRepository
     const ALLOWED_ROLES = ["owner", "admin", "staff", "trainer"] as const;
     const ALLOWED_STATUS = ["active", "inactive"] as const;
 
-    const conditions: Prisma.UserWhereInput[] = [];
+    const conditions: Prisma.UserWhereInput[] = [
+      {
+        memberships: {
+          some: { organizationId: this.organizationId }
+        }
+      }
+    ];
 
     // Search filter
     if (filters.search) {
@@ -92,8 +139,14 @@ export class UsersRepository
       const isValidRole = (ALLOWED_ROLES as readonly string[]).includes(roleInput);
 
       if (isValidRole) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        conditions.push({ role: { equals: roleInput.toUpperCase() as any } });
+        conditions.push({
+          memberships: {
+            some: {
+              organizationId: this.organizationId,
+              role: roleInput.toUpperCase() as any
+            }
+          }
+        });
       }
     }
 
@@ -125,10 +178,108 @@ export class UsersRepository
     return [WhereClause, OrderByClause];
   }
 
-  async countActive(organizationId: string): Promise<number> {
-    return this.model.count({
-      where: { organizationId, deletedAt: null, isActive: true },
-    })
+  // --- Overrides para devolver UserWithMembership ---
+
+  async findById(id: string): Promise<User | null> {
+    try {
+      const entity = await this.model.findUnique({
+        where: { id },
+        include: {
+          memberships: {
+            where: { organizationId: this.organizationId, isActive: true },
+            take: 1
+          }
+        }
+      });
+
+      if (!entity) return null;
+
+      const domainUser = this.mapper.toDomain(entity as any);
+      const membership = entity.memberships?.[0];
+
+      if (membership && this.organizationId) {
+        return new UserWithMembership(
+          domainUser,
+          this.organizationId,
+          membership.role as any
+        );
+      }
+      return domainUser;
+    } catch (error) {
+      translatePrismaError(error, "Usuario");
+    }
   }
 
+  async findAll(
+    request: PageableRequest<UsersFilters> = { page: 1, limit: 10 },
+  ): Promise<PageableResponse<User>> {
+    try {
+      const { page = 1, limit = 10, filters } = request;
+
+      const safePage = page < 1 ? 1 : page;
+      const skip = (safePage - 1) * limit;
+
+      let where: any = { deletedAt: null };
+      let orderBy: any = { createdAt: "desc" };
+
+      if (this.organizationId) {
+        where.memberships = {
+          some: { organizationId: this.organizationId, isActive: true }
+        };
+      }
+
+      if (filters) {
+        const [whereClause, orderByClause] = await this.buildPrismaClauses(filters);
+        where = { ...where, ...whereClause };
+
+        if (orderByClause) orderBy = orderByClause;
+      }
+
+      const [totalRecords, records] = await Promise.all([
+        this.model.count({ where }),
+        this.model.findMany({
+          skip,
+          take: limit,
+          where,
+          orderBy: orderBy,
+          include: {
+            memberships: {
+              where: { organizationId: this.organizationId, isActive: true },
+              take: 1
+            }
+          }
+        }),
+      ]);
+
+      const totalPages = Math.ceil(totalRecords / limit);
+
+      const UserWithMembershipClass = UserWithMembership;
+
+      const mappedRecords = records.map((record) => {
+        const domainUser = this.mapper.toDomain(record as any);
+        const membership = record.memberships?.[0];
+
+        if (membership && this.organizationId) {
+          return new UserWithMembershipClass(
+            domainUser,
+            this.organizationId,
+            membership.role as any
+          );
+        }
+        return domainUser;
+      });
+
+      return {
+        currentPage: page,
+        pageSize: limit,
+        totalRecords,
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrevious: page > 1,
+        records: mappedRecords,
+      };
+    } catch (error) {
+      translatePrismaError(error, "Usuario");
+    }
+  }
 }

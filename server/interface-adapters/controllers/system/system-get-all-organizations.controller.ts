@@ -1,8 +1,8 @@
 import { ISystemGetAllOrganizationsUseCase } from "@/server/application/use-cases/system/system-get-all-organizations.use-case";
 import { OrganizationsFilters } from "@/server/domain/types/organizations";
-import { PageableRequest } from "@/shared/common/pagination";
+import { PageableRequest } from "@/shared/types/pagination.types";
 import { ControllerExecutor } from "@/server/lib/api-handler";
-import { PageableResponse } from "@/shared/common/pagination";
+import { PageableResponse } from "@/shared/types/pagination.types";
 import { Organization } from "@/shared/types/organizations.types";
 
 export class SystemGetAllOrganizationsController implements ControllerExecutor<PageableRequest<OrganizationsFilters>, PageableResponse<Organization>> {

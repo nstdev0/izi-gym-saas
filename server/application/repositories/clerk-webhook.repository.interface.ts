@@ -33,7 +33,7 @@ export interface IClerkWebhookRepository {
     syncMembership(input: SyncMembershipInput, freePlanId: string, freePlanName: string): Promise<void>;
 
     /**
-     * Removes the organizationId from a user and sets them as inactive.
+     * Removes the role mapping from a user to a specific organization.
      */
-    removeMembership(userId: string): Promise<void>;
+    removeMembership(userId: string, organizationId: string): Promise<void>;
 }

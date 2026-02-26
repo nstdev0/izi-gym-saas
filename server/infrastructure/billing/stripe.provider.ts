@@ -19,6 +19,7 @@ const getBaseUrl = () => {
     return "http://localhost:3000";
 };
 
+
 export class StripeBillingProvider implements IBillingProvider {
     private client: Stripe;
 
@@ -80,12 +81,22 @@ export class StripeBillingProvider implements IBillingProvider {
     async getSubscriptionInfo(subscriptionId: string): Promise<SubscriptionInfo | null> {
         try {
             const subscription = await this.client.subscriptions.retrieve(subscriptionId) as Stripe.Subscription;
+            const sub = subscription as any;
+
+            // In Stripe API 2026+, current_period_start/end moved to subscription items
+            const firstItem = sub.items?.data?.[0];
+            const periodStart = sub.current_period_start
+                || firstItem?.current_period_start
+                || firstItem?.period?.start;
+            const periodEnd = sub.current_period_end
+                || firstItem?.current_period_end
+                || firstItem?.period?.end;
 
             return {
                 id: subscription.id,
                 status: subscription.status.toUpperCase(),
-                currentPeriodStart: new Date((subscription as any).current_period_start * 1000),
-                currentPeriodEnd: new Date((subscription as any).current_period_end * 1000),
+                currentPeriodStart: periodStart ? new Date(periodStart * 1000) : new Date(),
+                currentPeriodEnd: periodEnd ? new Date(periodEnd * 1000) : new Date(),
                 cancelAtPeriodEnd: subscription.cancel_at_period_end,
                 customerId: subscription.customer as string,
                 isTrialing: subscription.status === 'trialing',

@@ -134,30 +134,34 @@ model Membership {
 }
 
 model Organization {
-  id                 String              @id @default(cuid())
-  name               String              @unique
-  slug               String              @unique
-  isActive           Boolean             @default(true)
-  createdAt          DateTime            @default(now())
-  updatedAt          DateTime            @updatedAt
-  image              String?
-  organizationPlanId String
-  deletedAt          DateTime?
-  organizationPlan   String
-  organizationId     String              @unique
-  status             Boolean             @default(true)
-  storageUsed        BigInt              @default(0)
-  ApiKey             ApiKey[]
-  attendances        Attendance[]
-  invoices           Invoice[]
-  members            Member[]
-  memberships        Membership[]
-  plan               OrganizationPlan    @relation(fields: [organizationPlanId, organizationPlan], references: [id, name])
-  config             OrganizationConfig?
-  plans              Plan[]              @relation("GymPlans")
-  products           Product[]
-  subscription       Subscription?
-  users              User[]
+  id                   String                   @id @default(cuid())
+  name                 String                   @unique
+  slug                 String                   @unique
+  isActive             Boolean                  @default(true)
+  createdAt            DateTime                 @default(now())
+  updatedAt            DateTime                 @updatedAt
+  image                String?
+  organizationPlanId   String
+  deletedAt            DateTime?
+  organizationPlan     String
+  organizationId       String                   @unique
+  status               Boolean                  @default(true)
+  storageUsed          BigInt                   @default(0)
+  stripeCustomerId     String?                  @unique
+  stripeSubscriptionId String?                  @unique
+  hasUsedTrial         Boolean                  @default(false)
+  ApiKey               ApiKey[]
+  attendances          Attendance[]
+  invoices             Invoice[]
+  members              Member[]
+  memberships          Membership[]
+  plan                 OrganizationPlan         @relation(fields: [organizationPlanId, organizationPlan], references: [id, name])
+  config               OrganizationConfig?
+  organizationUsers    OrganizationMembership[]
+  plans                Plan[]                   @relation("GymPlans")
+  products             Product[]
+  subscription         Subscription?
+  users                User[]
 }
 
 model OrganizationConfig {
@@ -276,23 +280,36 @@ model SystemConfig {
 }
 
 model User {
-  id             String        @id @default(cuid())
-  email          String
+  id             String                   @id @default(cuid())
+  email          String                   @unique
   passwordHash   String?
-  role           Role          @default(STAFF)
   organizationId String?
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
+  createdAt      DateTime                 @default(now())
+  updatedAt      DateTime                 @updatedAt
   image          String?
-  isActive       Boolean       @default(true)
+  isActive       Boolean                  @default(true)
   firstName      String?
   lastName       String?
   deletedAt      DateTime?
   preferences    Json?
-  hasUsedTrial   Boolean       @default(false)
-  organization   Organization? @relation(fields: [organizationId], references: [id])
+  memberships    OrganizationMembership[]
+  organization   Organization?            @relation(fields: [organizationId], references: [id])
+}
 
-  @@unique([email, organizationId])
+model OrganizationMembership {
+  id             String       @id @default(cuid())
+  userId         String
+  organizationId String
+  role           Role         @default(STAFF)
+  isActive       Boolean      @default(true)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, organizationId])
+  @@index([userId])
   @@index([organizationId])
 }
 

@@ -2,12 +2,12 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { format } from "date-fns";
-import { User } from "@/shared/types/users.types";
+import { UserResponse } from "@/shared/types/users.types";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Shield, Clock, Calendar } from "lucide-react";
 
-export default function UserDetail({ user }: { user: User }) {
+export default function UserDetail({ user }: { user: UserResponse }) {
     return (
         <div className="grid gap-6 md:grid-cols-2">
             <Card className="md:col-span-2">
@@ -28,7 +28,7 @@ export default function UserDetail({ user }: { user: User }) {
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
                             <Badge variant="outline" className="flex gap-1 items-center">
                                 <Shield className="w-3 h-3" />
-                                {user.role}
+                                {user.membership?.role || "Sin rol"}
                             </Badge>
                             <Badge variant={user.isActive ? "default" : "destructive"}>
                                 {user.isActive ? "Activo" : "Inactivo"}

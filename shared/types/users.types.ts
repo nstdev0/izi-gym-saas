@@ -13,20 +13,22 @@ export interface User extends BaseEntity {
     firstName: string | null;
     lastName: string | null;
     email: string;
-    role: string;
     isActive: boolean;
     image: string | null;
     preferences: Record<string, unknown> | null;
 }
 
-export interface UserResponse extends BaseResponse {
+export interface UserResponse extends Omit<BaseResponse, "organizationId"> {
     firstName: string | null;
     lastName: string | null;
     email: string;
-    role: string;
     isActive: boolean;
     image: string | null;
     preferences: Record<string, unknown> | null;
+    membership?: {
+        role: string;
+        organizationId: string;
+    } | null;
 }
 
 const AllowedRoles = z.nativeEnum(Role);

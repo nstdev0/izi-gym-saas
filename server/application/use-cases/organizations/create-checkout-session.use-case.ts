@@ -4,6 +4,17 @@ import { ISystemRepository } from "@/server/application/repositories/system.repo
 import { IBillingProvider } from "@/server/application/services/billing-provider.interface";
 import { NotFoundError, ValidationError } from "@/server/domain/errors/common";
 
+export interface CreateCheckoutSessionCommand {
+    organizationId: string;
+    planSlug: string;
+    userId: string;
+}
+
+export interface CreateCheckoutSessionResult {
+    url: string | null;
+    sessionId: string;
+}
+
 export class CreateCheckoutSessionUseCase {
     constructor(
         private readonly organizationsRepository: IOrganizationRepository,
@@ -12,7 +23,9 @@ export class CreateCheckoutSessionUseCase {
         private readonly billingProvider: IBillingProvider
     ) { }
 
-    async execute(organizationId: string, planSlug: string, userId: string) {
+    async execute(command: CreateCheckoutSessionCommand): Promise<CreateCheckoutSessionResult> {
+        const { organizationId, planSlug, userId } = command;
+
         const user = await this.usersRepository.findById(userId);
         if (!user) throw new NotFoundError("Usuario no encontrado");
 
@@ -23,11 +36,9 @@ export class CreateCheckoutSessionUseCase {
         if (!plan) throw new NotFoundError("Plan no encontrado");
         if (!plan.stripePriceId) throw new ValidationError("Plan no tiene Stripe Price configurado");
 
-        const isTrialEligible =
-            (plan.slug.startsWith("pro") || plan.slug.startsWith("enterprise")) &&
-            user.hasUsedTrial === false;
+        const isTrialEligible = plan.isTrialEligible() && organization.canConsumeTrial();
 
-        return await this.billingProvider.createCheckoutSession({
+        const session = await this.billingProvider.createCheckoutSession({
             organizationId: organization.id,
             organizationSlug: organization.slug,
             organizationPlanId: plan.id,
@@ -35,7 +46,12 @@ export class CreateCheckoutSessionUseCase {
             userEmail: user.email,
             planStripePriceId: plan.stripePriceId,
             isTrialEligible,
-            stripeCustomerId: organization.subscription?.stripeCustomerId
+            stripeCustomerId: organization.stripeCustomerId
         });
+
+        return {
+            url: session.url,
+            sessionId: session.id
+        };
     }
 }

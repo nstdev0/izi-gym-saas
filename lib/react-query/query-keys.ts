@@ -6,7 +6,7 @@ import { OrganizationsFilters } from "@/shared/types/organizations.types";
 import { PlansFilters } from "@/shared/types/plans.types";
 import { ProductsFilters } from "@/shared/types/products.types";
 import { UsersFilters } from "@/shared/types/users.types";
-import { PageableRequest } from "@/shared/common/pagination";
+import { PageableRequest } from "@/shared/types/pagination.types";
 
 export const attendanceKeys = {
     all: ['attendance'] as const,

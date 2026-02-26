@@ -9,7 +9,7 @@ export function createAuthModule(
     organizationRepo: IOrganizationRepository,
     memberRepo: IMembersRepository,
     userRepo: IUsersRepository,
-    userRole: Role,
+    userRole: Role | undefined,
     organizationId: string,
 ) {
     const permissionService = new PermissionService(userRole)

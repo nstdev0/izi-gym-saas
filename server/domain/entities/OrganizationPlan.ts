@@ -3,7 +3,7 @@ import { BaseEntity, EntityStatus } from "./_base";
 export class OrganizationPlan extends BaseEntity {
     constructor(
         id: string,
-        organizationId: string, // actually this might be system level, so maybe empty or null? In prisma it's global.
+        organizationId: string,
         createdAt: Date,
         updatedAt: Date,
         status: EntityStatus,
@@ -23,5 +23,9 @@ export class OrganizationPlan extends BaseEntity {
 
     get isActive(): boolean {
         return this.status === EntityStatus.ACTIVE;
+    }
+
+    isTrialEligible(): boolean {
+        return this.slug.startsWith("pro") || this.slug.startsWith("enterprise");
     }
 }

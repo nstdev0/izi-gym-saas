@@ -1,0 +1,16 @@
+app/(frontend)/[slug]/admin/users/[id]/user-detail.tsx(31,39): error TS2339: Property 'role' does not exist on type 'User'.
+app/(frontend)/[slug]/admin/users/components/users-form.tsx(45,33): error TS2339: Property 'role' does not exist on type 'UserResponse'.
+components/sidebar.tsx(152,60): error TS2339: Property 'role' does not exist on type 'UserResponse'.
+components/sidebar.tsx(317,70): error TS2339: Property 'role' does not exist on type 'UserResponse'.
+components/sidebar.tsx(317,94): error TS2339: Property 'role' does not exist on type 'UserResponse'.
+components/sidebar.tsx(447,32): error TS2339: Property 'role' does not exist on type 'UserResponse'.
+components/sidebar.tsx(448,35): error TS2339: Property 'role' does not exist on type 'UserResponse'.
+components/sidebar.tsx(449,37): error TS2339: Property 'role' does not exist on type 'UserResponse'.
+server/application/use-cases/attendance/get-all-attendances.use-case.test.ts(7,33): error TS2307: Cannot find module '@/shared/common/pagination' or its corresponding type declarations.
+server/application/use-cases/members/get-all-members.use-case.test.ts(7,33): error TS2307: Cannot find module '@/shared/common/pagination' or its corresponding type declarations.
+server/application/use-cases/memberships/get-all-memberships.use-case.test.ts(7,33): error TS2307: Cannot find module '@/shared/common/pagination' or its corresponding type declarations.
+server/application/use-cases/organizations/get-all-organizations.use-case.test.ts(7,33): error TS2307: Cannot find module '@/shared/common/pagination' or its corresponding type declarations.
+server/application/use-cases/plans/get-all-plans.use-case.test.ts(7,33): error TS2307: Cannot find module '@/shared/common/pagination' or its corresponding type declarations.
+server/application/use-cases/system/system-get-all-organizations.use-case.test.ts(6,33): error TS2307: Cannot find module '@/shared/common/pagination' or its corresponding type declarations.
+server/application/use-cases/users/get-all-users.use-case.test.ts(7,33): error TS2307: Cannot find module '@/shared/common/pagination' or its corresponding type declarations.
+server/interface-adapters/mappers/user-response.mapper.ts(6,9): error TS2741: Property 'organizationId' is missing in type '{ id: string; firstName: string | null; lastName: string | null; email: string; isActive: boolean; image: string | null; preferences: Record<string, unknown> | null; status: EntityStatus; createdAt: string; updatedAt: string; deletedAt: string | null; membership: { ...; } | null; }' but required in type 'UserResponse'.

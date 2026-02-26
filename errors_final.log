@@ -1,0 +1,2 @@
+server/application/use-cases/users/update-user.use-case.test.ts(48,23): error TS2339: Property 'role' does not exist on type 'User'.
+server/interface-adapters/mappers/user-response.mapper.ts(12,26): error TS2339: Property 'role' does not exist on type 'User'.

@@ -22,6 +22,13 @@ export const useUserDetail = (id: string, enabled = true) => {
     });
 };
 
+export const useUserProfile = () => {
+    return useQuery({
+        queryKey: userKeys.detail("profile"),
+        queryFn: () => usersApi.getProfile(),
+    });
+};
+
 export const useCreateUser = () => {
     const queryClient = useQueryClient();
     return useMutation({

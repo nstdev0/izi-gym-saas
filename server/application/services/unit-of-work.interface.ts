@@ -38,13 +38,13 @@ export interface CreateMembershipAndActivateParams {
 }
 
 export interface SyncStripeSubscriptionEventParams {
-    eventType: 'checkout.session.completed' | 'invoice.payment_succeeded' | 'customer.subscription.deleted';
+    eventType: 'checkout.session.completed' | 'invoice.payment_succeeded' | 'customer.subscription.deleted' | 'customer.subscription.updated';
     organizationId: string;
     organizationPlanId: string;
     stripeCustomerId: string;
     stripeSubscriptionId: string;
     status: 'ACTIVE' | 'PAST_DUE' | 'CANCELED' | 'TRIALING' | 'INCOMPLETE';
-    pricePaid: number;
+    pricePaid?: number;
     currentPeriodEnd: Date;
     currentPeriodStart: Date;
     cancelAtPeriodEnd: boolean;

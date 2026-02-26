@@ -6,7 +6,7 @@ import { NotFoundError } from "@/server/domain/errors/common";
 import {
   PageableRequest,
   PageableResponse,
-} from "@/shared/common/pagination";
+} from "@/shared/types/pagination.types";
 import { IMapperInterface } from "../mappers/IMapper.interface";
 import { translatePrismaError } from "../prisma-error-translator";
 

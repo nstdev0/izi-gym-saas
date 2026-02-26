@@ -1,7 +1,7 @@
 import { IProductsRepository } from "@/server/application/repositories/products.repository.interface";
 import { ProductsFilters } from "@/server/domain/types/products";
 import { Product } from "@/server/domain/entities/Product";
-import { PageableResponse } from "@/shared/common/pagination";
+import { PageableResponse } from "@/shared/types/pagination.types";
 
 import { IPermissionService } from "@/server/application/services/permission.service.interface";
 

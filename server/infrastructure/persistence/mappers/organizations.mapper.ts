@@ -53,7 +53,9 @@ export class OrganizationMapper implements IMapperInterface<Organization, Prisma
             raw.organizationPlanId,
             planEntity,
             raw.storageUsed,
-            raw.subscription,
+            raw.stripeCustomerId ?? undefined,
+            raw.stripeSubscriptionId ?? undefined,
+            raw.hasUsedTrial ?? false,
         )
     }
 

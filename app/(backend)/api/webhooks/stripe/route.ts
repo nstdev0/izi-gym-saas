@@ -26,9 +26,11 @@ export async function POST(req: Request) {
     }
 
     try {
+        console.log(`[Stripe Webhook] Received event: ${event.type} (id: ${event.id})`);
         const container = await getStripeWebhookContainer();
         await container.syncStripeEventUseCase.execute(event);
 
+        console.log(`[Stripe Webhook] Successfully processed event: ${event.type}`);
         return NextResponse.json({ received: true }, { status: 200 });
     } catch (error) {
         console.error(`[Stripe Webhook Error]`, error);

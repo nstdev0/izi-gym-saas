@@ -32,7 +32,6 @@ export function UpgradePlanModal({ isOpen, onOpenChange }: UpgradePlanModalProps
             const data = await response.json();
 
             if (response.ok && data.url) {
-                // 🟢 Redirección exitosa a Stripe
                 window.location.href = data.url;
             } else {
                 console.error("Error iniciando checkout:", data);

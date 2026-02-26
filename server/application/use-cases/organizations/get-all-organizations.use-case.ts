@@ -1,4 +1,4 @@
-import { PageableRequest, PageableResponse } from "@/shared/common/pagination";
+import { PageableRequest, PageableResponse } from "@/shared/types/pagination.types";
 import { IOrganizationRepository, OrganizationsFilters } from "@/server/application/repositories/organizations.repository.interface";
 import { Organization } from "@/server/domain/entities/Organization";
 import { IPermissionService } from "@/server/application/services/permission.service.interface";

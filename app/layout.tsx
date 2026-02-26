@@ -79,22 +79,26 @@ export default async function RootLayout({
   let initialTheme: "light" | "dark" | "system" = "system";
 
   if (userId) {
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { preferences: true }
-    });
+    try {
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { preferences: true }
+      });
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const preferences = (user?.preferences as any) || {};
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const preferences = (user?.preferences as any) || {};
 
-    if (preferences.appearance?.font) {
-      initialFont = preferences.appearance.font;
-    }
-    if (preferences.appearance?.primaryColor) {
-      initialColor = preferences.appearance.primaryColor;
-    }
-    if (preferences.appearance?.theme) {
-      initialTheme = preferences.appearance.theme;
+      if (preferences.appearance?.font) {
+        initialFont = preferences.appearance.font;
+      }
+      if (preferences.appearance?.primaryColor) {
+        initialColor = preferences.appearance.primaryColor;
+      }
+      if (preferences.appearance?.theme) {
+        initialTheme = preferences.appearance.theme;
+      }
+    } catch (error) {
+      console.warn(`[RootLayout] Could not load preferences for user ${userId}, using defaults.`, error);
     }
   }
 

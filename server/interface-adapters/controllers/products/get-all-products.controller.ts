@@ -1,6 +1,6 @@
 import { ProductsFilters } from "@/server/domain/types/products";
 import { GetAllProductsUseCase } from "@/server/application/use-cases/products/get-all-products.use-case";
-import { PageableRequest } from "@/shared/common/pagination";
+import { PageableRequest } from "@/shared/types/pagination.types";
 import { ProductResponseMapper } from "../../mappers/product-response.mapper";
 
 export class GetAllProductsController {

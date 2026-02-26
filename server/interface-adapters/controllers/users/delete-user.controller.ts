@@ -16,19 +16,24 @@ export class DeleteUserController implements ControllerExecutor<void, void> {
     }
     const session = await auth();
 
-    if (!session.userId) {
-      throw new ForbiddenError("No autenticado");
+    if (!session.userId || !session.orgId) {
+      throw new ForbiddenError("No autenticado o sin organización");
     }
 
     if (session.userId === id) {
       throw new ForbiddenError("No puedes eliminar tu propia cuenta");
     }
-    const currentUser = await prisma.user.findUnique({
-      where: { id: session.userId },
+    const currentMembership = await prisma.organizationMembership.findUnique({
+      where: {
+        userId_organizationId: {
+          userId: session.userId,
+          organizationId: session.orgId
+        }
+      },
       select: { role: true },
     });
 
-    if (!currentUser || !ALLOWED_ROLES.includes(currentUser.role)) {
+    if (!currentMembership || !ALLOWED_ROLES.includes(currentMembership.role)) {
       throw new ForbiddenError("No tienes permisos para eliminar usuarios");
     }
 

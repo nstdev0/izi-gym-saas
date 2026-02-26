@@ -6,10 +6,9 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CheckCircle2, Type, Bell, Palette } from "lucide-react"; // Added Palette
-import { SketchPicker } from "react-color";
+import { CheckCircle2, Type, Bell, Palette } from "lucide-react";
+import { HexColorPicker } from "react-colorful";
 import { toast } from "sonner";
 import { useState } from "react";
 import { Switch } from "@/components/ui/switch";
@@ -121,10 +120,10 @@ export function PreferencesForm({ initialNotifications }: PreferencesFormProps) 
                                             {primaryColor || "Seleccionar color"}
                                         </Button>
                                     </PopoverTrigger>
-                                    <PopoverContent className="w-auto p-0">
-                                        <SketchPicker
+                                    <PopoverContent className="w-auto p-3">
+                                        <HexColorPicker
                                             color={primaryColor || "#000000"}
-                                            onChange={(color) => setPrimaryColor(color.hex)}
+                                            onChange={setPrimaryColor}
                                         />
                                     </PopoverContent>
                                 </Popover>

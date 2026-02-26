@@ -1,7 +1,7 @@
 import {
   PageableRequest,
   PageableResponse,
-} from "@/shared/common/pagination";
+} from "@/shared/types/pagination.types";
 
 export interface PrismaDelegate {
   findMany(args?: any): Promise<unknown[]>;

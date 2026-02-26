@@ -12,6 +12,8 @@ import { GetUserByIdController } from "@/server/interface-adapters/controllers/u
 import { UpdateUserController } from "@/server/interface-adapters/controllers/users/update-user.controller";
 import { DeleteUserController } from "@/server/interface-adapters/controllers/users/delete-user.controller";
 import { RestoreUserController } from "@/server/interface-adapters/controllers/users/restore-user.controller";
+import { GetUserProfileController } from "@/server/interface-adapters/controllers/users/get-user-profile.controller";
+import { UpdateUserProfileController } from "@/server/interface-adapters/controllers/users/update-user-profile.controller";
 import { PrismaClient } from "@/generated/prisma/client";
 import type { AuthModule } from "@/server/di/modules/auth.module";
 
@@ -33,6 +35,9 @@ export function createUsersModule(prisma: PrismaClient, tenantId: string, curren
     const deleteUserController = new DeleteUserController(deleteUserUseCase);
     const restoreUserController = new RestoreUserController(restoreUserUseCase);
 
+    const getUserProfileController = new GetUserProfileController(getUserByIdUseCase, currentUserId);
+    const updateUserProfileController = new UpdateUserProfileController(updateUserUseCase, currentUserId);
+
     return {
 
         getAllUsersController,
@@ -41,6 +46,8 @@ export function createUsersModule(prisma: PrismaClient, tenantId: string, curren
         updateUserController,
         deleteUserController,
         restoreUserController,
+        getUserProfileController,
+        updateUserProfileController,
 
     };
 }

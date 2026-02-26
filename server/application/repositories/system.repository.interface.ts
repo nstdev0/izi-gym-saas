@@ -1,6 +1,6 @@
 import { Organization } from "@/server/domain/entities/Organization";
 import { OrganizationPlan } from "@/server/domain/entities/OrganizationPlan";
-import { PageableRequest, PageableResponse } from "@/shared/common/pagination";
+import { PageableRequest, PageableResponse } from "@/shared/types/pagination.types";
 import { SystemStats, RevenueStats, SystemConfig } from "@/server/domain/types/system";
 import { OrganizationsFilters } from "@/server/domain/types/organizations";
 import { CreatePlanInput, UpdatePlanInput } from "@/server/domain/types/plans";

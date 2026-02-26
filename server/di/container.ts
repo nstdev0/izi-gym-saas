@@ -20,23 +20,38 @@ import { UnauthorizedError } from "@/server/domain/errors/common";
 export const getContainer = cache(async () => {
   const { orgId, userId } = await auth();
 
-
-  const tenantId = orgId ?? "";
-
   if (!userId) {
     throw new UnauthorizedError('Se requiere autenticación')
   }
 
-  const dbUser = await prisma.user.findFirst({
-    where: { id: userId, organizationId: tenantId },
-    select: { role: true },
-  })
-
-  if (!dbUser) {
-    throw new UnauthorizedError('Usuario no encontrado en esta organización')
+  let tenantId = "";
+  if (orgId) {
+    const org = await prisma.organization.findUnique({
+      where: { organizationId: orgId },
+      select: { id: true }
+    });
+    if (org) {
+      tenantId = org.id;
+    }
   }
 
-  const userRole = dbUser.role as Role
+  let userRole: Role | undefined = undefined;
+
+  if (tenantId) {
+    const membership = await prisma.organizationMembership.findFirst({
+      where: { userId: userId, organizationId: tenantId, isActive: true },
+      select: { role: true },
+    });
+
+    if (membership) {
+      userRole = membership.role as Role;
+    }
+  }
+
+  // We do not throw UnauthorizedError if there is no membership here anymore, 
+  // because global endpoints (like /api/users/profile) or SYSTEM God-mode endpoints
+  // might not have a specific tenantId or membership context. The individual
+  // UseCases and Repositories will enforce the tenantId constraints where required.
 
   const organizationsRepo = new OrganizationsRepository(prisma.organization, tenantId)
   const membersRepo = new MembersRepository(prisma.member, tenantId)
@@ -126,6 +141,8 @@ export const getContainer = cache(async () => {
     updateUserController: usersModule.updateUserController,
     deleteUserController: usersModule.deleteUserController,
     restoreUserController: usersModule.restoreUserController,
+    getUserProfileController: usersModule.getUserProfileController,
+    updateUserProfileController: usersModule.updateUserProfileController,
 
     // System
     getSystemStatsController: systemModule.getSystemStatsController,

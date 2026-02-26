@@ -1,6 +1,6 @@
 import { OrganizationsFilters } from "@/server/application/repositories/organizations.repository.interface";
 import { IGetAllOrganizationsUseCase } from "@/server/application/use-cases/organizations/get-all-organizations.use-case";
-import { PageableRequest } from "@/shared/common/pagination";
+import { PageableRequest } from "@/shared/types/pagination.types";
 
 export class GetAllOrganizationsController {
   constructor(

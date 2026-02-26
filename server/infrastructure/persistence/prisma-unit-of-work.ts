@@ -70,19 +70,36 @@ export class PrismaUnitOfWork implements IUnitOfWork {
                             id: createData.id,
                             email: createData.email,
                             image: createData.image,
-                            role: createData.role as Role,
-                            organizationId: org.id,
                             isActive: createData.isActive,
+                            memberships: {
+                                create: {
+                                    organizationId: org.id,
+                                    role: createData.role as Role,
+                                    isActive: true
+                                }
+                            }
                         },
                     });
                 } else {
                     const updatePayload = params.ownerData as { id: string; data: Record<string, unknown> };
-                    await tx.user.update({
-                        where: { id: updatePayload.id },
-                        data: {
+                    // We upsert the membership since the user already exists globally
+                    await tx.organizationMembership.upsert({
+                        where: {
+                            userId_organizationId: {
+                                userId: updatePayload.id,
+                                organizationId: org.id
+                            }
+                        },
+                        create: {
+                            userId: updatePayload.id,
                             organizationId: org.id,
                             role: updatePayload.data.role as Role,
+                            isActive: true
                         },
+                        update: {
+                            role: updatePayload.data.role as Role,
+                            isActive: true
+                        }
                     });
                 }
 
@@ -324,13 +341,46 @@ export class PrismaUnitOfWork implements IUnitOfWork {
     async syncStripeSubscriptionEvent(params: SyncStripeSubscriptionEventParams): Promise<void> {
         try {
             await this.prisma.$transaction(async (tx) => {
+                // ─── Resolve Clerk ID → CUID ────────────────────────────
+                // The metadata from Stripe may contain a Clerk org ID (org_xxx)
+                // but all DB queries expect the internal CUID.
+                let resolvedOrgId = params.organizationId;
+
+                if (params.organizationId.startsWith('org_')) {
+                    const org = await tx.organization.findUnique({
+                        where: { organizationId: params.organizationId },
+                        select: { id: true },
+                    });
+
+                    if (!org) {
+                        console.error(`[Stripe Sync] Organization not found for Clerk ID: ${params.organizationId}`);
+                        return;
+                    }
+
+                    resolvedOrgId = org.id;
+                    console.log(`[Stripe Sync] Resolved Clerk ID ${params.organizationId} → CUID ${resolvedOrgId}`);
+                }
+
                 // Upsert subscription
                 // Not all organizations will have a subscription created yet
                 const existingSub = await tx.subscription.findUnique({
-                    where: { organizationId: params.organizationId }
+                    where: { organizationId: resolvedOrgId }
                 });
 
                 if (existingSub) {
+                    // Prevent race conditions: Ignore events from an OLD subscription if we already
+                    // have a newer subscription in place. We specifically want to ignore 'deleted'
+                    // or 'updated' events from older subscriptions when a new one is active.
+                    // However, we MUST accept 'customer.subscription.updated' if it's for the NEW token,
+                    // so we only ignore if the incoming event belongs to an older subscription id.
+                    if (
+                        params.eventType === 'customer.subscription.deleted' &&
+                        existingSub.stripeSubscriptionId &&
+                        existingSub.stripeSubscriptionId !== params.stripeSubscriptionId
+                    ) {
+                        return; // Old subscription deleted event, ignore it to protect the new active subscription
+                    }
+
                     await tx.subscription.update({
                         where: { id: existingSub.id },
                         data: {
@@ -338,7 +388,7 @@ export class PrismaUnitOfWork implements IUnitOfWork {
                             stripeCustomerId: params.stripeCustomerId,
                             stripeSubscriptionId: params.stripeSubscriptionId,
                             status: params.status,
-                            pricePaid: params.pricePaid,
+                            pricePaid: params.pricePaid !== undefined ? params.pricePaid : existingSub.pricePaid,
                             currentPeriodStart: params.currentPeriodStart,
                             currentPeriodEnd: params.currentPeriodEnd,
                             cancelAtPeriodEnd: params.cancelAtPeriodEnd,
@@ -347,12 +397,12 @@ export class PrismaUnitOfWork implements IUnitOfWork {
                 } else {
                     await tx.subscription.create({
                         data: {
-                            organizationId: params.organizationId,
+                            organizationId: resolvedOrgId,
                             organizationPlanId: params.organizationPlanId,
                             stripeCustomerId: params.stripeCustomerId,
                             stripeSubscriptionId: params.stripeSubscriptionId,
                             status: params.status,
-                            pricePaid: params.pricePaid,
+                            pricePaid: params.pricePaid ?? 0,
                             currentPeriodStart: params.currentPeriodStart,
                             currentPeriodEnd: params.currentPeriodEnd,
                             cancelAtPeriodEnd: params.cancelAtPeriodEnd,
@@ -360,25 +410,33 @@ export class PrismaUnitOfWork implements IUnitOfWork {
                     });
                 }
 
-                // Retrieve the plan explicitly to get its name for the organization update
+                // En la misma transacción, forzamos actualizar la Organización
                 const plan = await tx.organizationPlan.findUnique({
                     where: { id: params.organizationPlanId }
                 });
 
+                // On deletion, clear the stripeSubscriptionId so the org is clean
+                const isCancellation = params.eventType === 'customer.subscription.deleted';
+
+                const orgUpdateData: any = {
+                    organizationPlanId: params.organizationPlanId,
+                    stripeCustomerId: params.stripeCustomerId,
+                    stripeSubscriptionId: isCancellation ? null : params.stripeSubscriptionId,
+                };
+
                 if (plan) {
-                    await tx.organization.update({
-                        where: { id: params.organizationId },
-                        data: {
-                            organizationPlanId: params.organizationPlanId,
-                            organizationPlan: plan.name,
-                        }
-                    });
+                    orgUpdateData.organizationPlan = plan.name;
                 }
 
-                // If Trialing, update User hasUsedTrial
-                if (params.status === 'TRIALING' && params.userId) {
-                    await tx.user.update({
-                        where: { id: params.userId },
+                await tx.organization.update({
+                    where: { id: resolvedOrgId },
+                    data: orgUpdateData,
+                });
+
+                // If Trialing, mark Organization as having used its trial
+                if (params.status === 'TRIALING') {
+                    await tx.organization.update({
+                        where: { id: resolvedOrgId },
                         data: {
                             hasUsedTrial: true
                         }
@@ -386,6 +444,7 @@ export class PrismaUnitOfWork implements IUnitOfWork {
                 }
             });
         } catch (error) {
+            console.error(`[Stripe Sync] Raw Prisma error:`, error);
             translatePrismaError(error, "Sincronización Stripe");
         }
     }

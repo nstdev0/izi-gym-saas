@@ -26,6 +26,10 @@ export const usersApi = {
         return fetchClient<PageableResponse<UserResponse>>(endpoint);
     },
 
+    getProfile: () => {
+        return fetchClient<UserResponse>(`${BASE_API_PATH}/profile`);
+    },
+
     getById: (id: string) => {
         return fetchClient<UserResponse>(`${BASE_API_PATH}/${id}`);
     },

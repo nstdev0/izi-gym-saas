@@ -37,14 +37,14 @@ export class OrganizationsRepository
 
   async findById(id: string): Promise<Organization | null> {
     try {
-      if (id.startsWith("org_")) {
-        const entity = await this.organizationModel.findUnique({
-          where: { organizationId: id },
-          include: { config: true, plan: true },
-        })
-        return entity ? this.mapper.toDomain(entity) : null
-      }
-      return super.findById(id);
+      const isClerkId = id.startsWith("org_");
+
+      const entity = await this.organizationModel.findUnique({
+        where: isClerkId ? { organizationId: id } : { id },
+        include: { config: true, plan: true },
+      })
+
+      return entity ? this.mapper.toDomain(entity) : null
     } catch (error) {
       translatePrismaError(error, "Organización")
     }

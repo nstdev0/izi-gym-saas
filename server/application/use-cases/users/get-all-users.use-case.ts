@@ -1,6 +1,6 @@
 import { IUsersRepository, UsersFilters } from "@/server/application/repositories/users.repository.interface";
 import { User } from "@/server/domain/entities/User";
-import { PageableRequest, PageableResponse } from "@/shared/common/pagination";
+import { PageableRequest, PageableResponse } from "@/shared/types/pagination.types";
 
 import { IPermissionService } from "@/server/application/services/permission.service.interface";
 

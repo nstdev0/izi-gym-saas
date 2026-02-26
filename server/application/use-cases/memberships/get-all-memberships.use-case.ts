@@ -1,7 +1,7 @@
 import { IMembershipsRepository } from "@/server/application/repositories/memberships.repository.interface";
 import { MembershipsFilters } from "@/server/domain/types/memberships";
 import { Membership } from "@/server/domain/entities/Membership";
-import { PageableRequest, PageableResponse } from "@/shared/common/pagination";
+import { PageableRequest, PageableResponse } from "@/shared/types/pagination.types";
 import { IPermissionService } from "@/server/application/services/permission.service.interface";
 
 export interface IGetAllMembershipsUseCase {

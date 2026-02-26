@@ -1,6 +1,6 @@
 import { MembershipsFilters } from "@/server/domain/types/memberships";
 import { IGetAllMembershipsUseCase } from "@/server/application/use-cases/memberships/get-all-memberships.use-case";
-import { PageableRequest, PageableResponse } from "@/shared/common/pagination";
+import { PageableRequest, PageableResponse } from "@/shared/types/pagination.types";
 import { ControllerExecutor } from "@/server/lib/api-handler";
 import { MembershipResponse } from "@/shared/types/memberships.types";
 import { MembershipResponseMapper } from "../../mappers/membership-response.mapper";

@@ -15,15 +15,6 @@ export function PricingCards({ onSelectPlan }: PricingCardsProps) {
 
     const plans = [
         {
-            name: "Prueba gratis",
-            description: "Para gimnasios pequeños y recién empezando.",
-            monthlySlug: "free-trial",
-            // 🟢 No necesitamos yearlySlug aquí, lo manejaremos lógicamente abajo
-            priceMonthly: "$0",
-            features: ["Hasta 50 miembros", "Gestión de asistencias", "Soporte básico"],
-            popular: false,
-        },
-        {
             name: "Pro",
             description: "El más popular. Para gimnasios en crecimiento.",
             monthlySlug: "pro-monthly",
@@ -61,13 +52,11 @@ export function PricingCards({ onSelectPlan }: PricingCardsProps) {
                 </Label>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
                 {plans.map((plan) => {
-                    // 🟢 FIX CRÍTICO: Si no tiene yearlySlug (como el Free), forzamos la data mensual.
-                    const isFreePlan = plan.monthlySlug === "free-trial";
                     const slug = (isYearly && plan.yearlySlug) ? plan.yearlySlug : plan.monthlySlug;
                     const price = (isYearly && plan.priceYearly) ? plan.priceYearly : plan.priceMonthly;
-                    const cycleText = isFreePlan ? 'siempre' : (isYearly ? 'año' : 'mes');
+                    const cycleText = isYearly ? 'año' : 'mes';
 
                     return (
                         <div key={plan.name} className={`relative flex flex-col rounded-xl border bg-card text-card-foreground shadow ${plan.popular ? 'border-primary ring-2 ring-primary' : ''}`}>

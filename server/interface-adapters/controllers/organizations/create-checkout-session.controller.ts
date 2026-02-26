@@ -12,7 +12,7 @@ export class CreateCheckoutSessionController {
         planSlug: string;
         userId: string;
     }) {
-        const session = await this.useCase.execute(organizationId, planSlug, userId);
+        const session = await this.useCase.execute({ organizationId, planSlug, userId });
         return { url: session.url };
     }
 }

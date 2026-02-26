@@ -1,7 +1,7 @@
 import { MembersFilters } from "@/server/application/repositories/members.repository.interface";
 import { IGetAllMembersUseCase } from "@/server/application/use-cases/members/get-all-members.use-case";
 import { ControllerExecutor } from "@/server/lib/api-handler";
-import { PageableRequest, PageableResponse } from "@/shared/common/pagination";
+import { PageableRequest, PageableResponse } from "@/shared/types/pagination.types";
 import { MemberResponse } from "@/shared/types/members.types";
 import { MemberResponseMapper } from "../../mappers/member-response.mapper";
 

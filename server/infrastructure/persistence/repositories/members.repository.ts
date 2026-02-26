@@ -10,7 +10,7 @@ import {
 import {
   PageableRequest,
   PageableResponse,
-} from "@/shared/common/pagination";
+} from "@/shared/types/pagination.types";
 import { NotFoundError } from "@/server/domain/errors/common";
 import { MemberMapper } from "../mappers/members.mapper";
 import { translatePrismaError } from "../prisma-error-translator";

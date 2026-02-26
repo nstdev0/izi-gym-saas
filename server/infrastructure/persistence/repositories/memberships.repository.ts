@@ -7,7 +7,7 @@ import {
   UpdateMembershipInput,
   MembershipsFilters,
 } from "@/server/domain/types/memberships";
-import { PageableRequest, PageableResponse } from "@/shared/common/pagination";
+import { PageableRequest, PageableResponse } from "@/shared/types/pagination.types";
 import { MembershipMapper } from "../mappers/memberships.mapper";
 import { translatePrismaError } from "../prisma-error-translator";
 

@@ -1,0 +1,6 @@
+server/interface-adapters/controllers/users/get-all-users.controller.ts(13,51): error TS2345: Argument of type 'User[]' is not assignable to parameter of type 'UserWithMembership[]'.
+  Property 'role' is missing in type 'User' but required in type 'UserWithMembership'.
+server/interface-adapters/controllers/users/get-user-by-id.controller.ts(18,42): error TS2345: Argument of type 'User' is not assignable to parameter of type 'UserWithMembership'.
+  Property 'role' is missing in type 'User' but required in type 'UserWithMembership'.
+server/interface-adapters/controllers/users/update-user.controller.ts(16,42): error TS2345: Argument of type 'User' is not assignable to parameter of type 'UserWithMembership'.
+  Property 'role' is missing in type 'User' but required in type 'UserWithMembership'.

@@ -13,9 +13,9 @@ export default async function RootPage() {
 
   // SI HAY SESIÓN -> LÓGICA DE REDIRECCIÓN
 
-  // 2. Buscar usuario en Base de Datos para ver ROL y ORGANIZACIÓN
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
+  // 2. Buscar membresías del usuario para ver ROL y ORGANIZACIÓN
+  const memberships = await prisma.organizationMembership.findMany({
+    where: { userId: userId, isActive: true },
     include: {
       organization: true, // Traemos la org para obtener el slug
     },
@@ -23,24 +23,32 @@ export default async function RootPage() {
 
   // --- 3. MANEJO DE LATENCIA (RACE CONDITION) ---
   // Si está logueado en Clerk pero no en DB -> Esperar Webhook
-  if (!user) {
-    return (
-      <div className="flex h-screen w-full flex-col items-center justify-center gap-4 bg-gray-50 dark:bg-slate-950">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-300 border-t-indigo-600 dark:border-slate-700 dark:border-t-indigo-500"></div>
-        <p className="text-sm font-medium text-gray-500 dark:text-gray-400 animate-pulse">
-          Sincronizando tu cuenta...
-        </p>
-        <meta httpEquiv="refresh" content="2" />
-      </div>
-    );
+  if (!memberships || memberships.length === 0) {
+    const rawUser = await prisma.user.findUnique({ where: { id: userId } });
+    if (!rawUser) {
+      return (
+        <div className="flex h-screen w-full flex-col items-center justify-center gap-4 bg-gray-50 dark:bg-slate-950">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-300 border-t-indigo-600 dark:border-slate-700 dark:border-t-indigo-500"></div>
+          <p className="text-sm font-medium text-gray-500 dark:text-gray-400 animate-pulse">
+            Sincronizando tu cuenta...
+          </p>
+          <meta httpEquiv="refresh" content="2" />
+        </div>
+      );
+    }
   }
 
   let dashboardUrl = "/sign-in";
 
-  if (user.role === "GOD") {
+  // TODO: Refactor global GOD role logic. For now, we will assume if any membership is GOD, redirect to system.
+  // We can also default to the first active organization.
+  const isGod = memberships.some(m => m.role === "GOD");
+
+  if (isGod) {
     dashboardUrl = "/system/dashboard";
-  } else if (user.organization?.slug) {
-    dashboardUrl = `/${user.organization.slug}/admin/dashboard`;
+  } else if (memberships.length > 0 && memberships[0].organization?.slug) {
+    // Redirige al dashboard de la primera organización activa
+    dashboardUrl = `/${memberships[0].organization.slug}/admin/dashboard`;
   }
 
   return <LandingPage dashboardUrl={dashboardUrl} isLoggedIn={true} />;
