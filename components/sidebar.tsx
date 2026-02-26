@@ -174,8 +174,8 @@ export function Sidebar({
         {
           label: "GOD Panel",
           icon: ShieldAlert,
-          href: "/system/dashboard",
-          active: pathname.startsWith("/system"),
+          href: "/god",
+          active: pathname.startsWith("/god"),
           color: "text-sky-500",
         },
       ]
@@ -193,29 +193,29 @@ export function Sidebar({
     {
       label: "Overview",
       icon: LayoutDashboard,
-      href: "/system/dashboard",
-      active: pathname === "/system/dashboard",
+      href: "/god",
+      active: pathname === "/god",
       color: "text-sky-500",
     },
     {
       label: "Organizaciones",
       icon: Building2,
-      href: "/system/organizations",
-      active: pathname === "/system/organizations",
+      href: "/god/organizations",
+      active: pathname === "/god/organizations",
       color: "text-violet-500",
     },
     {
       label: "Usuarios Globales",
       icon: Users,
-      href: "/system/users",
-      active: pathname === "/system/users",
+      href: "/god/users",
+      active: pathname === "/god/users",
       color: "text-pink-700",
     },
     {
       label: "Configuración SaaS",
       icon: Settings,
-      href: "/system/settings",
-      active: pathname === "/system/settings",
+      href: "/god/settings",
+      active: pathname === "/god/settings",
     },
   ];
 
@@ -252,7 +252,7 @@ export function Sidebar({
     <div
       className={cn(
         "relative flex flex-col h-screen bg-muted/40 border-r transition-all duration-300 ease-in-out",
-        isSidebarCollapsed ? "w-[72px]" : "w-56",
+        isSidebarCollapsed ? "w-[72px]" : "w-64",
         className,
       )}
     >

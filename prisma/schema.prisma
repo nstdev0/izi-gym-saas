@@ -292,6 +292,7 @@ model User {
   lastName       String?
   deletedAt      DateTime?
   preferences    Json?
+  isSuperAdmin   Boolean                  @default(false)
   memberships    OrganizationMembership[]
   organization   Organization?            @relation(fields: [organizationId], references: [id])
 }

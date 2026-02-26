@@ -32,7 +32,7 @@ export default async function RootPage() {
           <p className="text-sm font-medium text-gray-500 dark:text-gray-400 animate-pulse">
             Sincronizando tu cuenta...
           </p>
-          <meta httpEquiv="refresh" content="2" />
+          <meta httpEquiv="refresh" content="5" />
         </div>
       );
     }
@@ -45,7 +45,7 @@ export default async function RootPage() {
   const isGod = memberships.some(m => m.role === "GOD");
 
   if (isGod) {
-    dashboardUrl = "/system/dashboard";
+    dashboardUrl = "/god/dashboard";
   } else if (memberships.length > 0 && memberships[0].organization?.slug) {
     // Redirige al dashboard de la primera organización activa
     dashboardUrl = `/${memberships[0].organization.slug}/admin/dashboard`;

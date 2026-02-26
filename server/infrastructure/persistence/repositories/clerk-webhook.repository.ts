@@ -157,10 +157,34 @@ export class ClerkWebhookRepository implements IClerkWebhookRepository {
             throw new Error(`[Sincronización Asíncrona] Usuario o Organización faltante. userId: ${input.userId}, orgId: ${input.organization.id}. Reintentando evento...`);
         }
 
-        // 2. Extraemos el rol desde Clerk, mapenado los valores de Clerk a nuestros enums
+        // 2. Extraemos el rol desde Clerk, mapenando los valores de Clerk a nuestros enums
         let parsedRole: Role = Role.STAFF;
-        if (input.role === "org:admin") parsedRole = Role.ADMIN;
-        if (input.role === "org:owner") parsedRole = Role.OWNER;
+
+        // Preservar rol OWNER o GOD si ya existe
+        const existingMembership = await this.prisma.organizationMembership.findUnique({
+            where: {
+                userId_organizationId: {
+                    userId: input.userId,
+                    organizationId: input.organization.id
+                }
+            }
+        });
+
+        if (input.role === "org:admin") {
+            if (existingMembership?.role === "OWNER" || existingMembership?.role === "GOD") {
+                parsedRole = existingMembership.role;
+            } else {
+                const membersCount = await this.prisma.organizationMembership.count({
+                    where: { organizationId: input.organization.id }
+                });
+                parsedRole = membersCount === 0 ? Role.OWNER : Role.ADMIN;
+            }
+        } else if (input.role === "org:owner") {
+            parsedRole = Role.OWNER;
+        } else if (existingMembership?.role === "OWNER" || existingMembership?.role === "GOD") {
+            // Si Clerk manda otro rol por error, pero en DB ya es OWNER
+            parsedRole = existingMembership.role;
+        }
 
         // 3. Upsert en la tabla Pivot (OrganizationMembership)
         await this.prisma.organizationMembership.upsert({
